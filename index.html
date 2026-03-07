@@ -256,11 +256,17 @@ tr:hover td{background:rgba(156,107,71,.03);}
 
 /* ── BADGES ── */
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;}
-.bc{background:#ede8fb;color:#5a47c0;}
-.ba{background:#fef3d8;color:#9c7a10;}
-.bi{background:#e4f5eb;color:#2e7d4f;}
-.bf{background:#fdecea;color:#c0392b;}
-.bv{background:#e4f5eb;color:#2e7d4f;}
+/* clases */
+.bc  {background:#ede8fb;color:#5a47c0;}  /* Coro */
+.ba  {background:#fef3d8;color:#9c7a10;}  /* Auralidad */
+.bi  {background:#e4f5eb;color:#2e7d4f;}  /* Instrumento */
+.bmu {background:#fce4ec;color:#c2185b;}  /* Músicaminadores */
+.ben {background:#e0f7fa;color:#00695c;}  /* Ensamble Musical */
+.bex {background:#f3e5f5;color:#7b1fa2;}  /* Expresión Musical */
+.bel {background:#fff3e0;color:#e65100;}  /* Exploración Musical */
+.bec {background:#e8f5e9;color:#1b5e20;}  /* Expresión Corporal */
+.bf  {background:#fdecea;color:#c0392b;}  /* falta */
+.bv  {background:#e4f5eb;color:#2e7d4f;}  /* asistió */
 
 /* ── FALTA CARDS ── */
 .fc-wrap{border:1px solid var(--line);border-radius:13px;margin-bottom:12px;overflow:hidden;}
@@ -287,7 +293,7 @@ tr:hover td{background:rgba(156,107,71,.03);}
 .fb-alert{background:#fdecea;color:var(--rust);}
 
 /* ── HORARIO GRID ── */
-.hg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;}
+.hg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px;}
 .hc{
   background:var(--purpleL);border:1.5px solid var(--line);
   border-radius:10px;padding:13px;
@@ -418,6 +424,11 @@ tr:hover td{background:rgba(156,107,71,.03);}
         <option value="Coro">🎵 Coro</option>
         <option value="Auralidad">👂 Auralidad</option>
         <option value="Instrumento">🎸 Instrumento</option>
+        <option value="Músicaminadores">🎶 Músicaminadores</option>
+        <option value="Ensamble Musical">🎼 Ensamble Musical</option>
+        <option value="Expresión Musical">🎹 Expresión Musical</option>
+        <option value="Exploración Musical">🔍 Exploración Musical</option>
+        <option value="Expresión Corporal">🤸 Expresión Corporal</option>
       </select>
     </div>
     <div class="sess-field"><label>Día de hoy</label>
@@ -469,11 +480,16 @@ tr:hover td{background:rgba(156,107,71,.03);}
 <div class="view" id="view-faltas">
   <div class="sh"><h2>Control de Faltas</h2><p>Inasistencias detectadas automáticamente al cerrar cada sesión de clase.</p></div>
 
-  <div class="stats">
+  <div class="stats" style="grid-template-columns:repeat(4,1fr);">
     <div class="sc"><div class="sn" id="ft-tot">0</div><div class="sl">Faltas Totales</div></div>
     <div class="sc"><div class="sn" id="ft-coro">0</div><div class="sl">Coro</div></div>
     <div class="sc"><div class="sn" id="ft-aural">0</div><div class="sl">Auralidad</div></div>
     <div class="sc"><div class="sn" id="ft-inst">0</div><div class="sl">Instrumento</div></div>
+    <div class="sc"><div class="sn" id="ft-musi">0</div><div class="sl">Músicaminadores</div></div>
+    <div class="sc"><div class="sn" id="ft-ensa">0</div><div class="sl">Ensamble</div></div>
+    <div class="sc"><div class="sn" id="ft-exmu">0</div><div class="sl">Expr. Musical</div></div>
+    <div class="sc"><div class="sn" id="ft-elmu">0</div><div class="sl">Explor. Musical</div></div>
+    <div class="sc"><div class="sn" id="ft-exco">0</div><div class="sl">Expr. Corporal</div></div>
   </div>
 
   <div class="card" style="margin-bottom:18px;">
@@ -506,17 +522,30 @@ tr:hover td{background:rgba(156,107,71,.03);}
       <div class="fl"><label>📱 WhatsApp Acudiente</label><input type="tel" id="inp-wapp" placeholder="573001234567"></div>
       <div class="fl"><label>📧 Correo Acudiente</label><input type="email" id="inp-mail" placeholder="acudiente@correo.com"></div>
       <div class="fl"><label>Nombre Acudiente</label><input type="text" id="inp-acud" placeholder="Ej: Ana García (mamá)"></div>
+      <div class="fl"><label>🎓 Programa</label>
+        <select id="inp-prog">
+          <option value="">— Selecciona el programa —</option>
+          <option value="Músicaminadores">Músicaminadores</option>
+          <option value="Preiniciación">Preiniciación</option>
+          <option value="Iniciación">Iniciación</option>
+          <option value="Instrumental">Instrumental</option>
+          <option value="Comunidad UIS">Comunidad UIS</option>
+          <option value="Preuniversitario">Preuniversitario</option>
+        </select>
+      </div>
 
       <!-- Horario por clase -->
       <div style="margin-top:14px;">
         <div style="font-size:.71rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px;">Horario Fijo por Clase</div>
         <div class="hg" id="sched-editor">
-          <!-- Coro -->
-          <div class="hc"><h4>🎵 Coro</h4><div id="slots-Coro"></div><button class="btn-add-slot" onclick="addSlot('Coro')">+ Agregar horario</button></div>
-          <!-- Auralidad -->
-          <div class="hc"><h4>👂 Auralidad</h4><div id="slots-Auralidad"></div><button class="btn-add-slot" onclick="addSlot('Auralidad')">+ Agregar horario</button></div>
-          <!-- Instrumento -->
-          <div class="hc"><h4>🎸 Instrumento</h4><div id="slots-Instrumento"></div><button class="btn-add-slot" onclick="addSlot('Instrumento')">+ Agregar horario</button></div>
+          <div class="hc"><h4>🎵 Coro</h4><div id="slots-Coro"></div><button class="btn-add-slot" onclick="addSlot('Coro')">+ Agregar</button></div>
+          <div class="hc"><h4>👂 Auralidad</h4><div id="slots-Auralidad"></div><button class="btn-add-slot" onclick="addSlot('Auralidad')">+ Agregar</button></div>
+          <div class="hc"><h4>🎸 Instrumento</h4><div id="slots-Instrumento"></div><button class="btn-add-slot" onclick="addSlot('Instrumento')">+ Agregar</button></div>
+          <div class="hc"><h4>🎶 Músicaminadores</h4><div id="slots-Músicaminadores"></div><button class="btn-add-slot" onclick="addSlot('Músicaminadores')">+ Agregar</button></div>
+          <div class="hc"><h4>🎼 Ensamble Musical</h4><div id="slots-Ensamble Musical"></div><button class="btn-add-slot" onclick="addSlot('Ensamble Musical')">+ Agregar</button></div>
+          <div class="hc"><h4>🎹 Expresión Musical</h4><div id="slots-Expresión Musical"></div><button class="btn-add-slot" onclick="addSlot('Expresión Musical')">+ Agregar</button></div>
+          <div class="hc"><h4>🔍 Exploración Musical</h4><div id="slots-Exploración Musical"></div><button class="btn-add-slot" onclick="addSlot('Exploración Musical')">+ Agregar</button></div>
+          <div class="hc"><h4>🤸 Expresión Corporal</h4><div id="slots-Expresión Corporal"></div><button class="btn-add-slot" onclick="addSlot('Expresión Corporal')">+ Agregar</button></div>
         </div>
       </div>
 
@@ -525,8 +554,8 @@ tr:hover td{background:rgba(156,107,71,.03);}
 
     <div class="card">
       <div class="card-title">📋 Carga Masiva</div>
-      <p style="font-size:.8rem;color:var(--muted);margin-bottom:8px;">Formato por línea:<br><b>Nombre, ID, WhatsApp, Correo, Acudiente</b><br>(el horario se configura después)</p>
-      <div class="fl"><textarea id="bulk-in" placeholder="María García, EST-001, 573001234567, maria@mail.com, Ana García&#10;Juan López, EST-002, 573009876543, juan@mail.com, Pedro López"></textarea></div>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:8px;">Formato por línea:<br><b>Nombre, ID, WhatsApp, Correo, Acudiente, Programa</b><br>(el horario se configura después)</p>
+      <div class="fl"><textarea id="bulk-in" placeholder="María García, EST-001, 573001234567, maria@mail.com, Ana García, Iniciación&#10;Juan López, EST-002, 573009876543, juan@mail.com, Pedro López, Instrumental"></textarea></div>
       <button class="btn btn-ink btn-full" onclick="bulkAdd()">📋 Cargar Lista</button>
 
       <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--line);">
@@ -563,7 +592,7 @@ tr:hover td{background:rgba(156,107,71,.03);}
     <button class="btn btn-ghost btn-sm" onclick="exportAbsCSV()">⬇️ Faltas CSV</button>
   </div>
   <div class="tw">
-    <table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Clase</th><th>Profesor</th><th>Estado</th></tr></thead>
+    <table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Programa</th><th>Clase</th><th>Profesor</th><th>Estado</th></tr></thead>
     <tbody id="rp-body"></tbody></table>
   </div>
 </div>
@@ -585,11 +614,11 @@ tr:hover td{background:rgba(156,107,71,.03);}
   var sh = ss.getSheetByName(sn) || ss.insertSheet(sn);
   if (sh.getLastRow() === 0)
     sh.appendRow(d.tipo==='falta'
-      ? ['Fecha','Hora','Estudiante','ID','Clase','Profesor','Faltas acum.']
-      : ['Fecha','Hora','Estudiante','ID','Clase','Profesor']);
+      ? ['Fecha','Hora','Estudiante','ID','Programa','Clase','Profesor','Faltas acum.']
+      : ['Fecha','Hora','Estudiante','ID','Programa','Clase','Profesor']);
   sh.appendRow(d.tipo==='falta'
-    ? [d.fecha,d.hora,d.estudiante,d.id,d.clase,d.profesor,d.total]
-    : [d.fecha,d.hora,d.estudiante,d.id,d.clase,d.profesor]);
+    ? [d.fecha,d.hora,d.estudiante,d.id,d.programa||'',d.clase,d.profesor,d.total]
+    : [d.fecha,d.hora,d.estudiante,d.id,d.programa||'',d.clase,d.profesor]);
   return ContentService
     .createTextOutput(JSON.stringify({ok:true}))
     .setMimeType(ContentService.MimeType.JSON);
@@ -646,11 +675,7 @@ function doGet(){
       <div style="font-size:.68rem;color:var(--muted);text-align:center;margin-bottom:16px;line-height:1.5;">Presenta este pase al inicio de cada clase.<br>El profesor escaneará el código.</div>
       <!-- Footer stripe -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px dashed var(--line);">
-        <div style="display:flex;gap:6px;">
-          <span style="background:var(--purpleL);color:var(--purple);font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.05em;">CORO</span>
-          <span style="background:var(--greenL);color:var(--greenD);font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.05em;">AURALIDAD</span>
-          <span style="background:#fff8ed;color:var(--gold);font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.05em;">INSTRUMENTO</span>
-        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;" id="pass-clases"></div>
         <div style="font-size:1.1rem;">🎵</div>
       </div>
     </div>
@@ -668,6 +693,11 @@ function doGet(){
       <div class="hc"><h4>🎵 Coro</h4><div id="sm-Coro"></div><button class="btn-add-slot" onclick="smAddSlot('Coro')">+ Agregar</button></div>
       <div class="hc"><h4>👂 Auralidad</h4><div id="sm-Auralidad"></div><button class="btn-add-slot" onclick="smAddSlot('Auralidad')">+ Agregar</button></div>
       <div class="hc"><h4>🎸 Instrumento</h4><div id="sm-Instrumento"></div><button class="btn-add-slot" onclick="smAddSlot('Instrumento')">+ Agregar</button></div>
+      <div class="hc"><h4>🎶 Músicaminadores</h4><div id="sm-Músicaminadores"></div><button class="btn-add-slot" onclick="smAddSlot('Músicaminadores')">+ Agregar</button></div>
+      <div class="hc"><h4>🎼 Ensamble Musical</h4><div id="sm-Ensamble Musical"></div><button class="btn-add-slot" onclick="smAddSlot('Ensamble Musical')">+ Agregar</button></div>
+      <div class="hc"><h4>🎹 Expresión Musical</h4><div id="sm-Expresión Musical"></div><button class="btn-add-slot" onclick="smAddSlot('Expresión Musical')">+ Agregar</button></div>
+      <div class="hc"><h4>🔍 Exploración Musical</h4><div id="sm-Exploración Musical"></div><button class="btn-add-slot" onclick="smAddSlot('Exploración Musical')">+ Agregar</button></div>
+      <div class="hc"><h4>🤸 Expresión Corporal</h4><div id="sm-Expresión Corporal"></div><button class="btn-add-slot" onclick="smAddSlot('Expresión Corporal')">+ Agregar</button></div>
     </div>
     <button class="btn btn-terra btn-full" style="margin-top:16px;" onclick="saveSchedModal()">💾 Guardar Horario</button>
   </div>
@@ -689,12 +719,12 @@ const THR = () => parseInt(localStorage.getItem('mus_thr') || '3');
 // ── Demo data ──
 if (!students.length) {
   students = [
-    { id:'EST-001', nombre:'María García',    wapp:'573001234567', email:'maria@mail.com',  acudiente:'Ana García (mamá)',
+    { id:'EST-001', nombre:'María García',    wapp:'573001234567', email:'maria@mail.com',  acudiente:'Ana García (mamá)',   programa:'Iniciación',
       horario:{ Coro:[{dia:'Lunes',hora:'09:00'}], Auralidad:[{dia:'Miércoles',hora:'10:00'}], Instrumento:[{dia:'Viernes',hora:'11:00'}] } },
-    { id:'EST-002', nombre:'Juan López',      wapp:'573009876543', email:'juan@mail.com',   acudiente:'Pedro López (papá)',
+    { id:'EST-002', nombre:'Juan López',      wapp:'573009876543', email:'juan@mail.com',   acudiente:'Pedro López (papá)',  programa:'Instrumental',
       horario:{ Coro:[{dia:'Martes',hora:'14:00'}], Auralidad:[{dia:'Jueves',hora:'15:00'}], Instrumento:[{dia:'Martes',hora:'16:00'}] } },
-    { id:'EST-003', nombre:'Ana Martínez',    wapp:'573005551234', email:'ana@mail.com',    acudiente:'Rosa Martínez (mamá)',
-      horario:{ Coro:[{dia:'Lunes',hora:'09:00'}], Auralidad:[{dia:'Miércoles',hora:'10:00'}], Instrumento:[{dia:'Jueves',hora:'14:00'}] } },
+    { id:'EST-003', nombre:'Ana Martínez',    wapp:'573005551234', email:'ana@mail.com',    acudiente:'Rosa Martínez (mamá)',programa:'Músicaminadores',
+      horario:{ Músicaminadores:[{dia:'Lunes',hora:'09:00'}], 'Expresión Corporal':[{dia:'Miércoles',hora:'10:00'}] } },
   ];
   saveSt();
 }
@@ -772,7 +802,7 @@ function onQR(decoded) {
   const fecha = ts.toLocaleDateString('es-CO');
   const hora  = ts.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
 
-  const rec = { fecha, hora, estudiante:st.nombre, id:st.id, clase, profesor:prof, tipo:'asistencia' };
+  const rec = { fecha, hora, estudiante:st.nombre, id:st.id, programa:st.programa||'', clase, profesor:prof, tipo:'asistencia' };
   attendance.push(rec);
   saveAtt();
   renderLog();
@@ -827,7 +857,7 @@ function closeSession() {
     const alreadyLogged = absences.some(a => a.fecha === fecha && a.clase === clase && a.id === st.id);
     if (alreadyLogged) return;
 
-    const falta = { fecha, hora, estudiante:st.nombre, id:st.id, clase, profesor:prof, tipo:'falta' };
+    const falta = { fecha, hora, estudiante:st.nombre, id:st.id, programa:st.programa||'', clase, profesor:prof, tipo:'falta' };
     absences.push(falta);
     toSheets({ ...falta, total: countAbs(st.id, clase) });
     notified.push(st);
@@ -895,7 +925,7 @@ function renderLog() {
     <tr>
       <td>${r.hora}</td>
       <td><b>${r.estudiante}</b></td>
-      <td><span class="badge ${r.clase==='Coro'?'bc':r.clase==='Auralidad'?'ba':'bi'}">${r.clase}</span></td>
+      <td><span class="badge ${claseBadge(r.clase)}">${r.clase}</span></td>
       <td>${r.profesor}</td>
       <td>${r.tipo==='falta'
         ? '<span class="badge bf">✕ Falta</span>'
@@ -911,6 +941,11 @@ function renderFaltas() {
   document.getElementById('ft-coro').textContent = absences.filter(a=>a.clase==='Coro').length;
   document.getElementById('ft-aural').textContent= absences.filter(a=>a.clase==='Auralidad').length;
   document.getElementById('ft-inst').textContent = absences.filter(a=>a.clase==='Instrumento').length;
+  document.getElementById('ft-musi').textContent = absences.filter(a=>a.clase==='Músicaminadores').length;
+  document.getElementById('ft-ensa').textContent = absences.filter(a=>a.clase==='Ensamble Musical').length;
+  document.getElementById('ft-exmu').textContent = absences.filter(a=>a.clase==='Expresión Musical').length;
+  document.getElementById('ft-elmu').textContent = absences.filter(a=>a.clase==='Exploración Musical').length;
+  document.getElementById('ft-exco').textContent = absences.filter(a=>a.clase==='Expresión Corporal').length;
   document.getElementById('thr-inp').value = THR();
 
   const wrap = document.getElementById('faltas-wrap');
@@ -918,9 +953,7 @@ function renderFaltas() {
 
   wrap.innerHTML = students.map(st => {
     const total = countAbs(st.id);
-    const coro  = countAbs(st.id,'Coro');
-    const aural = countAbs(st.id,'Auralidad');
-    const inst  = countAbs(st.id,'Instrumento');
+    const byClase = CLASES.map(c => ({ c, n: countAbs(st.id, c) })).filter(x => x.n > 0);
     const thr   = THR();
     const cls   = total === 0 ? 'fb-ok' : total < thr ? 'fb-warn' : 'fb-alert';
     const icon  = total === 0 ? '✓' : total < thr ? '⚠️' : '🚨';
@@ -930,7 +963,7 @@ function renderFaltas() {
       ? stFaltas.map(f => `
           <div class="fc-det">
             <span>${f.fecha}</span>
-            <span><span class="badge ${f.clase==='Coro'?'bc':f.clase==='Auralidad'?'ba':'bi'}">${f.clase}</span></span>
+            <span><span class="badge ${claseBadge(f.clase)}">${f.clase}</span></span>
             <span style="color:var(--muted);font-size:.78rem;">${f.profesor}</span>
             <button class="btn-xs" onclick="delAbs('${f.id}','${f.fecha}','${f.clase}')">✕</button>
           </div>`)
@@ -938,6 +971,7 @@ function renderFaltas() {
       : '<div style="padding:10px 0;font-size:.8rem;color:var(--muted);">Sin faltas registradas ✓</div>';
 
     const wLink = st.wapp ? buildWA(st, 'clases', new Date().toLocaleDateString('es-CO'), '', total, thr) : null;
+    const claseBadges = byClase.map(x=>`<span class="badge ${claseBadge(x.c)}">${x.c.split(' ')[0]} ${x.n}</span>`).join('');
 
     return `
       <div class="fc-wrap">
@@ -946,14 +980,12 @@ function renderFaltas() {
             <div style="width:34px;height:34px;border-radius:50%;background:var(--purpleL);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;color:var(--purple);font-size:1rem;flex-shrink:0;">${st.nombre[0]}</div>
             <div>
               <div style="font-weight:700;font-size:.9rem;">${st.nombre}</div>
-              <div style="font-size:.74rem;color:var(--muted);">${st.id} · ${st.acudiente||'Sin acudiente'}</div>
+              <div style="font-size:.74rem;color:var(--muted);">${st.programa||'Sin programa'} · ${st.id}</div>
             </div>
           </div>
           <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
             <span class="fb ${cls}">${icon} ${total} falta${total!==1?'s':''}</span>
-            <span class="badge bc">Coro ${coro}</span>
-            <span class="badge ba">Aural ${aural}</span>
-            <span class="badge bi">Inst ${inst}</span>
+            ${claseBadges}
             ${wLink?`<a href="${wLink}" target="_blank" class="btn btn-wapp btn-sm" style="padding:5px 10px;font-size:.72rem;">💬</a>`:''}
           </div>
         </div>
@@ -983,7 +1015,18 @@ function saveThr() { localStorage.setItem('mus_thr', document.getElementById('th
 // ════════════════════════════════════════════════
 // STUDENTS
 // ════════════════════════════════════════════════
-let schedSlots = { Coro:[], Auralidad:[], Instrumento:[] };
+const CLASES = ['Coro','Auralidad','Instrumento','Músicaminadores','Ensamble Musical','Expresión Musical','Exploración Musical','Expresión Corporal'];
+
+function claseBadge(clase) {
+  const map = {
+    'Coro':'bc','Auralidad':'ba','Instrumento':'bi',
+    'Músicaminadores':'bmu','Ensamble Musical':'ben',
+    'Expresión Musical':'bex','Exploración Musical':'bel','Expresión Corporal':'bec'
+  };
+  return map[clase] || 'bc';
+}
+
+let schedSlots = Object.fromEntries(CLASES.map(c=>[c,[]]));
 
 function addSlot(clase) {
   schedSlots[clase].push({ dia:'Lunes', hora:'08:00' });
@@ -1014,19 +1057,21 @@ function addStudent() {
   const wapp = document.getElementById('inp-wapp').value.trim().replace(/\D/g,'');
   const email= document.getElementById('inp-mail').value.trim();
   const acud = document.getElementById('inp-acud').value.trim();
+  const prog = document.getElementById('inp-prog').value;
   if (!nom||!id) { alert('Nombre e ID son obligatorios'); return; }
 
   const horario = {};
-  ['Coro','Auralidad','Instrumento'].forEach(c => {
+  CLASES.forEach(c => {
     if (schedSlots[c].length) horario[c] = [...schedSlots[c]];
   });
 
-  students.push({ id, nombre:nom, wapp, email, acudiente:acud, horario });
+  students.push({ id, nombre:nom, wapp, email, acudiente:acud, programa:prog, horario });
   saveSt(); renderStudents(); fillSelects();
 
   ['inp-nom','inp-id','inp-wapp','inp-mail','inp-acud'].forEach(x=>document.getElementById(x).value='');
-  schedSlots = { Coro:[], Auralidad:[], Instrumento:[] };
-  ['Coro','Auralidad','Instrumento'].forEach(c=>renderSlots(c,'slots-'));
+  document.getElementById('inp-prog').value='';
+  schedSlots = Object.fromEntries(CLASES.map(c=>[c,[]]));
+  CLASES.forEach(c=>renderSlots(c,'slots-'));
 }
 
 function bulkAdd() {
@@ -1035,7 +1080,7 @@ function bulkAdd() {
   lines.forEach(l => {
     const p = l.split(',').map(x=>x.trim());
     if (p.length >= 2) {
-      students.push({ nombre:p[0], id:p[1], wapp:(p[2]||'').replace(/\D/g,''), email:p[3]||'', acudiente:p[4]||'', horario:{} });
+      students.push({ nombre:p[0], id:p[1], wapp:(p[2]||'').replace(/\D/g,''), email:p[3]||'', acudiente:p[4]||'', programa:p[5]||'', horario:{} });
       n++;
     }
   });
@@ -1049,19 +1094,36 @@ function renderStudents() {
   renderProfChips(); fillSelects();
   const c = document.getElementById('st-list');
   if (!students.length) { c.innerHTML='<div class="empty">No hay estudiantes</div>'; return; }
+
+  const PROG_COLOR = {
+    'Músicaminadores': 'background:#fce4ec;color:#c2185b;',
+    'Preiniciación':   'background:#fff3e0;color:#e65100;',
+    'Iniciación':      'background:#e8f5e9;color:#2e7d32;',
+    'Instrumental':    'background:#e3f2fd;color:#1565c0;',
+    'Comunidad UIS':   'background:#f3e5f5;color:#6a1b9a;',
+    'Preuniversitario':'background:#fff8e1;color:#f57f17;',
+  };
+
   c.innerHTML = students.map((st,i) => {
-    const slots = ['Coro','Auralidad','Instrumento'].map(cl => {
+    const slots = CLASES.map(cl => {
       const s = (st.horario?.[cl]||[]).map(sl=>`${sl.dia} ${sl.hora}`).join(', ');
-      return s ? `<span class="badge ${cl==='Coro'?'bc':cl==='Auralidad'?'ba':'bi'}" style="font-size:.68rem;">${cl}: ${s}</span>` : '';
+      return s ? `<span class="badge ${claseBadge(cl)}" style="font-size:.68rem;">${cl}: ${s}</span>` : '';
     }).filter(Boolean).join('');
+    const progStyle = st.programa ? (PROG_COLOR[st.programa]||'background:#eee;color:#555;') : '';
+    const progBadge = st.programa
+      ? `<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:.68rem;font-weight:700;${progStyle}">${st.programa}</span>`
+      : '<span style="font-size:.72rem;color:var(--muted);">Sin programa</span>';
     return `
     <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line);gap:10px;">
       <div style="display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0;">
         <div style="width:34px;height:34px;border-radius:50%;background:var(--purpleL);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;color:var(--purple);flex-shrink:0;">${st.nombre[0]}</div>
         <div style="min-width:0;">
           <div style="font-weight:700;font-size:.9rem;">${st.nombre} <span style="color:var(--muted);font-weight:400;font-size:.78rem;">${st.id}</span></div>
-          <div style="font-size:.74rem;color:var(--muted);margin:2px 0;">${st.acudiente||''} ${st.wapp?'💬':''} ${st.email?'📧':''}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;">${slots||'<span style="font-size:.74rem;color:var(--muted);">Sin horario asignado</span>'}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin:3px 0;flex-wrap:wrap;">
+            ${progBadge}
+            <span style="font-size:.74rem;color:var(--muted);">${st.acudiente||''} ${st.wapp?'💬':''}</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">${slots||'<span style="font-size:.74rem;color:var(--muted);">Sin horario asignado</span>'}</div>
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0;">
@@ -1080,19 +1142,15 @@ function delSt(i) {
 
 // ── schedule modal ──
 let smIdx = -1;
-let smSlots = { Coro:[], Auralidad:[], Instrumento:[] };
+let smSlots = Object.fromEntries(CLASES.map(c=>[c,[]]));
 
 function openSchedModal(i) {
   smIdx = i;
   const st = students[i];
   document.getElementById('sm-title').textContent = 'Horario — ' + st.nombre;
   document.getElementById('sm-sub').textContent   = st.id;
-  smSlots = {
-    Coro:       JSON.parse(JSON.stringify(st.horario?.Coro       || [])),
-    Auralidad:  JSON.parse(JSON.stringify(st.horario?.Auralidad  || [])),
-    Instrumento:JSON.parse(JSON.stringify(st.horario?.Instrumento|| []))
-  };
-  ['Coro','Auralidad','Instrumento'].forEach(c => renderSmSlots(c));
+  smSlots = Object.fromEntries(CLASES.map(c=>[c, JSON.parse(JSON.stringify(st.horario?.[c]||[]))]));
+  CLASES.forEach(c => renderSmSlots(c));
   document.getElementById('sched-modal').classList.add('on');
 }
 
@@ -1122,9 +1180,7 @@ function renderSmSlots(clase) {
 function saveSchedModal() {
   if (smIdx < 0) return;
   if (!students[smIdx].horario) students[smIdx].horario = {};
-  ['Coro','Auralidad','Instrumento'].forEach(c => {
-    students[smIdx].horario[c] = [...smSlots[c]];
-  });
+  CLASES.forEach(c => { students[smIdx].horario[c] = [...smSlots[c]]; });
   saveSt(); renderStudents(); closeSchedModal();
 }
 
@@ -1161,6 +1217,18 @@ function showQR(i) {
     colorDark:'#3a0078', colorLight:'#ffffff',
     correctLevel: QRCode.CorrectLevel.H
   });
+  // Show only classes the student actually has
+  const CTAG_COLORS = {
+    'Coro':'background:#ede8fb;color:#5a47c0;','Auralidad':'background:#fef3d8;color:#9c7a10;',
+    'Instrumento':'background:#e4f5eb;color:#2e7d4f;','Músicaminadores':'background:#fce4ec;color:#c2185b;',
+    'Ensamble Musical':'background:#e0f7fa;color:#00695c;','Expresión Musical':'background:#f3e5f5;color:#7b1fa2;',
+    'Exploración Musical':'background:#fff3e0;color:#e65100;','Expresión Corporal':'background:#e8f5e9;color:#1b5e20;'
+  };
+  const activeClases = CLASES.filter(c => (st.horario?.[c]||[]).length > 0);
+  const tagsHTML = (activeClases.length ? activeClases : CLASES.slice(0,3)).map(c =>
+    `<span style="${CTAG_COLORS[c]||''}font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.04em;">${c.toUpperCase()}</span>`
+  ).join('');
+  document.getElementById('pass-clases').innerHTML = tagsHTML;
   document.getElementById('qr-modal').classList.add('on');
 }
 function closeQR() { document.getElementById('qr-modal').classList.remove('on'); }
@@ -1268,7 +1336,8 @@ function renderReport() {
   if (!all.length) { tb.innerHTML='<tr><td colspan="6"><div class="empty">Sin registros</div></td></tr>'; return; }
   tb.innerHTML = all.slice(0,300).map(r=>`
     <tr><td>${r.fecha}</td><td>${r.hora}</td><td><b>${r.estudiante}</b></td>
-    <td><span class="badge ${r.clase==='Coro'?'bc':r.clase==='Auralidad'?'ba':'bi'}">${r.clase}</span></td>
+    <td style="font-size:.78rem;color:var(--muted);">${r.programa||'—'}</td>
+    <td><span class="badge ${claseBadge(r.clase)}">${r.clase}</span></td>
     <td>${r.profesor}</td>
     <td>${r.tipo==='falta'?'<span class="badge bf">✕ Falta</span>':'<span class="badge bv">✓ Asistió</span>'}</td></tr>`).join('');
 }
@@ -1278,11 +1347,11 @@ function renderReport() {
 // ════════════════════════════════════════════════
 function exportCSV() {
   if (!attendance.length) { alert('Sin registros'); return; }
-  dl('asistencias.csv','Fecha,Hora,Estudiante,ID,Clase,Profesor\n'+attendance.map(r=>[r.fecha,r.hora,r.estudiante,r.id,r.clase,r.profesor].join(',')).join('\n'));
+  dl('asistencias.csv','Fecha,Hora,Estudiante,ID,Programa,Clase,Profesor\n'+attendance.map(r=>[r.fecha,r.hora,r.estudiante,r.id,r.programa||'',r.clase,r.profesor].join(',')).join('\n'));
 }
 function exportAbsCSV() {
   if (!absences.length) { alert('Sin faltas'); return; }
-  dl('faltas.csv','Fecha,Hora,Estudiante,ID,Clase,Profesor,Total faltas\n'+absences.map(r=>[r.fecha,r.hora,r.estudiante,r.id,r.clase,r.profesor,countAbs(r.id,r.clase)].join(',')).join('\n'));
+  dl('faltas.csv','Fecha,Hora,Estudiante,ID,Programa,Clase,Profesor,Total faltas\n'+absences.map(r=>[r.fecha,r.hora,r.estudiante,r.id,r.programa||'',r.clase,r.profesor,countAbs(r.id,r.clase)].join(',')).join('\n'));
 }
 function dl(name,content) {
   const a=document.createElement('a');
