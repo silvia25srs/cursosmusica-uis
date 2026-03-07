@@ -167,8 +167,45 @@ header{
   background: linear-gradient(160deg, #1a0a2e 0%, #3a0078 100%);
   border-radius:16px;
   overflow:hidden;
-  min-height:280px;
-  display:flex;align-items:center;justify-content:center;
+  min-height:300px;
+  position:relative;
+}
+#scan-cont {
+  width:100%;
+  min-height:300px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+/* Forzar que el video de la cámara llene el contenedor */
+#scan-cont #qr-rd {
+  width: 100% !important;
+}
+#scan-cont #qr-rd video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 0 !important;
+  display: block !important;
+}
+/* Estilo del recuadro de escaneo */
+#scan-cont #qr-rd > div {
+  border: none !important;
+}
+#scan-cont #qr-rd span {
+  border-color: var(--green) !important;
+  box-shadow: 0 0 0 4px rgba(106,191,30,0.25) !important;
+}
+/* Ocultar botones internos de la librería que no necesitamos */
+#qr-rd #html5-qrcode-button-camera-permission,
+#qr-rd #html5-qrcode-button-camera-start,
+#qr-rd #html5-qrcode-button-camera-stop,
+#qr-rd #html5-qrcode-anchor-scan-type-change,
+#qr-rd select {
+  display: none !important;
+}
+#qr-rd #html5-qrcode-button-file-selection {
+  display: none !important;
 }
 .scan-idle{text-align:center;color:#8060b0;padding:50px 20px;}
 .scan-idle .si{font-size:3.2rem;margin-bottom:12px;}
@@ -758,18 +795,36 @@ function toggleScanner() {
 }
 
 function startScan() {
+  const shell = document.querySelector('.scanner-shell');
   const c = document.getElementById('scan-cont');
-  c.innerHTML = '<div id="qr-rd" style="width:100%;"></div>';
+  c.innerHTML = '<div id="qr-rd"></div>';
+  c.style.display = 'block';
+
   scanner = new Html5Qrcode('qr-rd');
-  scanner.start({ facingMode:'environment' }, { fps:10, qrbox:{width:220,height:220} }, onQR, ()=>{})
-    .then(() => {
-      scanning = true;
-      document.getElementById('btn-cam').textContent = '⏹ Detener Cámara';
-      document.getElementById('scan-pulse').classList.add('on');
-    })
-    .catch(() => {
-      c.innerHTML = '<div class="scan-idle"><div class="si">⚠️</div><p>No se pudo acceder a la cámara. Verifica los permisos del navegador.</p></div>';
-    });
+
+  // Calcular tamaño del recuadro según el ancho disponible
+  const w = shell.offsetWidth || 340;
+  const boxSize = Math.min(Math.floor(w * 0.65), 260);
+
+  scanner.start(
+    { facingMode: 'environment' },
+    {
+      fps: 15,
+      qrbox: { width: boxSize, height: boxSize },
+      aspectRatio: 1.0
+    },
+    onQR,
+    () => {}
+  )
+  .then(() => {
+    scanning = true;
+    document.getElementById('btn-cam').textContent = '⏹ Detener Cámara';
+    document.getElementById('scan-pulse').classList.add('on');
+  })
+  .catch(() => {
+    c.style.display = 'flex';
+    c.innerHTML = '<div class="scan-idle"><div class="si">⚠️</div><p>No se pudo acceder a la cámara.<br>Verifica los permisos del navegador.</p></div>';
+  });
 }
 
 function stopScan() {
@@ -777,7 +832,9 @@ function stopScan() {
     scanner = null; scanning = false;
     document.getElementById('btn-cam').textContent = '📷 Activar Cámara';
     document.getElementById('scan-pulse').classList.remove('on');
-    document.getElementById('scan-cont').innerHTML = '<div class="scan-idle"><div class="si">📷</div><p>Cámara detenida</p></div>';
+    const c = document.getElementById('scan-cont');
+    c.style.display = 'flex';
+    c.innerHTML = '<div class="scan-idle"><div class="si">📷</div><p>Cámara detenida</p></div>';
   });
 }
 
