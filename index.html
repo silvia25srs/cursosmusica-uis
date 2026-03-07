@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Cursos de Música UIS — Asistencia</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+:root {
+  --ink:   #3a0078;   /* morado UIS oscuro */
+  --purple:#6b21c8;   /* morado UIS medio */
+  --purpleL:#f3eeff;  /* morado muy claro */
+  --green: #6abf1e;   /* verde UIS */
+  --greenD:#4a8a10;   /* verde oscuro */
+  --greenL:#edfad0;   /* verde muy claro */
+  --paper: #f8f6fc;
+  --cream: #f0ebfb;
+  --line:  #ddd3f5;
+  --sand:  #b8a8d8;
+  --rust:  #c0392b;
+  --moss:  #3a6b4a;
+  --gold:  #c49a2a;
+  --text:  #1a0a2e;
+  --muted: #7060a0;
+  --r: 14px;
+  --shadow: 0 2px 16px rgba(58,0,120,.09);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+  font-family:'Manrope',sans-serif;
+  background:var(--paper);
+  color:var(--text);
+  min-height:100vh;
+}
+
+/* ── HEADER ── */
+header{
+  background: linear-gradient(135deg, #3a0078 0%, #6b21c8 100%);
+  height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 24px;
+  position:sticky;top:0;z-index:200;
+  box-shadow: 0 2px 20px rgba(58,0,120,.4);
+}
+.logo{
+  font-family:'Manrope',sans-serif;
+  font-size:.95rem;
+  font-weight:800;
+  color:#fff;
+  display:flex;align-items:center;gap:10px;
+  letter-spacing:.01em;
+}
+.logo-mark{
+  background: var(--green);
+  width:32px;height:32px;
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;font-weight:900;color:#fff;
+  letter-spacing:-.02em;
+}
+.logo-text-top{font-size:.65rem;font-weight:600;opacity:.75;letter-spacing:.08em;text-transform:uppercase;}
+.logo-text-bot{font-size:.95rem;font-weight:800;line-height:1;}
+.logo-uis{color:var(--green);}
+.nav{display:flex;gap:2px;}
+.ntab{
+  padding:7px 14px;
+  border:none;background:transparent;
+  color:rgba(255,255,255,.55);
+  font-family:'Manrope',sans-serif;
+  font-size:.78rem;font-weight:600;
+  cursor:pointer;border-radius:7px;
+  transition:all .18s;white-space:nowrap;
+  letter-spacing:.02em;
+}
+.ntab.on{background:var(--green);color:#fff;}
+.ntab:hover:not(.on){background:rgba(255,255,255,.12);color:#fff;}
+
+/* ── VIEWS ── */
+.view{display:none;padding:28px 24px;max-width:1000px;margin:0 auto;}
+.view.on{display:block;}
+
+/* ── SECTION HEADER ── */
+.sh{margin-bottom:26px;}
+.sh h2{font-family:'Instrument Serif',serif;font-size:1.9rem;color:var(--ink);margin-bottom:3px;}
+.sh p{font-size:.87rem;color:var(--muted);}
+
+/* ── CARDS ── */
+.card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  padding:22px;
+  box-shadow:var(--shadow);
+}
+.card+.card{margin-top:16px;}
+.card-title{
+  font-family:'Instrument Serif',serif;
+  font-size:1.05rem;color:var(--purple);
+  margin-bottom:16px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:8px;
+}
+
+/* ── FORM ── */
+.fl{margin-bottom:13px;}
+.fl label{
+  display:block;font-size:.71rem;font-weight:700;
+  color:var(--muted);text-transform:uppercase;
+  letter-spacing:.09em;margin-bottom:5px;
+}
+.fl input,.fl select,.fl textarea{
+  width:100%;
+  background:var(--cream);
+  border:1.5px solid var(--line);
+  border-radius:9px;
+  padding:10px 13px;
+  color:var(--text);
+  font-family:'Manrope',sans-serif;
+  font-size:.88rem;
+  outline:none;
+  transition:border-color .2s;
+}
+.fl input:focus,.fl select:focus,.fl textarea:focus{border-color:var(--purple);}
+.fl textarea{resize:vertical;min-height:90px;}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;border-radius:9px;border:none;
+  font-family:'Manrope',sans-serif;font-weight:700;font-size:.82rem;
+  cursor:pointer;transition:all .18s;text-decoration:none;
+  letter-spacing:.01em;
+}
+.btn-ink{background:var(--ink);color:#fff;}
+.btn-ink:hover{background:var(--purple);}
+.btn-terra{background:var(--purple);color:#fff;}
+.btn-terra:hover{background:var(--ink);}
+.btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--text);}
+.btn-ghost:hover{border-color:var(--purple);color:var(--purple);}
+.btn-wapp{background:#25D366;color:#fff;}
+.btn-wapp:hover{background:#1da354;}
+
+.btn-rust{background:var(--rust);color:#fff;}
+.btn-rust:hover{background:#a93226;}
+.btn-full{width:100%;justify-content:center;margin-top:10px;}
+.btn-sm{padding:6px 12px;font-size:.76rem;border-radius:7px;}
+.btn-xs{
+  padding:4px 9px;font-size:.72rem;border-radius:6px;
+  border:1.5px solid var(--line);background:var(--cream);
+  color:var(--muted);cursor:pointer;font-family:'Manrope',sans-serif;
+  font-weight:600;transition:all .15s;
+}
+.btn-xs:hover{border-color:var(--purple);color:var(--purple);}
+
+/* ── SCANNER ── */
+.scanner-shell{
+  background: linear-gradient(160deg, #1a0a2e 0%, #3a0078 100%);
+  border-radius:16px;
+  overflow:hidden;
+  min-height:280px;
+  display:flex;align-items:center;justify-content:center;
+}
+.scan-idle{text-align:center;color:#8060b0;padding:50px 20px;}
+.scan-idle .si{font-size:3.2rem;margin-bottom:12px;}
+.scan-idle p{font-size:.85rem;}
+.scan-pulse{
+  display:none;align-items:center;gap:8px;
+  color:var(--green);font-size:.83rem;font-weight:600;
+  justify-content:center;margin-top:10px;
+}
+.scan-pulse.on{display:flex;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ── SESSION BAR ── */
+.session-bar{
+  background:var(--purpleL);
+  border:1.5px solid var(--line);
+  border-radius:12px;
+  padding:14px 18px;
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:18px;
+  flex-wrap:wrap;
+}
+.sess-field{flex:1;min-width:140px;}
+.sess-field label{font-size:.69rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;display:block;margin-bottom:4px;}
+.sess-field select{
+  width:100%;background:#fff;border:1.5px solid var(--line);
+  border-radius:8px;padding:8px 11px;
+  color:var(--text);font-family:'Manrope',sans-serif;font-size:.86rem;outline:none;
+  transition:border-color .2s;
+}
+.sess-field select:focus{border-color:var(--purple);}
+
+/* ── RESULT ── */
+.result{
+  margin-top:16px;padding:18px 20px;border-radius:13px;
+  border-left:4px solid var(--green);background:var(--greenL);
+  display:none;animation:up .28s ease;
+}
+.result.absent{border-left-color:var(--rust);background:#fdf4f3;}
+.result.warn{border-left-color:var(--gold);background:#fdf9ed;}
+.result.on{display:block;}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.result-name{font-family:'Instrument Serif',serif;font-size:1.35rem;color:var(--greenD);margin-bottom:5px;}
+.result.absent .result-name{color:var(--rust);}
+.result.warn .result-name{color:var(--gold);}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+.chip{padding:3px 11px;border-radius:20px;font-size:.75rem;background:rgba(107,33,200,.07);color:var(--muted);}
+.chip b{color:var(--text);}
+.nact{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;}
+
+/* ── CLOSE SESSION ── */
+.close-session-bar{
+  background:#fef3ff;
+  border:1.5px dashed var(--purple);
+  border-radius:12px;
+  padding:16px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:18px;gap:12px;flex-wrap:wrap;
+}
+.close-session-bar p{font-size:.85rem;color:var(--purple);font-weight:600;}
+.close-session-bar span{font-size:.79rem;color:var(--muted);font-weight:400;}
+
+/* ── STATS ROW ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:24px;}
+.sc{
+  background:#fff;border:1px solid var(--line);border-radius:13px;
+  padding:18px;text-align:center;box-shadow:var(--shadow);
+}
+.sn{font-family:'Instrument Serif',serif;font-size:2.1rem;color:var(--purple);line-height:1;}
+.sl{font-size:.74rem;color:var(--muted);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+
+/* ── TABLE ── */
+.tw{overflow-x:auto;border-radius:12px;border:1px solid var(--line);}
+table{width:100%;border-collapse:collapse;font-size:.83rem;}
+th{
+  background:var(--cream);padding:10px 13px;text-align:left;
+  font-size:.69rem;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.07em;
+  border-bottom:1px solid var(--line);
+}
+td{padding:10px 13px;border-bottom:1px solid rgba(224,217,204,.45);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(156,107,71,.03);}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;}
+.bc{background:#ede8fb;color:#5a47c0;}
+.ba{background:#fef3d8;color:#9c7a10;}
+.bi{background:#e4f5eb;color:#2e7d4f;}
+.bf{background:#fdecea;color:#c0392b;}
+.bv{background:#e4f5eb;color:#2e7d4f;}
+
+/* ── FALTA CARDS ── */
+.fc-wrap{border:1px solid var(--line);border-radius:13px;margin-bottom:12px;overflow:hidden;}
+.fc-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 16px;background:var(--cream);gap:10px;flex-wrap:wrap;
+  cursor:pointer;
+}
+.fc-head:hover{background:var(--purpleL);}
+.fc-body{padding:0 16px;display:none;}
+.fc-body.open{display:block;}
+.fc-det{
+  display:grid;grid-template-columns:1fr 1fr 1fr auto;
+  gap:10px;padding:10px 0;
+  border-bottom:1px solid var(--line);
+  font-size:.82rem;align-items:center;
+}
+.fc-det:last-child{border-bottom:none;}
+
+/* ── FALTA BADGE ── */
+.fb{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:.74rem;font-weight:700;}
+.fb-ok{background:var(--greenL);color:var(--greenD);}
+.fb-warn{background:#fef3d8;color:var(--gold);}
+.fb-alert{background:#fdecea;color:var(--rust);}
+
+/* ── HORARIO GRID ── */
+.hg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;}
+.hc{
+  background:var(--purpleL);border:1.5px solid var(--line);
+  border-radius:10px;padding:13px;
+}
+.hc h4{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
+.hc-slot{
+  display:flex;align-items:center;gap:8px;
+  background:#fff;border:1px solid var(--line);
+  border-radius:7px;padding:7px 10px;margin-bottom:6px;font-size:.8rem;
+}
+.hc-slot select,.hc-slot input{
+  border:none;background:transparent;
+  font-family:'Manrope',sans-serif;font-size:.8rem;color:var(--text);outline:none;
+}
+.hc-slot input{width:70px;}
+.slot-del{background:none;border:none;color:var(--sand);cursor:pointer;font-size:1rem;margin-left:auto;}
+.slot-del:hover{color:var(--rust);}
+.btn-add-slot{
+  width:100%;padding:6px;background:transparent;
+  border:1.5px dashed var(--line);border-radius:7px;
+  color:var(--muted);font-size:.78rem;font-family:'Manrope',sans-serif;
+  cursor:pointer;transition:all .15s;
+}
+.btn-add-slot:hover{border-color:var(--purple);color:var(--purple);}
+
+/* ── SETUP ── */
+.ss{background:#fff;border:1px solid var(--line);border-radius:13px;padding:22px;margin-bottom:15px;}
+.ss h3{font-family:'Instrument Serif',serif;font-size:1.05rem;color:var(--purple);margin-bottom:10px;display:flex;align-items:center;gap:9px;}
+.sn2{width:26px;height:26px;border-radius:50%;background:var(--purple);color:#fff;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ss p{font-size:.82rem;color:var(--muted);line-height:1.65;margin-bottom:8px;}
+.codebox{
+  background:var(--ink);border-radius:9px;padding:14px;
+  font-family:monospace;font-size:.76rem;color:#8de08d;
+  white-space:pre-wrap;word-break:break-all;position:relative;margin:10px 0;
+}
+.copybtn{
+  position:absolute;top:8px;right:8px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+  border-radius:5px;padding:3px 9px;color:#e0d9cc;
+  font-size:.71rem;cursor:pointer;font-family:'Manrope',sans-serif;
+}
+.urow{display:flex;gap:8px;margin-top:10px;}
+.urow input{
+  flex:1;background:var(--cream);border:1.5px solid var(--line);
+  border-radius:8px;padding:9px 12px;color:var(--text);
+  font-family:'Manrope',sans-serif;font-size:.84rem;outline:none;
+}
+.urow input:focus{border-color:var(--purple);}
+.notice{
+  background:#fff8ed;border:1px solid #f0d898;border-radius:10px;
+  padding:13px 15px;font-size:.81rem;color:#7a5c10;margin-bottom:18px;line-height:1.55;
+}
+.cfg-status{font-size:.84rem;color:var(--muted);line-height:2;}
+
+/* ── MODAL ── */
+.moverlay{
+  position:fixed;inset:0;background:rgba(15,14,12,.65);
+  z-index:300;display:none;align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(4px);
+}
+.moverlay.on{display:flex;}
+.modal{
+  background:#fff;border:1px solid var(--line);border-radius:18px;
+  padding:30px;max-width:370px;width:100%;text-align:center;
+  position:relative;box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+.modal h3{font-family:'Instrument Serif',serif;font-size:1.3rem;color:var(--purple);margin-bottom:3px;}
+.modal p{font-size:.81rem;color:var(--muted);margin-bottom:16px;}
+.mclose{
+  position:absolute;top:13px;right:13px;
+  width:28px;height:28px;border-radius:50%;
+  background:var(--cream);border:1px solid var(--line);
+  color:var(--muted);cursor:pointer;font-size:.95rem;
+  display:flex;align-items:center;justify-content:center;
+}
+#qr-wrap{display:flex;justify-content:center;margin:14px 0;}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:36px 20px;color:var(--sand);font-size:.85rem;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .stats{grid-template-columns:1fr 1fr;}
+  .hg{grid-template-columns:1fr;}
+  .fc-det{grid-template-columns:1fr 1fr;}
+  .ntab{padding:6px 9px;font-size:.72rem;}
+  .session-bar{flex-direction:column;}
+  .sess-field{width:100%;}
+  .close-session-bar{flex-direction:column;text-align:center;}
+}
+@media(max-width:420px){
+  .view{padding:18px 14px;}
+  header{padding:0 14px;}
+  .ntab{padding:6px 7px;font-size:.69rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">UIS</div>
+    <div>
+      <div class="logo-text-top">Universidad Industrial de Santander</div>
+      <div class="logo-text-bot">Cursos de Música <span class="logo-uis">UIS</span></div>
+    </div>
+  </div>
+  <nav class="nav">
+    <button class="ntab on"  onclick="go('scanner',this)">📷 Clase</button>
+    <button class="ntab"     onclick="go('faltas',this)">⚠️ Faltas</button>
+    <button class="ntab"     onclick="go('students',this)">👥 Estudiantes</button>
+    <button class="ntab"     onclick="go('report',this)">📊 Reportes</button>
+    <button class="ntab"     onclick="go('setup',this)">⚙️ Config</button>
+  </nav>
+</header>
+
+<!-- ══════════════════ SCANNER ══════════════════ -->
+<div class="view on" id="view-scanner">
+  <div class="sh"><h2>Registro de Clase</h2><p>Configura la sesión, escanea asistentes y al terminar cierra la clase para detectar faltas automáticamente.</p></div>
+
+  <!-- Session config -->
+  <div class="session-bar">
+    <div class="sess-field"><label>Soy el Profesor</label><select id="s-prof"><option value="">— Selecciona —</option></select></div>
+    <div class="sess-field"><label>Clase</label>
+      <select id="s-clase">
+        <option value="">— Selecciona —</option>
+        <option value="Coro">🎵 Coro</option>
+        <option value="Auralidad">👂 Auralidad</option>
+        <option value="Instrumento">🎸 Instrumento</option>
+      </select>
+    </div>
+    <div class="sess-field"><label>Día de hoy</label>
+      <select id="s-dia">
+        <option value="Lunes">Lunes</option><option value="Martes">Martes</option>
+        <option value="Miércoles">Miércoles</option><option value="Jueves">Jueves</option>
+        <option value="Viernes">Viernes</option><option value="Sábado">Sábado</option>
+      </select>
+    </div>
+    <button class="btn btn-ink btn-sm" onclick="toggleScanner()" id="btn-cam">📷 Activar Cámara</button>
+  </div>
+
+  <!-- Close session CTA -->
+  <div class="close-session-bar">
+    <div>
+      <p>¿Terminó la clase? <span>Cierra la sesión para detectar automáticamente quién faltó y enviar notificaciones.</span></p>
+    </div>
+    <button class="btn btn-rust btn-sm" onclick="closeSession()">✅ Cerrar Clase y Detectar Faltas</button>
+  </div>
+
+  <!-- Camera -->
+  <div class="scanner-shell"><div id="scan-cont"><div class="scan-idle"><div class="si">📷</div><p>Activa la cámara para registrar asistencia</p></div></div></div>
+  <div class="scan-pulse" id="scan-pulse"><div class="dot"></div>Cámara activa — Apunta al QR del estudiante</div>
+
+  <!-- Result -->
+  <div class="result" id="result">
+    <div class="result-name" id="r-name">—</div>
+    <div id="r-msg" style="font-size:.83rem;color:var(--muted);"></div>
+    <div class="chips" id="r-chips"></div>
+    <div class="nact" id="r-nact"></div>
+  </div>
+
+  <!-- Today log -->
+  <div style="margin-top:26px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;">
+      <span style="font-family:'Instrument Serif',serif;font-size:1.05rem;color:var(--purple);">
+        Registros de hoy &nbsp;<span id="log-ct" style="background:var(--purple);color:#fff;border-radius:20px;padding:2px 9px;font-family:'Manrope',sans-serif;font-size:.7rem;">0</span>
+      </span>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇️ Exportar CSV</button>
+    </div>
+    <div class="tw">
+      <table><thead><tr><th>Hora</th><th>Estudiante</th><th>Clase</th><th>Profesor</th><th>Estado</th></tr></thead>
+      <tbody id="log-body"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ FALTAS ══════════════════ -->
+<div class="view" id="view-faltas">
+  <div class="sh"><h2>Control de Faltas</h2><p>Inasistencias detectadas automáticamente al cerrar cada sesión de clase.</p></div>
+
+  <div class="stats">
+    <div class="sc"><div class="sn" id="ft-tot">0</div><div class="sl">Faltas Totales</div></div>
+    <div class="sc"><div class="sn" id="ft-coro">0</div><div class="sl">Coro</div></div>
+    <div class="sc"><div class="sn" id="ft-aural">0</div><div class="sl">Auralidad</div></div>
+    <div class="sc"><div class="sn" id="ft-inst">0</div><div class="sl">Instrumento</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title">⚙️ Umbral de Alerta</div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <span style="font-size:.87rem;flex:1;">Notificar al acudiente cuando el estudiante acumule:</span>
+      <input type="number" id="thr-inp" value="3" min="1" max="20"
+        style="width:64px;text-align:center;background:var(--cream);border:1.5px solid var(--line);border-radius:8px;padding:7px;font-family:'Manrope',sans-serif;font-size:.95rem;color:var(--text);outline:none;"
+        onchange="saveThr()">
+      <span style="font-size:.85rem;color:var(--muted);">faltas por clase</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 Faltas por Estudiante</div>
+    <div id="faltas-wrap"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ STUDENTS ══════════════════ -->
+<div class="view" id="view-students">
+  <div class="sh"><h2>Estudiantes</h2><p>Registra a cada alumno con su horario fijo por clase y datos de contacto del acudiente.</p></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+
+    <div class="card">
+      <div class="card-title">➕ Nuevo Estudiante</div>
+      <div class="fl"><label>Nombre completo</label><input type="text" id="inp-nom" placeholder="Ej: María García"></div>
+      <div class="fl"><label>Código / ID</label><input type="text" id="inp-id" placeholder="Ej: EST-001"></div>
+      <div class="fl"><label>📱 WhatsApp Acudiente</label><input type="tel" id="inp-wapp" placeholder="573001234567"></div>
+      <div class="fl"><label>📧 Correo Acudiente</label><input type="email" id="inp-mail" placeholder="acudiente@correo.com"></div>
+      <div class="fl"><label>Nombre Acudiente</label><input type="text" id="inp-acud" placeholder="Ej: Ana García (mamá)"></div>
+
+      <!-- Horario por clase -->
+      <div style="margin-top:14px;">
+        <div style="font-size:.71rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px;">Horario Fijo por Clase</div>
+        <div class="hg" id="sched-editor">
+          <!-- Coro -->
+          <div class="hc"><h4>🎵 Coro</h4><div id="slots-Coro"></div><button class="btn-add-slot" onclick="addSlot('Coro')">+ Agregar horario</button></div>
+          <!-- Auralidad -->
+          <div class="hc"><h4>👂 Auralidad</h4><div id="slots-Auralidad"></div><button class="btn-add-slot" onclick="addSlot('Auralidad')">+ Agregar horario</button></div>
+          <!-- Instrumento -->
+          <div class="hc"><h4>🎸 Instrumento</h4><div id="slots-Instrumento"></div><button class="btn-add-slot" onclick="addSlot('Instrumento')">+ Agregar horario</button></div>
+        </div>
+      </div>
+
+      <button class="btn btn-terra btn-full" onclick="addStudent()">Guardar Estudiante</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Carga Masiva</div>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:8px;">Formato por línea:<br><b>Nombre, ID, WhatsApp, Correo, Acudiente</b><br>(el horario se configura después)</p>
+      <div class="fl"><textarea id="bulk-in" placeholder="María García, EST-001, 573001234567, maria@mail.com, Ana García&#10;Juan López, EST-002, 573009876543, juan@mail.com, Pedro López"></textarea></div>
+      <button class="btn btn-ink btn-full" onclick="bulkAdd()">📋 Cargar Lista</button>
+
+      <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--line);">
+        <div class="card-title" style="border:none;padding:0;margin-bottom:10px;">👩‍🏫 Profesores</div>
+        <div style="display:flex;gap:7px;margin-bottom:9px;">
+          <input type="text" id="inp-prof" placeholder="Nombre del profesor"
+            style="flex:1;background:var(--cream);border:1.5px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'Manrope',sans-serif;font-size:.86rem;outline:none;">
+          <button class="btn btn-ink" onclick="addProf()">+</button>
+        </div>
+        <div id="prof-chips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between;">
+      <span>Lista de Estudiantes (<span id="st-count">0</span>)</span>
+    </div>
+    <div id="st-list"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ REPORTES ══════════════════ -->
+<div class="view" id="view-report">
+  <div class="sh"><h2>Reportes</h2><p>Historial completo de asistencia y faltas.</p></div>
+  <div class="stats">
+    <div class="sc"><div class="sn" id="rp-att">0</div><div class="sl">Asistencias</div></div>
+    <div class="sc"><div class="sn" id="rp-abs">0</div><div class="sl">Faltas</div></div>
+    <div class="sc"><div class="sn" id="rp-hoy">0</div><div class="sl">Hoy</div></div>
+    <div class="sc"><div class="sn" id="rp-stu">0</div><div class="sl">Estudiantes</div></div>
+  </div>
+  <div style="display:flex;gap:10px;margin-bottom:14px;">
+    <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇️ Asistencias CSV</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportAbsCSV()">⬇️ Faltas CSV</button>
+  </div>
+  <div class="tw">
+    <table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Clase</th><th>Profesor</th><th>Estado</th></tr></thead>
+    <tbody id="rp-body"></tbody></table>
+  </div>
+</div>
+
+<!-- ══════════════════ SETUP ══════════════════ -->
+<div class="view" id="view-setup">
+  <div class="sh"><h2>Configuración</h2><p>Conecta Google Sheets para guardar los datos en la nube y compartir con todos los profesores.</p></div>
+
+  <div class="notice">⚠️ Sin Google Sheets los datos se guardan solo en este navegador. Configura la integración para que todos los profesores puedan registrar asistencia y los datos queden centralizados.</div>
+
+  <!-- Google Sheets -->
+  <div class="ss">
+    <h3><div class="sn2">1</div>Código para Google Apps Script</h3>
+    <p>Abre tu Google Sheet → <b>Extensiones → Apps Script</b>. Borra el contenido que aparece y pega este código:</p>
+    <div class="codebox" id="gas-code">function doPost(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var d  = JSON.parse(e.postData.contents);
+  var sn = d.tipo === 'falta' ? 'Faltas' : 'Asistencia';
+  var sh = ss.getSheetByName(sn) || ss.insertSheet(sn);
+  if (sh.getLastRow() === 0)
+    sh.appendRow(d.tipo==='falta'
+      ? ['Fecha','Hora','Estudiante','ID','Clase','Profesor','Faltas acum.']
+      : ['Fecha','Hora','Estudiante','ID','Clase','Profesor']);
+  sh.appendRow(d.tipo==='falta'
+    ? [d.fecha,d.hora,d.estudiante,d.id,d.clase,d.profesor,d.total]
+    : [d.fecha,d.hora,d.estudiante,d.id,d.clase,d.profesor]);
+  return ContentService
+    .createTextOutput(JSON.stringify({ok:true}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+function doGet(){
+  return ContentService
+    .createTextOutput(JSON.stringify({ok:true}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+    <button class="copybtn" onclick="copyEl('gas-code')">Copiar</button></div>
+  </div>
+
+  <!-- URL -->
+  <div class="ss">
+    <h3><div class="sn2">2</div>Pega aquí la URL del Script</h3>
+    <p>Después de implementar el script, copia la URL que te da Google y pégala aquí:</p>
+    <div class="urow">
+      <input type="url" id="gs-url" placeholder="https://script.google.com/macros/s/…/exec">
+      <button class="btn btn-ink" onclick="saveGS()">Guardar</button>
+    </div>
+    <div id="gs-st" style="font-size:.78rem;margin-top:7px;color:var(--muted);"></div>
+  </div>
+
+  <!-- Status -->
+  <div class="ss">
+    <h3><div class="sn2">3</div>Estado de la conexión</h3>
+    <div class="cfg-status" id="cfg-st">—</div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:12px;" onclick="testGS()">🔌 Probar conexión</button>
+  </div>
+</div>
+
+<!-- QR MODAL — MUSIC PASS PREVIEW -->
+<div class="moverlay" id="qr-modal">
+  <div class="modal" style="max-width:340px;padding:0;overflow:hidden;border-radius:20px;text-align:left;">
+    <button class="mclose" onclick="closeQR()" style="z-index:10;top:12px;right:12px;background:rgba(255,255,255,.2);border-color:transparent;color:#fff;">×</button>
+    <!-- Pass header -->
+    <div style="background:linear-gradient(135deg,#3a0078 0%,#6b21c8 100%);padding:22px 24px 16px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);"></div>
+      <div style="position:absolute;bottom:-30px;left:-10px;width:80px;height:80px;border-radius:50%;background:rgba(106,191,30,.1);"></div>
+      <div style="font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:3px;">Universidad Industrial de Santander</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#fff;letter-spacing:.08em;line-height:1;">MUSIC PASS</div>
+      <div style="font-size:.68rem;font-weight:600;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;">Cursos de Música UIS</div>
+    </div>
+    <!-- Pass body -->
+    <div style="background:#fff;padding:20px 24px;">
+      <div style="font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;">Estudiante</div>
+      <div id="qr-name" style="font-family:'Instrument Serif',serif;font-size:1.35rem;color:var(--ink);margin-bottom:14px;line-height:1.2;"></div>
+      <!-- QR centered -->
+      <div style="display:flex;justify-content:center;margin-bottom:14px;">
+        <div style="padding:10px;background:#fff;border:1.5px solid var(--line);border-radius:12px;display:inline-block;">
+          <div id="qr-wrap"></div>
+        </div>
+      </div>
+      <div style="font-size:.68rem;color:var(--muted);text-align:center;margin-bottom:16px;line-height:1.5;">Presenta este pase al inicio de cada clase.<br>El profesor escaneará el código.</div>
+      <!-- Footer stripe -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px dashed var(--line);">
+        <div style="display:flex;gap:6px;">
+          <span style="background:var(--purpleL);color:var(--purple);font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.05em;">CORO</span>
+          <span style="background:var(--greenL);color:var(--greenD);font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.05em;">AURALIDAD</span>
+          <span style="background:#fff8ed;color:var(--gold);font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.05em;">INSTRUMENTO</span>
+        </div>
+        <div style="font-size:1.1rem;">🎵</div>
+      </div>
+    </div>
+    <button onclick="printQR()" class="btn btn-terra btn-full" style="border-radius:0;margin:0;padding:13px;">🖨️ Imprimir Music Pass</button>
+  </div>
+</div>
+
+<!-- SCHEDULE MODAL -->
+<div class="moverlay" id="sched-modal">
+  <div class="modal" style="max-width:560px;text-align:left;">
+    <button class="mclose" onclick="closeSchedModal()">×</button>
+    <h3 id="sm-title">Editar Horario</h3>
+    <p id="sm-sub" style="margin-bottom:14px;"></p>
+    <div class="hg" id="sm-slots">
+      <div class="hc"><h4>🎵 Coro</h4><div id="sm-Coro"></div><button class="btn-add-slot" onclick="smAddSlot('Coro')">+ Agregar</button></div>
+      <div class="hc"><h4>👂 Auralidad</h4><div id="sm-Auralidad"></div><button class="btn-add-slot" onclick="smAddSlot('Auralidad')">+ Agregar</button></div>
+      <div class="hc"><h4>🎸 Instrumento</h4><div id="sm-Instrumento"></div><button class="btn-add-slot" onclick="smAddSlot('Instrumento')">+ Agregar</button></div>
+    </div>
+    <button class="btn btn-terra btn-full" style="margin-top:16px;" onclick="saveSchedModal()">💾 Guardar Horario</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// ESTADO GLOBAL
+// ════════════════════════════════════════════════
+let students   = JSON.parse(localStorage.getItem('mus_students')  || '[]');
+let professors = JSON.parse(localStorage.getItem('mus_profs')     || '[]');
+let attendance = JSON.parse(localStorage.getItem('mus_att')       || '[]');
+let absences   = JSON.parse(localStorage.getItem('mus_abs')       || '[]');
+
+const DIAS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+let scanner = null, scanning = false, lastScan = 0;
+const THR = () => parseInt(localStorage.getItem('mus_thr') || '3');
+
+// ── Demo data ──
+if (!students.length) {
+  students = [
+    { id:'EST-001', nombre:'María García',    wapp:'573001234567', email:'maria@mail.com',  acudiente:'Ana García (mamá)',
+      horario:{ Coro:[{dia:'Lunes',hora:'09:00'}], Auralidad:[{dia:'Miércoles',hora:'10:00'}], Instrumento:[{dia:'Viernes',hora:'11:00'}] } },
+    { id:'EST-002', nombre:'Juan López',      wapp:'573009876543', email:'juan@mail.com',   acudiente:'Pedro López (papá)',
+      horario:{ Coro:[{dia:'Martes',hora:'14:00'}], Auralidad:[{dia:'Jueves',hora:'15:00'}], Instrumento:[{dia:'Martes',hora:'16:00'}] } },
+    { id:'EST-003', nombre:'Ana Martínez',    wapp:'573005551234', email:'ana@mail.com',    acudiente:'Rosa Martínez (mamá)',
+      horario:{ Coro:[{dia:'Lunes',hora:'09:00'}], Auralidad:[{dia:'Miércoles',hora:'10:00'}], Instrumento:[{dia:'Jueves',hora:'14:00'}] } },
+  ];
+  saveSt();
+}
+if (!professors.length) {
+  professors = ['Carlos Rincón','Laura Mejía','Andrés Torres','Patricia Gómez','Felipe Vargas'];
+  savePr();
+}
+
+// ════════════════════════════════════════════════
+// NAV
+// ════════════════════════════════════════════════
+function go(id, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(t => t.classList.remove('on'));
+  document.getElementById('view-' + id).classList.add('on');
+  btn.classList.add('on');
+  if (id === 'students') renderStudents();
+  if (id === 'faltas')   renderFaltas();
+  if (id === 'report')   renderReport();
+  if (id === 'setup')    loadSetup();
+}
+
+// ════════════════════════════════════════════════
+// SCANNER
+// ════════════════════════════════════════════════
+function toggleScanner() {
+  const prof  = document.getElementById('s-prof').value;
+  const clase = document.getElementById('s-clase').value;
+  if (!prof || !clase) { alert('Selecciona tu nombre y la clase.'); return; }
+  scanning ? stopScan() : startScan();
+}
+
+function startScan() {
+  const c = document.getElementById('scan-cont');
+  c.innerHTML = '<div id="qr-rd" style="width:100%;"></div>';
+  scanner = new Html5Qrcode('qr-rd');
+  scanner.start({ facingMode:'environment' }, { fps:10, qrbox:{width:220,height:220} }, onQR, ()=>{})
+    .then(() => {
+      scanning = true;
+      document.getElementById('btn-cam').textContent = '⏹ Detener Cámara';
+      document.getElementById('scan-pulse').classList.add('on');
+    })
+    .catch(() => {
+      c.innerHTML = '<div class="scan-idle"><div class="si">⚠️</div><p>No se pudo acceder a la cámara. Verifica los permisos del navegador.</p></div>';
+    });
+}
+
+function stopScan() {
+  if (scanner) scanner.stop().then(() => {
+    scanner = null; scanning = false;
+    document.getElementById('btn-cam').textContent = '📷 Activar Cámara';
+    document.getElementById('scan-pulse').classList.remove('on');
+    document.getElementById('scan-cont').innerHTML = '<div class="scan-idle"><div class="si">📷</div><p>Cámara detenida</p></div>';
+  });
+}
+
+function onQR(decoded) {
+  const now = Date.now();
+  if (now - lastScan < 3000) return;
+  lastScan = now;
+
+  let data;
+  try { data = JSON.parse(decoded); } catch(e) { data = { id: decoded }; }
+
+  const st = students.find(s => s.id === data.id);
+  const prof  = document.getElementById('s-prof').value;
+  const clase = document.getElementById('s-clase').value;
+
+  if (!st) {
+    showResult('absent', '❌ Estudiante no encontrado', 'ID: ' + data.id, [], null);
+    return;
+  }
+
+  const ts = new Date();
+  const fecha = ts.toLocaleDateString('es-CO');
+  const hora  = ts.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
+
+  const rec = { fecha, hora, estudiante:st.nombre, id:st.id, clase, profesor:prof, tipo:'asistencia' };
+  attendance.push(rec);
+  saveAtt();
+  renderLog();
+  toSheets(rec);
+  if (navigator.vibrate) navigator.vibrate([80,40,80]);
+
+  showResult('ok', '✅ ' + st.nombre, 'Asistencia registrada',
+    [{l:'Fecha',v:fecha},{l:'Hora',v:hora},{l:'Clase',v:clase},{l:'Prof',v:prof}], null);
+}
+
+// ════════════════════════════════════════════════
+// CLOSE SESSION → detect absences
+// ════════════════════════════════════════════════
+function closeSession() {
+  const prof  = document.getElementById('s-prof').value;
+  const clase = document.getElementById('s-clase').value;
+  const dia   = document.getElementById('s-dia').value;
+  if (!prof || !clase) { alert('Selecciona profesor y clase primero.'); return; }
+
+  const fecha = new Date().toLocaleDateString('es-CO');
+  const hora  = new Date().toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
+
+  // Quiénes debían estar hoy en esta clase
+  const expected = students.filter(s => {
+    const slots = (s.horario?.[clase]) || [];
+    return slots.some(slot => slot.dia === dia);
+  });
+
+  if (!expected.length) {
+    alert(`No hay estudiantes con horario de ${clase} los ${dia}.`);
+    return;
+  }
+
+  // Quiénes ya escanearon hoy en esta clase
+  const attended = new Set(
+    attendance.filter(r => r.fecha === fecha && r.clase === clase).map(r => r.id)
+  );
+
+  // Faltas = esperados - asistentes
+  const missing = expected.filter(s => !attended.has(s.id));
+
+  if (!missing.length) {
+    alert(`✅ ¡Todos asistieron! No se registraron faltas en ${clase}.`);
+    return;
+  }
+
+  const thr = THR();
+  let notified = [];
+
+  missing.forEach(st => {
+    // Ya existe falta para hoy/clase/estudiante?
+    const alreadyLogged = absences.some(a => a.fecha === fecha && a.clase === clase && a.id === st.id);
+    if (alreadyLogged) return;
+
+    const falta = { fecha, hora, estudiante:st.nombre, id:st.id, clase, profesor:prof, tipo:'falta' };
+    absences.push(falta);
+    toSheets({ ...falta, total: countAbs(st.id, clase) });
+    notified.push(st);
+  });
+
+  saveAbs();
+  renderLog();
+
+  // Notificar
+  notified.forEach(st => {
+    const total = countAbs(st.id, clase);
+    if (total >= thr && total % thr === 0) {
+      sendNotifications(st, clase, fecha, hora, total);
+    }
+  });
+
+  const msg = missing.length === notified.length
+    ? `Se registraron ${missing.length} falta(s) en ${clase} (${dia}).`
+    : `${missing.length} falta(s) procesadas.`;
+
+  alert(`📋 Clase cerrada.\n${msg}\n${notified.filter(s => countAbs(s.id, clase) >= thr).length} notificación(es) enviadas.`);
+  stopScan();
+}
+
+// ════════════════════════════════════════════════
+// NOTIFICACIONES (solo WhatsApp)
+// ════════════════════════════════════════════════
+function sendNotifications(st, clase, fecha, hora, total) {
+  if (st.wapp) {
+    const link = buildWA(st, clase, fecha, hora, total, THR());
+    setTimeout(() => window.open(link, '_blank'), 600);
+  }
+}
+
+function buildWA(st, clase, fecha, hora, total, thr) {
+  const msg = `Estimado/a *${st.acudiente || 'acudiente'}* 👋\n\n` +
+    `Le informamos que *${st.nombre}* acumuló *${total} falta(s)* en la clase de *${clase}*.\n` +
+    `Última inasistencia: ${fecha} (${hora}).\n\n` +
+    `Por favor comuníquese con la coordinación para más información.\n\n` +
+    `_Cursos de Música UIS_ 🎵`;
+  return `https://wa.me/${st.wapp}?text=${encodeURIComponent(msg)}`;
+}
+
+function showResult(type, name, msg, chips, notifyBtn) {
+  const el = document.getElementById('result');
+  el.className = 'result on' + (type==='absent'?' absent':type==='warn'?' warn':'');
+  document.getElementById('r-name').textContent = name;
+  document.getElementById('r-name').className = 'result-name' + (type==='absent'?' absent':type==='warn'?' warn':'');
+  document.getElementById('r-msg').textContent = msg;
+  document.getElementById('r-chips').innerHTML = chips.map(c=>`<div class="chip"><b>${c.v}</b> ${c.l}</div>`).join('');
+  document.getElementById('r-nact').innerHTML = notifyBtn || '';
+}
+
+// ════════════════════════════════════════════════
+// LOG TABLE
+// ════════════════════════════════════════════════
+function renderLog() {
+  const today = new Date().toLocaleDateString('es-CO');
+  const all = [...attendance, ...absences].filter(r => r.fecha === today)
+    .sort((a,b) => b.hora.localeCompare(a.hora));
+  document.getElementById('log-ct').textContent = all.length;
+  const tb = document.getElementById('log-body');
+  if (!all.length) { tb.innerHTML = '<tr><td colspan="5"><div class="empty">Sin registros hoy</div></td></tr>'; return; }
+  tb.innerHTML = all.map(r => `
+    <tr>
+      <td>${r.hora}</td>
+      <td><b>${r.estudiante}</b></td>
+      <td><span class="badge ${r.clase==='Coro'?'bc':r.clase==='Auralidad'?'ba':'bi'}">${r.clase}</span></td>
+      <td>${r.profesor}</td>
+      <td>${r.tipo==='falta'
+        ? '<span class="badge bf">✕ Falta</span>'
+        : '<span class="badge bv">✓ Asistió</span>'}</td>
+    </tr>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// FALTAS VIEW
+// ════════════════════════════════════════════════
+function renderFaltas() {
+  document.getElementById('ft-tot').textContent  = absences.length;
+  document.getElementById('ft-coro').textContent = absences.filter(a=>a.clase==='Coro').length;
+  document.getElementById('ft-aural').textContent= absences.filter(a=>a.clase==='Auralidad').length;
+  document.getElementById('ft-inst').textContent = absences.filter(a=>a.clase==='Instrumento').length;
+  document.getElementById('thr-inp').value = THR();
+
+  const wrap = document.getElementById('faltas-wrap');
+  if (!students.length) { wrap.innerHTML = '<div class="empty">No hay estudiantes</div>'; return; }
+
+  wrap.innerHTML = students.map(st => {
+    const total = countAbs(st.id);
+    const coro  = countAbs(st.id,'Coro');
+    const aural = countAbs(st.id,'Auralidad');
+    const inst  = countAbs(st.id,'Instrumento');
+    const thr   = THR();
+    const cls   = total === 0 ? 'fb-ok' : total < thr ? 'fb-warn' : 'fb-alert';
+    const icon  = total === 0 ? '✓' : total < thr ? '⚠️' : '🚨';
+    const stFaltas = absences.filter(a => a.id === st.id);
+
+    const rows = stFaltas.length
+      ? stFaltas.map(f => `
+          <div class="fc-det">
+            <span>${f.fecha}</span>
+            <span><span class="badge ${f.clase==='Coro'?'bc':f.clase==='Auralidad'?'ba':'bi'}">${f.clase}</span></span>
+            <span style="color:var(--muted);font-size:.78rem;">${f.profesor}</span>
+            <button class="btn-xs" onclick="delAbs('${f.id}','${f.fecha}','${f.clase}')">✕</button>
+          </div>`)
+        .join('')
+      : '<div style="padding:10px 0;font-size:.8rem;color:var(--muted);">Sin faltas registradas ✓</div>';
+
+    const wLink = st.wapp ? buildWA(st, 'clases', new Date().toLocaleDateString('es-CO'), '', total, thr) : null;
+
+    return `
+      <div class="fc-wrap">
+        <div class="fc-head" onclick="toggleFC(this)">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:var(--purpleL);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;color:var(--purple);font-size:1rem;flex-shrink:0;">${st.nombre[0]}</div>
+            <div>
+              <div style="font-weight:700;font-size:.9rem;">${st.nombre}</div>
+              <div style="font-size:.74rem;color:var(--muted);">${st.id} · ${st.acudiente||'Sin acudiente'}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+            <span class="fb ${cls}">${icon} ${total} falta${total!==1?'s':''}</span>
+            <span class="badge bc">Coro ${coro}</span>
+            <span class="badge ba">Aural ${aural}</span>
+            <span class="badge bi">Inst ${inst}</span>
+            ${wLink?`<a href="${wLink}" target="_blank" class="btn btn-wapp btn-sm" style="padding:5px 10px;font-size:.72rem;">💬</a>`:''}
+          </div>
+        </div>
+        <div class="fc-body">${rows}</div>
+      </div>`;
+  }).join('');
+}
+
+function toggleFC(el) {
+  const body = el.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function countAbs(id, clase=null) {
+  return absences.filter(a => a.id === id && (!clase || a.clase === clase)).length;
+}
+
+function delAbs(id, fecha, clase) {
+  if (!confirm('¿Eliminar esta falta?')) return;
+  const i = absences.findIndex(a => a.id===id && a.fecha===fecha && a.clase===clase);
+  if (i > -1) { absences.splice(i,1); saveAbs(); }
+  renderFaltas();
+}
+
+function saveThr() { localStorage.setItem('mus_thr', document.getElementById('thr-inp').value); }
+
+// ════════════════════════════════════════════════
+// STUDENTS
+// ════════════════════════════════════════════════
+let schedSlots = { Coro:[], Auralidad:[], Instrumento:[] };
+
+function addSlot(clase) {
+  schedSlots[clase].push({ dia:'Lunes', hora:'08:00' });
+  renderSlots(clase, 'slots-');
+}
+
+function removeSlot(clase, i) {
+  schedSlots[clase].splice(i,1);
+  renderSlots(clase, 'slots-');
+}
+
+function renderSlots(clase, prefix) {
+  const c = document.getElementById(prefix + clase);
+  if (!c) return;
+  c.innerHTML = schedSlots[clase].map((s,i) => `
+    <div class="hc-slot">
+      <select onchange="schedSlots['${clase}'][${i}].dia=this.value">
+        ${DIAS.map(d=>`<option ${d===s.dia?'selected':''}>${d}</option>`).join('')}
+      </select>
+      <input type="time" value="${s.hora}" onchange="schedSlots['${clase}'][${i}].hora=this.value">
+      <button class="slot-del" onclick="removeSlot('${clase}',${i})">×</button>
+    </div>`).join('') || '<div style="font-size:.76rem;color:var(--muted);padding:4px 0;">Sin horario</div>';
+}
+
+function addStudent() {
+  const nom  = document.getElementById('inp-nom').value.trim();
+  const id   = document.getElementById('inp-id').value.trim();
+  const wapp = document.getElementById('inp-wapp').value.trim().replace(/\D/g,'');
+  const email= document.getElementById('inp-mail').value.trim();
+  const acud = document.getElementById('inp-acud').value.trim();
+  if (!nom||!id) { alert('Nombre e ID son obligatorios'); return; }
+
+  const horario = {};
+  ['Coro','Auralidad','Instrumento'].forEach(c => {
+    if (schedSlots[c].length) horario[c] = [...schedSlots[c]];
+  });
+
+  students.push({ id, nombre:nom, wapp, email, acudiente:acud, horario });
+  saveSt(); renderStudents(); fillSelects();
+
+  ['inp-nom','inp-id','inp-wapp','inp-mail','inp-acud'].forEach(x=>document.getElementById(x).value='');
+  schedSlots = { Coro:[], Auralidad:[], Instrumento:[] };
+  ['Coro','Auralidad','Instrumento'].forEach(c=>renderSlots(c,'slots-'));
+}
+
+function bulkAdd() {
+  const lines = document.getElementById('bulk-in').value.trim().split('\n');
+  let n = 0;
+  lines.forEach(l => {
+    const p = l.split(',').map(x=>x.trim());
+    if (p.length >= 2) {
+      students.push({ nombre:p[0], id:p[1], wapp:(p[2]||'').replace(/\D/g,''), email:p[3]||'', acudiente:p[4]||'', horario:{} });
+      n++;
+    }
+  });
+  saveSt(); renderStudents(); fillSelects();
+  document.getElementById('bulk-in').value='';
+  alert(`✅ ${n} estudiantes agregados. Edita cada uno para asignar horarios.`);
+}
+
+function renderStudents() {
+  document.getElementById('st-count').textContent = students.length;
+  renderProfChips(); fillSelects();
+  const c = document.getElementById('st-list');
+  if (!students.length) { c.innerHTML='<div class="empty">No hay estudiantes</div>'; return; }
+  c.innerHTML = students.map((st,i) => {
+    const slots = ['Coro','Auralidad','Instrumento'].map(cl => {
+      const s = (st.horario?.[cl]||[]).map(sl=>`${sl.dia} ${sl.hora}`).join(', ');
+      return s ? `<span class="badge ${cl==='Coro'?'bc':cl==='Auralidad'?'ba':'bi'}" style="font-size:.68rem;">${cl}: ${s}</span>` : '';
+    }).filter(Boolean).join('');
+    return `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line);gap:10px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0;">
+        <div style="width:34px;height:34px;border-radius:50%;background:var(--purpleL);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;color:var(--purple);flex-shrink:0;">${st.nombre[0]}</div>
+        <div style="min-width:0;">
+          <div style="font-weight:700;font-size:.9rem;">${st.nombre} <span style="color:var(--muted);font-weight:400;font-size:.78rem;">${st.id}</span></div>
+          <div style="font-size:.74rem;color:var(--muted);margin:2px 0;">${st.acudiente||''} ${st.wapp?'💬':''} ${st.email?'📧':''}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;">${slots||'<span style="font-size:.74rem;color:var(--muted);">Sin horario asignado</span>'}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="btn-xs" onclick="openSchedModal(${i})">📅 Horario</button>
+        <button class="btn-xs" onclick="showQR(${i})">🔲 QR</button>
+        <button class="btn-xs" style="color:var(--rust);" onclick="delSt(${i})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function delSt(i) {
+  if (!confirm('¿Eliminar este estudiante?')) return;
+  students.splice(i,1); saveSt(); renderStudents();
+}
+
+// ── schedule modal ──
+let smIdx = -1;
+let smSlots = { Coro:[], Auralidad:[], Instrumento:[] };
+
+function openSchedModal(i) {
+  smIdx = i;
+  const st = students[i];
+  document.getElementById('sm-title').textContent = 'Horario — ' + st.nombre;
+  document.getElementById('sm-sub').textContent   = st.id;
+  smSlots = {
+    Coro:       JSON.parse(JSON.stringify(st.horario?.Coro       || [])),
+    Auralidad:  JSON.parse(JSON.stringify(st.horario?.Auralidad  || [])),
+    Instrumento:JSON.parse(JSON.stringify(st.horario?.Instrumento|| []))
+  };
+  ['Coro','Auralidad','Instrumento'].forEach(c => renderSmSlots(c));
+  document.getElementById('sched-modal').classList.add('on');
+}
+
+function closeSchedModal() { document.getElementById('sched-modal').classList.remove('on'); }
+
+function smAddSlot(clase) {
+  smSlots[clase].push({dia:'Lunes',hora:'08:00'});
+  renderSmSlots(clase);
+}
+
+function smRemoveSlot(clase,i) {
+  smSlots[clase].splice(i,1); renderSmSlots(clase);
+}
+
+function renderSmSlots(clase) {
+  const c = document.getElementById('sm-' + clase);
+  c.innerHTML = smSlots[clase].map((s,i) => `
+    <div class="hc-slot">
+      <select onchange="smSlots['${clase}'][${i}].dia=this.value">
+        ${DIAS.map(d=>`<option ${d===s.dia?'selected':''}>${d}</option>`).join('')}
+      </select>
+      <input type="time" value="${s.hora}" onchange="smSlots['${clase}'][${i}].hora=this.value">
+      <button class="slot-del" onclick="smRemoveSlot('${clase}',${i})">×</button>
+    </div>`).join('') || '<div style="font-size:.76rem;color:var(--muted);padding:4px 0;">Sin horario</div>';
+}
+
+function saveSchedModal() {
+  if (smIdx < 0) return;
+  if (!students[smIdx].horario) students[smIdx].horario = {};
+  ['Coro','Auralidad','Instrumento'].forEach(c => {
+    students[smIdx].horario[c] = [...smSlots[c]];
+  });
+  saveSt(); renderStudents(); closeSchedModal();
+}
+
+// ── professors ──
+function addProf() {
+  const v = document.getElementById('inp-prof').value.trim();
+  if (!v) return;
+  professors.push(v); savePr(); renderProfChips(); fillSelects();
+  document.getElementById('inp-prof').value='';
+}
+
+function renderProfChips() {
+  document.getElementById('prof-chips').innerHTML = professors.map((p,i) => `
+    <div style="display:flex;align-items:center;gap:5px;background:var(--cream);border:1px solid var(--line);border-radius:20px;padding:5px 12px 5px 13px;font-size:.79rem;">
+      ${p}<button onclick="professors.splice(${i},1);savePr();renderProfChips();fillSelects();" style="background:none;border:none;color:var(--sand);cursor:pointer;font-size:1rem;line-height:1;margin-left:3px;">×</button>
+    </div>`).join('');
+}
+
+function fillSelects() {
+  const pOpts = '<option value="">— Selecciona —</option>' + professors.map(p=>`<option>${p}</option>`).join('');
+  document.getElementById('s-prof').innerHTML = pOpts;
+}
+
+// ════════════════════════════════════════════════
+// QR MODAL
+// ════════════════════════════════════════════════
+function showQR(i) {
+  const st = students[i];
+  document.getElementById('qr-name').textContent = st.nombre;
+  document.getElementById('qr-wrap').innerHTML='';
+  new QRCode(document.getElementById('qr-wrap'), {
+    text: JSON.stringify({id:st.id, nombre:st.nombre}),
+    width:180, height:180,
+    colorDark:'#3a0078', colorLight:'#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  document.getElementById('qr-modal').classList.add('on');
+}
+function closeQR() { document.getElementById('qr-modal').classList.remove('on'); }
+
+function printQR() {
+  const name   = document.getElementById('qr-name').textContent;
+  const canvas = document.querySelector('#qr-wrap canvas');
+  if (!canvas) { alert('Espera que cargue el QR'); return; }
+  const img = canvas.toDataURL('image/png');
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Music Pass — ${name}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#e8e0f5;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;font-family:'Manrope',sans-serif;}
+    .pass{
+      width:320px;border-radius:20px;overflow:hidden;
+      box-shadow:0 12px 40px rgba(58,0,120,.25);
+      background:#fff;
+    }
+    .pass-top{
+      background:linear-gradient(135deg,#3a0078 0%,#6b21c8 100%);
+      padding:24px 26px 20px;position:relative;overflow:hidden;
+    }
+    .pass-top::before{
+      content:'';position:absolute;top:-24px;right:-24px;
+      width:130px;height:130px;border-radius:50%;
+      background:rgba(255,255,255,.07);
+    }
+    .pass-top::after{
+      content:'';position:absolute;bottom:-32px;left:-12px;
+      width:90px;height:90px;border-radius:50%;
+      background:rgba(106,191,30,.12);
+    }
+    .univ{font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px;}
+    .pass-title{font-family:'Bebas Neue',sans-serif;font-size:2.1rem;color:#fff;letter-spacing:.1em;line-height:1;}
+    .pass-sub{font-size:.64rem;font-weight:700;color:#6abf1e;letter-spacing:.12em;text-transform:uppercase;margin-top:3px;}
+    .pass-body{padding:22px 26px;}
+    .field-label{font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#9080c0;margin-bottom:3px;}
+    .student-name{font-size:1.25rem;font-weight:800;color:#1a0a2e;margin-bottom:18px;line-height:1.2;}
+    .qr-wrap{display:flex;justify-content:center;margin-bottom:16px;}
+    .qr-border{padding:10px;background:#fff;border:1.5px solid #ddd3f5;border-radius:12px;display:inline-block;}
+    .qr-border img{display:block;border-radius:4px;}
+    .hint{font-size:.65rem;color:#9080c0;text-align:center;line-height:1.5;margin-bottom:18px;}
+    .divider{border:none;border-top:1px dashed #ddd3f5;margin-bottom:14px;}
+    .class-tags{display:flex;gap:5px;flex-wrap:wrap;}
+    .tag{font-size:.6rem;font-weight:700;letter-spacing:.06em;padding:3px 9px;border-radius:20px;}
+    .tag-c{background:#f3eeff;color:#6b21c8;}
+    .tag-a{background:#edfad0;color:#4a8a10;}
+    .tag-i{background:#fff8ed;color:#c49a2a;}
+    .pass-footer{
+      background:linear-gradient(135deg,#3a0078 0%,#6b21c8 100%);
+      padding:10px 26px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .foot-text{font-size:.6rem;color:rgba(255,255,255,.6);font-weight:600;letter-spacing:.06em;}
+    .foot-icon{font-size:1.1rem;}
+    @media print {
+      body{background:#fff;padding:20px;}
+      .pass{box-shadow:none;border:1px solid #ddd;}
+      .no-print{display:none;}
+    }
+  </style></head>
+  <body>
+    <div class="pass">
+      <div class="pass-top">
+        <div class="univ">Universidad Industrial de Santander</div>
+        <div class="pass-title">MUSIC PASS</div>
+        <div class="pass-sub">Cursos de Música UIS</div>
+      </div>
+      <div class="pass-body">
+        <div class="field-label">Estudiante</div>
+        <div class="student-name">${name}</div>
+        <div class="qr-wrap"><div class="qr-border"><img src="${img}" width="170" height="170"></div></div>
+        <div class="hint">Presenta este pase al inicio de cada clase.<br>El profesor escaneará el código QR.</div>
+        <hr class="divider">
+        <div class="class-tags">
+          <span class="tag tag-c">CORO</span>
+          <span class="tag tag-a">AURALIDAD</span>
+          <span class="tag tag-i">INSTRUMENTO</span>
+        </div>
+      </div>
+      <div class="pass-footer">
+        <span class="foot-text">Cursos de Música UIS · 2025</span>
+        <span class="foot-icon">🎵</span>
+      </div>
+    </div>
+    <div class="no-print" style="margin-top:22px;text-align:center;">
+      <button onclick="window.print()" style="background:#6b21c8;color:#fff;border:none;border-radius:9px;padding:11px 28px;font-family:'Manrope',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;">🖨️ Imprimir / Guardar PDF</button>
+    </div>
+  </body></html>`);
+}
+
+// ════════════════════════════════════════════════
+// REPORT
+// ════════════════════════════════════════════════
+function renderReport() {
+  const today = new Date().toLocaleDateString('es-CO');
+  document.getElementById('rp-att').textContent = attendance.length;
+  document.getElementById('rp-abs').textContent = absences.length;
+  document.getElementById('rp-hoy').textContent = [...attendance,...absences].filter(r=>r.fecha===today).length;
+  document.getElementById('rp-stu').textContent = students.length;
+  const all = [...attendance,...absences].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const tb = document.getElementById('rp-body');
+  if (!all.length) { tb.innerHTML='<tr><td colspan="6"><div class="empty">Sin registros</div></td></tr>'; return; }
+  tb.innerHTML = all.slice(0,300).map(r=>`
+    <tr><td>${r.fecha}</td><td>${r.hora}</td><td><b>${r.estudiante}</b></td>
+    <td><span class="badge ${r.clase==='Coro'?'bc':r.clase==='Auralidad'?'ba':'bi'}">${r.clase}</span></td>
+    <td>${r.profesor}</td>
+    <td>${r.tipo==='falta'?'<span class="badge bf">✕ Falta</span>':'<span class="badge bv">✓ Asistió</span>'}</td></tr>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// EXPORT
+// ════════════════════════════════════════════════
+function exportCSV() {
+  if (!attendance.length) { alert('Sin registros'); return; }
+  dl('asistencias.csv','Fecha,Hora,Estudiante,ID,Clase,Profesor\n'+attendance.map(r=>[r.fecha,r.hora,r.estudiante,r.id,r.clase,r.profesor].join(',')).join('\n'));
+}
+function exportAbsCSV() {
+  if (!absences.length) { alert('Sin faltas'); return; }
+  dl('faltas.csv','Fecha,Hora,Estudiante,ID,Clase,Profesor,Total faltas\n'+absences.map(r=>[r.fecha,r.hora,r.estudiante,r.id,r.clase,r.profesor,countAbs(r.id,r.clase)].join(',')).join('\n'));
+}
+function dl(name,content) {
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+content],{type:'text/csv;charset=utf-8;'}));
+  a.download=name; a.click();
+}
+
+// ════════════════════════════════════════════════
+// SETUP
+// ════════════════════════════════════════════════
+function loadSetup() {
+  document.getElementById('gs-url').value = localStorage.getItem('mus_gs')||'';
+  updateCfgStatus();
+}
+function saveGS() {
+  const u = document.getElementById('gs-url').value.trim();
+  localStorage.setItem('mus_gs', u);
+  document.getElementById('gs-st').innerHTML = u
+    ? '<span style="color:var(--green)">✅ URL guardada correctamente</span>'
+    : '<span style="color:var(--rust)">URL eliminada</span>';
+  updateCfgStatus();
+}
+function updateCfgStatus() {
+  const gs = localStorage.getItem('mus_gs');
+  document.getElementById('cfg-st').innerHTML = gs
+    ? `✅ <b>Google Sheets conectado</b><br><span style="font-size:.78rem;color:var(--muted);">Los registros de asistencia y faltas se envían automáticamente a tu hoja de cálculo.</span>`
+    : `❌ <b>Sin conexión</b><br><span style="font-size:.78rem;color:var(--muted);">Los datos se guardan solo en este dispositivo. Sigue los pasos para conectar Google Sheets.</span>`;
+}
+async function testGS() {
+  const u = localStorage.getItem('mus_gs');
+  if (!u) { alert('Primero guarda la URL del script'); return; }
+  try { await fetch(u,{method:'GET',mode:'no-cors'}); alert('✅ Conexión OK — Google Sheets está respondiendo.'); }
+  catch(e){ alert('❌ No se pudo conectar. Verifica que la URL sea correcta.'); }
+}
+function copyEl(id) {
+  const t = document.getElementById(id).innerText.replace('Copiar','').trim();
+  navigator.clipboard.writeText(t).then(()=>alert('¡Código copiado al portapapeles!'));
+}
+
+// ════════════════════════════════════════════════
+// STORAGE HELPERS
+// ════════════════════════════════════════════════
+function saveSt()  { localStorage.setItem('mus_students', JSON.stringify(students)); }
+function savePr()  { localStorage.setItem('mus_profs',    JSON.stringify(professors)); }
+function saveAtt() { localStorage.setItem('mus_att',      JSON.stringify(attendance)); }
+function saveAbs() { localStorage.setItem('mus_abs',      JSON.stringify(absences)); }
+
+async function toSheets(rec) {
+  const u = localStorage.getItem('mus_gs');
+  if (!u) return;
+  try { await fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(rec)}); }
+  catch(e){ console.warn(e); }
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+fillSelects();
+renderLog();
+
+// Set today's day
+const todayName = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date().getDay()];
+const dSel = document.getElementById('s-dia');
+[...dSel.options].forEach(o=>{ if(o.value===todayName) o.selected=true; });
+
+// Close modals on backdrop click
+['qr-modal','sched-modal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){ if(e.target===this) this.classList.remove('on'); });
+});
+</script>
+</body>
+</html>
