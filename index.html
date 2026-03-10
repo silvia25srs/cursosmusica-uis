@@ -1384,23 +1384,41 @@ function fillSelects() {
 function showQR(i) {
   const st = students[i];
   document.getElementById('qr-name').textContent = st.nombre;
-  document.getElementById('qr-wrap').innerHTML='';
-  new QRCode(document.getElementById('qr-wrap'), {
-    text: JSON.stringify({id:st.id, nombre:st.nombre}),
-    width:180, height:180,
-    colorDark:'#3a0078', colorLight:'#ffffff',
-    correctLevel: QRCode.CorrectLevel.H
-  });
+  const wrap = document.getElementById('qr-wrap');
+  wrap.innerHTML = '';
+
+  // Use only the ASCII-safe ID as QR content to avoid encoding errors
+  // The scanner looks up the student by ID anyway
+  try {
+    new QRCode(wrap, {
+      text: st.id,
+      width: 180, height: 180,
+      colorDark: '#3a0078', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {
+    // fallback: plain text QR
+    wrap.innerHTML = '';
+    new QRCode(wrap, {
+      text: st.id,
+      width: 180, height: 180,
+      colorDark: '#3a0078', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.L
+    });
+  }
+
   // Show only classes the student actually has
   const CTAG_COLORS = {
     'Coro':'background:#ede8fb;color:#5a47c0;','Auralidad':'background:#fef3d8;color:#9c7a10;',
     'Instrumento':'background:#e4f5eb;color:#2e7d4f;','Músicaminadores':'background:#fce4ec;color:#c2185b;',
     'Ensamble Musical':'background:#e0f7fa;color:#00695c;','Expresión Musical':'background:#f3e5f5;color:#7b1fa2;',
-    'Exploración Musical':'background:#fff3e0;color:#e65100;','Expresión Corporal':'background:#e8f5e9;color:#1b5e20;'
+    'Exploración Musical':'background:#fff3e0;color:#e65100;','Expresión Corporal':'background:#e8f5e9;color:#1b5e20;',
+    'Comunidad UIS':'background:#e8eaf6;color:#283593;','Teoría y Solfeo':'background:#fce4ec;color:#880e4f;',
+    'Teoría Musical':'background:#f3e5f5;color:#4a148c;'
   };
   const activeClases = CLASES.filter(c => (st.horario?.[c]||[]).length > 0);
-  const tagsHTML = (activeClases.length ? activeClases : CLASES.slice(0,3)).map(c =>
-    `<span style="${CTAG_COLORS[c]||''}font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.04em;">${c.toUpperCase()}</span>`
+  const tagsHTML = (activeClases.length ? activeClases : []).map(c =>
+    `<span style="${CTAG_COLORS[c]||'background:#eee;color:#555;'}font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.04em;">${c.toUpperCase()}</span>`
   ).join('');
   document.getElementById('pass-clases').innerHTML = tagsHTML;
   document.getElementById('qr-modal').classList.add('on');
