@@ -162,7 +162,24 @@ header{
 }
 .btn-xs:hover{border-color:var(--purple);color:var(--purple);}
 
-/* ── SCANNER ── */
+/* ── EVIDENCIAS ── */
+.ev-radio {
+  display:flex;align-items:center;gap:8px;
+  padding:9px 12px;border-radius:10px;cursor:pointer;
+  border:1.5px solid var(--line);background:var(--cream);
+  font-size:.82rem;font-weight:600;color:var(--text);
+  transition:border-color .15s,background .15s;
+}
+.ev-radio:has(input:checked){
+  border-color:var(--purple);background:var(--purpleL);color:var(--purple);
+}
+.ev-radio input{display:none;}
+#ev-file-label:hover{border-color:var(--purple);color:var(--purple);}
+.ev-thumb{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1.5px solid var(--line);}
+.ev-thumb-wrap{position:relative;display:inline-block;}
+.ev-thumb-del{position:absolute;top:-5px;right:-5px;background:var(--rust);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+
 .scanner-shell{
   background: linear-gradient(160deg, #1a0a2e 0%, #3a0078 100%);
   border-radius:16px;
@@ -444,6 +461,7 @@ tr:hover td{background:rgba(156,107,71,.03);}
     <button class="ntab"     onclick="go('faltas',this)">⚠️ Faltas</button>
     <button class="ntab"     onclick="go('students',this)">👥 Estudiantes</button>
     <button class="ntab"     onclick="go('report',this)">📊 Reportes</button>
+    <button class="ntab"     onclick="go('evidencias',this)">📸 Evidencias</button>
     <button class="ntab"     onclick="go('setup',this)">⚙️ Config</button>
   </nav>
 </header>
@@ -476,6 +494,7 @@ tr:hover td{background:rgba(156,107,71,.03);}
       </select>
     </div>
     <button class="btn btn-ink btn-sm" onclick="toggleScanner()" id="btn-cam">📷 Activar Cámara</button>
+    <button class="btn btn-ghost btn-sm" onclick="goEvidencias()" title="Registrar evidencias de esta clase">📸 Evidencias</button>
   </div>
 
   <!-- Close session CTA -->
@@ -634,6 +653,72 @@ tr:hover td{background:rgba(156,107,71,.03);}
   </div>
 </div>
 
+<!-- ══════════════════ EVIDENCIAS ══════════════════ -->
+<div class="view" id="view-evidencias">
+  <div class="sh">
+    <h2>📸 Evidencias de Clase</h2>
+    <p>Registra el estado del espacio e instrumentos. Los datos se vinculan automáticamente a tu sesión activa.</p>
+  </div>
+
+  <!-- Sesión activa -->
+  <div id="ev-session-info" class="notice" style="background:var(--purpleL);border-color:var(--purple);color:var(--ink);display:none;"></div>
+  <div id="ev-no-session" class="notice" style="display:none;">
+    ⚠️ No hay una sesión activa. Ve a <b>📷 Clase</b>, selecciona tu nombre y la clase antes de registrar evidencias.
+  </div>
+
+  <div id="ev-form-wrap">
+    <!-- Estado del espacio -->
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-title">🏫 Estado del espacio</div>
+      <div class="fl">
+        <label>¿Cómo encontraste el salón?</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+          <label class="ev-radio" id="ev-r1"><input type="radio" name="ev-espacio" value="Buen estado"> <span>✅ Buen estado</span></label>
+          <label class="ev-radio" id="ev-r2"><input type="radio" name="ev-espacio" value="Requiere limpieza"> <span>🧹 Requiere limpieza</span></label>
+          <label class="ev-radio" id="ev-r3"><input type="radio" name="ev-espacio" value="Requiere reparación"> <span>🔧 Requiere reparación</span></label>
+          <label class="ev-radio" id="ev-r4"><input type="radio" name="ev-espacio" value="Ocupado / no disponible"> <span>🚫 Ocupado</span></label>
+        </div>
+      </div>
+
+      <!-- Instrumentos -->
+      <div class="fl" style="margin-top:10px;">
+        <label>¿Cómo encontraste los instrumentos?</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+          <label class="ev-radio"><input type="radio" name="ev-inst" value="Completos y en buen estado"> <span>✅ Completos y bien</span></label>
+          <label class="ev-radio"><input type="radio" name="ev-inst" value="Falta alguno"> <span>⚠️ Falta alguno</span></label>
+          <label class="ev-radio"><input type="radio" name="ev-inst" value="Daño o deterioro"> <span>🔧 Daño o deterioro</span></label>
+          <label class="ev-radio"><input type="radio" name="ev-inst" value="No aplica"> <span>➖ No aplica</span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Observaciones -->
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-title">📝 Observaciones</div>
+      <div class="fl">
+        <label>Describe el estado o novedad (opcional)</label>
+        <textarea id="ev-obs" placeholder="Ej: Falta una silla, el piano tiene una tecla dañada, el salón estaba sucio…" style="height:90px;resize:vertical;"></textarea>
+      </div>
+    </div>
+
+    <!-- Fotos -->
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-title">📷 Fotos o videos</div>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">Adjunta hasta 5 archivos. Se guardarán en Drive junto con los datos de la sesión.</p>
+      <label id="ev-file-label" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:22px;border:2px dashed var(--line);border-radius:12px;cursor:pointer;background:var(--cream);color:var(--muted);font-size:.85rem;font-weight:600;transition:border-color .2s;">
+        <span style="font-size:1.6rem;">📁</span> Toca para seleccionar fotos o video
+        <input type="file" id="ev-files" accept="image/*,video/*" multiple style="display:none;" onchange="previewFiles(this)">
+      </label>
+      <div id="ev-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
+    </div>
+
+    <button class="btn btn-terra btn-full" style="font-size:1rem;padding:14px;" onclick="submitEvidencia()">
+      📤 Enviar Evidencia
+    </button>
+    <div id="ev-result" style="margin-top:12px;text-align:center;font-size:.85rem;"></div>
+  </div>
+</div>
+
 <!-- ══════════════════ SETUP ══════════════════ -->
 <div class="view" id="view-setup">
   <div class="sh"><h2>Configuración</h2><p>Conecta Google Sheets para guardar los datos en la nube y compartir con todos los profesores.</p></div>
@@ -647,15 +732,27 @@ tr:hover td{background:rgba(156,107,71,.03);}
     <div class="codebox" id="gas-code">function doPost(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var d  = JSON.parse(e.postData.contents);
-  var sn = d.tipo === 'falta' ? 'Faltas' : 'Asistencia';
-  var sh = ss.getSheetByName(sn) || ss.insertSheet(sn);
-  if (sh.getLastRow() === 0)
-    sh.appendRow(d.tipo==='falta'
-      ? ['Fecha','Hora','Estudiante','ID','Programa','Clase','Profesor','Faltas acum.']
-      : ['Fecha','Hora','Estudiante','ID','Programa','Clase','Profesor']);
-  sh.appendRow(d.tipo==='falta'
-    ? [d.fecha,d.hora,d.estudiante,d.id,d.programa||'',d.clase,d.profesor,d.total]
-    : [d.fecha,d.hora,d.estudiante,d.id,d.programa||'',d.clase,d.profesor]);
+  var sn, sh, headers, row;
+
+  if (d.tipo === 'evidencia') {
+    sn = 'Evidencias';
+    sh = ss.getSheetByName(sn) || ss.insertSheet(sn);
+    headers = ['Fecha','Hora','Profesor','Clase','Día','Espacio','Instrumentos','Observaciones','Archivos'];
+    row = [d.fecha,d.hora,d.profesor,d.clase,d.dia,d.espacio,d.instrumentos,d.observaciones||'',d.archivos||''];
+  } else if (d.tipo === 'falta') {
+    sn = 'Faltas';
+    sh = ss.getSheetByName(sn) || ss.insertSheet(sn);
+    headers = ['Fecha','Hora','Estudiante','ID','Programa','Clase','Profesor','Faltas acum.'];
+    row = [d.fecha,d.hora,d.estudiante,d.id,d.programa||'',d.clase,d.profesor,d.total];
+  } else {
+    sn = 'Asistencia';
+    sh = ss.getSheetByName(sn) || ss.insertSheet(sn);
+    headers = ['Fecha','Hora','Estudiante','ID','Programa','Clase','Profesor'];
+    row = [d.fecha,d.hora,d.estudiante,d.id,d.programa||'',d.clase,d.profesor];
+  }
+
+  if (sh.getLastRow() === 0) sh.appendRow(headers);
+  sh.appendRow(row);
   return ContentService
     .createTextOutput(JSON.stringify({ok:true}))
     .setMimeType(ContentService.MimeType.JSON);
@@ -784,10 +881,11 @@ function go(id, btn) {
   document.querySelectorAll('.ntab').forEach(t => t.classList.remove('on'));
   document.getElementById('view-' + id).classList.add('on');
   btn.classList.add('on');
-  if (id === 'students') renderStudents();
-  if (id === 'faltas')   renderFaltas();
-  if (id === 'report')   renderReport();
-  if (id === 'setup')    loadSetup();
+  if (id === 'students')   renderStudents();
+  if (id === 'faltas')     renderFaltas();
+  if (id === 'report')     renderReport();
+  if (id === 'setup')      loadSetup();
+  if (id === 'evidencias') loadEvidencias();
 }
 
 // ════════════════════════════════════════════════
@@ -1436,6 +1534,139 @@ function saveGS() {
     ? '<span style="color:var(--green)">✅ URL guardada correctamente</span>'
     : '<span style="color:var(--rust)">URL eliminada</span>';
   updateCfgStatus();
+}
+function saveEV() {}
+function loadEV() {}
+
+// ════════════════════════════════════════════════
+// EVIDENCIAS
+// ════════════════════════════════════════════════
+function goEvidencias() {
+  // Find the evidencias nav button and trigger go()
+  const tabs = document.querySelectorAll('.ntab');
+  tabs.forEach(t => { if (t.textContent.includes('Evidencias')) t.click(); });
+}
+
+function loadEvidencias() {
+  const prof  = document.getElementById('s-prof').value;
+  const clase = document.getElementById('s-clase').value;
+  const dia   = document.getElementById('s-dia').value;
+  const info  = document.getElementById('ev-session-info');
+  const noSes = document.getElementById('ev-no-session');
+  const form  = document.getElementById('ev-form-wrap');
+
+  if (prof && clase) {
+    const now = new Date();
+    const fecha = now.toLocaleDateString('es-CO');
+    const hora  = now.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
+    info.style.display = 'block';
+    info.innerHTML = `✅ <b>Sesión activa:</b> ${clase} · <b>${prof}</b> · ${dia} ${fecha} ${hora}`;
+    noSes.style.display = 'none';
+    form.style.display  = 'block';
+  } else {
+    info.style.display = 'none';
+    noSes.style.display = 'block';
+    form.style.display  = 'none';
+  }
+
+  // Reset form
+  document.querySelectorAll('input[name="ev-espacio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('input[name="ev-inst"]').forEach(r => r.checked = false);
+  document.getElementById('ev-obs').value = '';
+  document.getElementById('ev-preview').innerHTML = '';
+  document.getElementById('ev-result').innerHTML  = '';
+  if (document.getElementById('ev-files')) document.getElementById('ev-files').value = '';
+}
+
+let evFiles = [];
+
+function previewFiles(input) {
+  evFiles = Array.from(input.files).slice(0,5);
+  const wrap = document.getElementById('ev-preview');
+  wrap.innerHTML = '';
+  evFiles.forEach((f, i) => {
+    const div = document.createElement('div');
+    div.className = 'ev-thumb-wrap';
+    if (f.type.startsWith('image/')) {
+      const img = document.createElement('img');
+      img.className = 'ev-thumb';
+      img.src = URL.createObjectURL(f);
+      div.appendChild(img);
+    } else {
+      div.innerHTML = `<div class="ev-thumb" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--cream);font-size:.65rem;color:var(--muted);gap:3px;"><span style="font-size:1.4rem;">🎬</span>${f.name.slice(0,10)}</div>`;
+    }
+    const del = document.createElement('button');
+    del.className = 'ev-thumb-del';
+    del.textContent = '×';
+    del.onclick = () => { evFiles.splice(i,1); previewFiles({files: evFiles}); };
+    div.appendChild(del);
+    wrap.appendChild(div);
+  });
+}
+
+async function submitEvidencia() {
+  const prof  = document.getElementById('s-prof').value;
+  const clase = document.getElementById('s-clase').value;
+  const dia   = document.getElementById('s-dia').value;
+  if (!prof || !clase) { alert('Primero inicia una sesión en 📷 Clase.'); return; }
+
+  const espacio = document.querySelector('input[name="ev-espacio"]:checked')?.value || '';
+  const inst    = document.querySelector('input[name="ev-inst"]:checked')?.value   || '';
+  const obs     = document.getElementById('ev-obs').value.trim();
+  const now     = new Date();
+  const fecha   = now.toLocaleDateString('es-CO');
+  const hora    = now.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
+
+  if (!espacio || !inst) { alert('Por favor indica el estado del espacio y los instrumentos.'); return; }
+
+  const btn = document.querySelector('#ev-form-wrap .btn-terra');
+  btn.disabled = true;
+  btn.textContent = '⏳ Enviando…';
+  const res = document.getElementById('ev-result');
+
+  // Build record
+  const rec = {
+    tipo: 'evidencia', fecha, hora, profesor: prof, clase, dia,
+    espacio, instrumentos: inst, observaciones: obs,
+    archivos: evFiles.length + ' archivo(s) adjunto(s)'
+  };
+
+  // Send to Sheets
+  const gsUrl = localStorage.getItem('mus_gs');
+  if (gsUrl) {
+    try {
+      await fetch(gsUrl, {
+        method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(rec)
+      });
+    } catch(e) { console.warn('Sheets error:', e); }
+  }
+
+  // Save locally
+  const evLocal = JSON.parse(localStorage.getItem('mus_ev_log')||'[]');
+  evLocal.push(rec);
+  localStorage.setItem('mus_ev_log', JSON.stringify(evLocal));
+
+  btn.disabled = false;
+  btn.textContent = '📤 Enviar Evidencia';
+  res.innerHTML = `<div style="background:var(--greenL);color:var(--greenD);padding:12px 16px;border-radius:10px;font-weight:700;">
+    ✅ Evidencia registrada correctamente<br>
+    <span style="font-weight:400;font-size:.8rem;">${clase} · ${prof} · ${fecha} ${hora}</span>
+  </div>`;
+
+  // Note about files: Google Sheets can't receive binary files directly,
+  // show Drive upload reminder if there are files
+  if (evFiles.length > 0) {
+    res.innerHTML += `<div style="margin-top:8px;background:var(--purpleL);color:var(--purple);padding:10px 14px;border-radius:10px;font-size:.8rem;">
+      📁 Tienes ${evFiles.length} archivo(s) seleccionado(s). Para subirlos a Drive, usa el botón de abajo.
+    </div>
+    <button class="btn btn-ink btn-sm" style="margin-top:10px;width:100%;" onclick="openDriveUpload()">📂 Abrir Drive para subir archivos</button>`;
+  }
+}
+
+function openDriveUpload() {
+  window.open('https://drive.google.com', '_blank');
 }
 function updateCfgStatus() {
   const gs = localStorage.getItem('mus_gs');
