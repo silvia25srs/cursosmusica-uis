@@ -6,6 +6,7 @@
 <title>Cursos de Música UIS — Asistencia</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;700;800&display=swap');
@@ -642,6 +643,28 @@ tr:hover td{background:rgba(156,107,71,.03);}
     <div class="card-title" style="justify-content:space-between;">
       <span>Lista de Estudiantes (<span id="st-count">0</span>)</span>
     </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
+      <input id="st-search" type="search" placeholder="🔍 Buscar nombre…"
+        style="flex:1;min-width:140px;background:var(--cream);border:1.5px solid var(--line);border-radius:8px;padding:7px 12px;color:var(--text);font-family:'Manrope',sans-serif;font-size:.84rem;outline:none;"
+        oninput="renderStudents()">
+      <select id="st-filter-prog"
+        style="background:var(--cream);border:1.5px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--text);font-family:'Manrope',sans-serif;font-size:.84rem;outline:none;"
+        onchange="renderStudents()">
+        <option value="">Todos los programas</option>
+        <option value="Instrumental">Instrumental</option>
+        <option value="Preiniciación">Preiniciación</option>
+        <option value="Iniciación">Iniciación</option>
+        <option value="Músicaminadores">Músicaminadores</option>
+        <option value="Comunidad UIS">Comunidad UIS</option>
+        <option value="Preuniversitario">Preuniversitario</option>
+      </select>
+    </div>
+    <div id="bulk-qr-bar" style="display:none;margin-bottom:12px;">
+      <button class="btn btn-ink btn-sm" onclick="downloadAllQRs()" id="btn-bulk-qr">
+        ⬇️ Descargar QR de todos (PDFs individuales)
+      </button>
+      <span id="bulk-qr-progress" style="font-size:.78rem;color:var(--muted);margin-left:10px;"></span>
+    </div>
     <div id="st-list"></div>
   </div>
 </div>
@@ -713,15 +736,17 @@ tr:hover td{background:rgba(156,107,71,.03);}
       </div>
     </div>
 
-    <!-- Fotos -->
+    <!-- Fotos / OneDrive -->
     <div class="card" style="margin-bottom:18px;">
       <div class="card-title">📷 Fotos o videos</div>
-      <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">Adjunta hasta 5 archivos. Se guardarán en Drive junto con los datos de la sesión.</p>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">Selecciona hasta 5 archivos. Al enviar se subirán automáticamente a la carpeta de OneDrive de Evidencias.</p>
       <label id="ev-file-label" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:22px;border:2px dashed var(--line);border-radius:12px;cursor:pointer;background:var(--cream);color:var(--muted);font-size:.85rem;font-weight:600;transition:border-color .2s;">
         <span style="font-size:1.6rem;">📁</span> Toca para seleccionar fotos o video
         <input type="file" id="ev-files" accept="image/*,video/*" multiple style="display:none;" onchange="previewFiles(this)">
       </label>
       <div id="ev-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
+      <!-- Estado subida OneDrive -->
+      <div id="od-upload-status" style="display:none;margin-top:10px;font-size:.8rem;padding:10px 14px;border-radius:10px;background:var(--purpleL);color:var(--purple);"></div>
     </div>
 
     <button class="btn btn-terra btn-full" style="font-size:1rem;padding:14px;" onclick="submitEvidencia()">
@@ -736,6 +761,34 @@ tr:hover td{background:rgba(156,107,71,.03);}
   <div class="sh"><h2>Configuración</h2><p>Conecta Google Sheets para guardar los datos en la nube y compartir con todos los profesores.</p></div>
 
   <div class="notice">⚠️ Sin Google Sheets los datos se guardan solo en este navegador. Configura la integración para que todos los profesores puedan registrar asistencia y los datos queden centralizados.</div>
+
+  <!-- OneDrive -->
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-title">☁️ OneDrive — Fotos de Evidencias</div>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:10px;">Pega aquí el <b>Client ID</b> de tu app en Microsoft Azure para subir fotos directamente desde Evidencias.</p>
+    <div class="fl">
+      <label style="font-size:.78rem;font-weight:700;color:var(--muted);">Azure App Client ID</label>
+      <input type="text" id="od-client-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+        style="font-size:.83rem;font-family:monospace;"
+        value="">
+    </div>
+    <div class="fl" style="margin-top:8px;">
+      <label style="font-size:.78rem;font-weight:700;color:var(--muted);">Nombre de carpeta en OneDrive</label>
+      <input type="text" id="od-folder" placeholder="Evidencias Música UIS"
+        style="font-size:.83rem;"
+        value="Evidencias Música UIS">
+    </div>
+    <button class="btn btn-ink btn-sm" style="margin-top:10px;" onclick="saveODConfig()">💾 Guardar configuración OneDrive</button>
+    <div id="od-config-status" style="font-size:.78rem;margin-top:6px;color:var(--muted);"></div>
+    <div style="margin-top:10px;padding:10px 12px;background:#fff8e1;border-radius:8px;font-size:.75rem;color:#7a5f00;line-height:1.6;">
+      <b>¿Cómo obtener el Client ID?</b><br>
+      1. Ve a <a href="https://portal.azure.com" target="_blank" style="color:#3a0078;">portal.azure.com</a> → Registros de aplicaciones → Nueva<br>
+      2. Nombre: "Musica UIS Evidencias" · Tipo: <b>Cuentas personales y organizacionales</b><br>
+      3. URI de redirección: <b>SPA</b> → pega la URL de tu GitHub Pages<br>
+      4. Copia el <b>Application (client) ID</b> y pégalo arriba<br>
+      5. En "Permisos de API" → Agregar → Microsoft Graph → <b>Files.ReadWrite</b>
+    </div>
+  </div>
 
   <!-- Google Sheets -->
   <div class="ss">
@@ -1267,10 +1320,25 @@ function bulkAdd() {
 }
 
 function renderStudents() {
-  document.getElementById('st-count').textContent = students.length;
   renderProfChips(); fillSelects();
   const c = document.getElementById('st-list');
   if (!students.length) { c.innerHTML='<div class="empty">No hay estudiantes</div>'; return; }
+
+  const search = (document.getElementById('st-search')?.value||'').toLowerCase();
+  const progFilter = document.getElementById('st-filter-prog')?.value||'';
+
+  // Programs that get bulk QR download button
+  const QR_PROGRAMS = ['Preuniversitario','Comunidad UIS','Preiniciación','Iniciación'];
+  const bulkBar = document.getElementById('bulk-qr-bar');
+  if (bulkBar) bulkBar.style.display = QR_PROGRAMS.includes(progFilter) ? 'flex' : 'none';
+
+  const visible = students.map((st,i)=>({st,i})).filter(({st}) => {
+    if (progFilter && st.programa !== progFilter) return false;
+    if (search && !st.nombre.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  document.getElementById('st-count').textContent = visible.length + (visible.length < students.length ? ` de ${students.length}` : '');
 
   const PROG_COLOR = {
     'Músicaminadores': 'background:#fce4ec;color:#c2185b;',
@@ -1281,7 +1349,7 @@ function renderStudents() {
     'Preuniversitario':'background:#fff8e1;color:#f57f17;',
   };
 
-  c.innerHTML = students.map((st,i) => {
+  c.innerHTML = visible.map(({st,i}) => {
     const slots = CLASES.map(cl => {
       const s = (st.horario?.[cl]||[]).map(sl=>`${sl.dia} ${sl.hora}`).join(', ');
       return s ? `<span class="badge ${claseBadge(cl)}" style="font-size:.68rem;">${cl}: ${s}</span>` : '';
@@ -1428,36 +1496,80 @@ function showQR(i) {
 }
 function closeQR() { document.getElementById('qr-modal').classList.remove('on'); }
 
-function printQR() {
-  const name   = document.getElementById('qr-name').textContent;
-  const canvas = document.querySelector('#qr-wrap canvas');
-  if (!canvas) { alert('Espera que cargue el QR'); return; }
-  const img = canvas.toDataURL('image/png');
-  const w = window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>Music Pass — ${name}</title>
+// ── Download single QR as PDF for a specific student (by index) ──
+function downloadStudentQR(stIdx) {
+  return new Promise((resolve) => {
+    const st = students[stIdx];
+    const tmpWrap = document.createElement('div');
+    tmpWrap.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+    document.body.appendChild(tmpWrap);
+    try {
+      new QRCode(tmpWrap, {
+        text: st.id, width:180, height:180,
+        colorDark:'#3a0078', colorLight:'#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch(e) {}
+    setTimeout(() => {
+      const canvas = tmpWrap.querySelector('canvas');
+      const img = canvas ? canvas.toDataURL('image/png') : '';
+      document.body.removeChild(tmpWrap);
+      const activeClases = CLASES.filter(c => (st.horario?.[c]||[]).length > 0);
+      const CTAG = {
+        'Coro':'#ede8fb;color:#5a47c0','Auralidad':'#fef3d8;color:#9c7a10',
+        'Instrumento':'#e4f5eb;color:#2e7d4f','Músicaminadores':'#fce4ec;color:#c2185b',
+        'Ensamble Musical':'#e0f7fa;color:#00695c','Expresión Musical':'#f3e5f5;color:#7b1fa2',
+        'Exploración Musical':'#fff3e0;color:#e65100','Expresión Corporal':'#e8f5e9;color:#1b5e20',
+        'Comunidad UIS':'#e8eaf6;color:#283593','Teoría y Solfeo':'#fce4ec;color:#880e4f',
+        'Teoría Musical':'#f3e5f5;color:#4a148c'
+      };
+      const tagsHTML = activeClases.map(c =>
+        `<span style="background:${CTAG[c]||'#eee;color:#555'};font-size:.6rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.04em;display:inline-block;">${c.toUpperCase()}</span>`
+      ).join('');
+      const safeName = st.nombre.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9 ]/g,'').trim();
+      const w = window.open('','_blank');
+      w.document.write(buildPassHTML(st.nombre, img, tagsHTML, `Music Pass — ${safeName}`));
+      w.document.close();
+      setTimeout(() => {
+        w.print();
+        // After print dialog, close window
+        w.addEventListener('afterprint', () => { w.close(); resolve(); });
+        setTimeout(() => { try { w.close(); } catch(e) {} resolve(); }, 3000);
+      }, 600);
+    }, 300);
+  });
+}
+
+async function downloadAllQRs() {
+  const progFilter = document.getElementById('st-filter-prog')?.value || '';
+  const QR_PROGRAMS = ['Preuniversitario','Comunidad UIS','Preiniciación','Iniciación'];
+  const targets = students.map((st,i)=>({st,i})).filter(({st}) =>
+    !progFilter || st.programa === progFilter
+  ).filter(({st}) => QR_PROGRAMS.includes(st.programa));
+
+  if (!targets.length) { alert('No hay estudiantes con QR para descargar en este filtro.'); return; }
+  const prog = document.getElementById('btn-bulk-qr');
+  const bar  = document.getElementById('bulk-qr-progress');
+  prog.disabled = true;
+  for (let k=0; k < targets.length; k++) {
+    bar.textContent = `Generando ${k+1} de ${targets.length}: ${targets[k].st.nombre}…`;
+    await downloadStudentQR(targets[k].i);
+    await new Promise(r => setTimeout(r, 800));
+  }
+  bar.textContent = `✅ ${targets.length} PDFs generados.`;
+  prog.disabled = false;
+}
+
+function buildPassHTML(name, img, tagsHTML, title) {
+  return `<!DOCTYPE html><html><head><title>${title}</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
     body{background:#e8e0f5;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;font-family:'Manrope',sans-serif;}
-    .pass{
-      width:320px;border-radius:20px;overflow:hidden;
-      box-shadow:0 12px 40px rgba(58,0,120,.25);
-      background:#fff;
-    }
-    .pass-top{
-      background:linear-gradient(135deg,#3a0078 0%,#6b21c8 100%);
-      padding:24px 26px 20px;position:relative;overflow:hidden;
-    }
-    .pass-top::before{
-      content:'';position:absolute;top:-24px;right:-24px;
-      width:130px;height:130px;border-radius:50%;
-      background:rgba(255,255,255,.07);
-    }
-    .pass-top::after{
-      content:'';position:absolute;bottom:-32px;left:-12px;
-      width:90px;height:90px;border-radius:50%;
-      background:rgba(106,191,30,.12);
-    }
+    .pass{width:320px;border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(58,0,120,.25);background:#fff;}
+    .pass-top{background:linear-gradient(135deg,#3a0078 0%,#6b21c8 100%);padding:24px 26px 20px;position:relative;overflow:hidden;}
+    .pass-top::before{content:'';position:absolute;top:-24px;right:-24px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);}
+    .pass-top::after{content:'';position:absolute;bottom:-32px;left:-12px;width:90px;height:90px;border-radius:50%;background:rgba(106,191,30,.12);}
     .univ{font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px;}
     .pass-title{font-family:'Bebas Neue',sans-serif;font-size:2.1rem;color:#fff;letter-spacing:.1em;line-height:1;}
     .pass-sub{font-size:.64rem;font-weight:700;color:#6abf1e;letter-spacing:.12em;text-transform:uppercase;margin-top:3px;}
@@ -1470,22 +1582,10 @@ function printQR() {
     .hint{font-size:.65rem;color:#9080c0;text-align:center;line-height:1.5;margin-bottom:18px;}
     .divider{border:none;border-top:1px dashed #ddd3f5;margin-bottom:14px;}
     .class-tags{display:flex;gap:5px;flex-wrap:wrap;}
-    .tag{font-size:.6rem;font-weight:700;letter-spacing:.06em;padding:3px 9px;border-radius:20px;}
-    .tag-c{background:#f3eeff;color:#6b21c8;}
-    .tag-a{background:#edfad0;color:#4a8a10;}
-    .tag-i{background:#fff8ed;color:#c49a2a;}
-    .pass-footer{
-      background:linear-gradient(135deg,#3a0078 0%,#6b21c8 100%);
-      padding:10px 26px;
-      display:flex;align-items:center;justify-content:space-between;
-    }
+    .pass-footer{background:linear-gradient(135deg,#3a0078 0%,#6b21c8 100%);padding:10px 26px;display:flex;align-items:center;justify-content:space-between;}
     .foot-text{font-size:.6rem;color:rgba(255,255,255,.6);font-weight:600;letter-spacing:.06em;}
     .foot-icon{font-size:1.1rem;}
-    @media print {
-      body{background:#fff;padding:20px;}
-      .pass{box-shadow:none;border:1px solid #ddd;}
-      .no-print{display:none;}
-    }
+    @media print{body{background:#fff;padding:20px;}.pass{box-shadow:none;border:1px solid #ddd;}}
   </style></head>
   <body>
     <div class="pass">
@@ -1500,21 +1600,144 @@ function printQR() {
         <div class="qr-wrap"><div class="qr-border"><img src="${img}" width="170" height="170"></div></div>
         <div class="hint">Presenta este pase al inicio de cada clase.<br>El profesor escaneará el código QR.</div>
         <hr class="divider">
-        <div class="class-tags">
-          <span class="tag tag-c">CORO</span>
-          <span class="tag tag-a">AURALIDAD</span>
-          <span class="tag tag-i">INSTRUMENTO</span>
-        </div>
+        <div class="class-tags">${tagsHTML}</div>
       </div>
       <div class="pass-footer">
-        <span class="foot-text">Cursos de Música UIS · 2025</span>
+        <span class="foot-text">Cursos de Música UIS · 2026</span>
         <span class="foot-icon">🎵</span>
       </div>
     </div>
-    <div class="no-print" style="margin-top:22px;text-align:center;">
-      <button onclick="window.print()" style="background:#6b21c8;color:#fff;border:none;border-radius:9px;padding:11px 28px;font-family:'Manrope',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;">🖨️ Imprimir / Guardar PDF</button>
-    </div>
-  </body></html>`);
+  </body></html>`;
+}
+
+function printQR() {
+  const name   = document.getElementById('qr-name').textContent;
+  const canvas = document.querySelector('#qr-wrap canvas');
+  if (!canvas) { alert('Espera que cargue el QR'); return; }
+  const img = canvas.toDataURL('image/png');
+  const tagsHTML = document.getElementById('pass-clases').innerHTML
+    .replace(/style="([^"]*)"/g, (m,s) => `style="${s}display:inline-block;"`);
+  const w = window.open('','_blank');
+  w.document.write(buildPassHTML(name, img, tagsHTML, `Music Pass — ${name}`));
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+
+// ════════════════════════════════════════════════
+// ONEDRIVE INTEGRATION
+// ════════════════════════════════════════════════
+let msalInstance = null;
+let odToken = null;
+
+function getODConfig() {
+  return {
+    clientId: localStorage.getItem('od_client_id') || '',
+    folder:   localStorage.getItem('od_folder') || 'Evidencias Música UIS'
+  };
+}
+
+function saveODConfig() {
+  const cid = document.getElementById('od-client-id').value.trim();
+  const folder = document.getElementById('od-folder').value.trim() || 'Evidencias Música UIS';
+  if (!cid) { document.getElementById('od-config-status').textContent = '⚠️ Ingresa el Client ID.'; return; }
+  localStorage.setItem('od_client_id', cid);
+  localStorage.setItem('od_folder', folder);
+  msalInstance = null; odToken = null; // reset so it re-initializes
+  document.getElementById('od-config-status').textContent = '✅ Guardado. La próxima subida pedirá inicio de sesión con tu cuenta Microsoft.';
+}
+
+function initMSAL() {
+  const { clientId } = getODConfig();
+  if (!clientId) return null;
+  if (msalInstance) return msalInstance;
+  msalInstance = new msal.PublicClientApplication({
+    auth: {
+      clientId,
+      authority: 'https://login.microsoftonline.com/common',
+      redirectUri: window.location.href.split('?')[0]
+    },
+    cache: { cacheLocation: 'localStorage' }
+  });
+  return msalInstance;
+}
+
+async function getODToken() {
+  const msal = initMSAL();
+  if (!msal) return null;
+  const scopes = ['Files.ReadWrite', 'User.Read'];
+  try {
+    const accounts = msal.getAllAccounts();
+    if (accounts.length > 0) {
+      const res = await msal.acquireTokenSilent({ scopes, account: accounts[0] });
+      return res.accessToken;
+    }
+    const res = await msal.loginPopup({ scopes });
+    return res.accessToken;
+  } catch(e) {
+    console.error('MSAL error', e);
+    return null;
+  }
+}
+
+async function uploadToOneDrive(files, subfolder) {
+  const { clientId, folder } = getODConfig();
+  if (!clientId) {
+    return { ok: false, msg: 'OneDrive no configurado. Ve a ⚙️ Config para agregar el Client ID.' };
+  }
+  const token = await getODToken();
+  if (!token) return { ok: false, msg: 'No se pudo iniciar sesión en Microsoft.' };
+
+  const statusEl = document.getElementById('od-upload-status');
+  statusEl.style.display = 'block';
+  const uploaded = [];
+  const errors = [];
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    statusEl.textContent = `☁️ Subiendo ${i+1}/${files.length}: ${file.name}…`;
+    // OneDrive path: /me/drive/root:/{folder}/{subfolder}/{filename}:/content
+    const path = `${folder}/${subfolder}/${file.name}`.replace(/\/+/g,'/');
+    const encodedPath = encodeURIComponent(path).replace(/%2F/g,'/');
+    try {
+      const res = await fetch(
+        `https://graph.microsoft.com/v1.0/me/drive/root:/${encodedPath}:/content`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': file.type || 'application/octet-stream'
+          },
+          body: file
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        uploaded.push(data.webUrl || file.name);
+      } else {
+        errors.push(file.name);
+      }
+    } catch(e) {
+      errors.push(file.name);
+    }
+  }
+
+  if (errors.length === 0) {
+    statusEl.style.background = '#e8f5e9'; statusEl.style.color = '#2e7d32';
+    statusEl.textContent = `✅ ${uploaded.length} archivo(s) subidos a OneDrive — carpeta: ${folder}/${subfolder}`;
+  } else {
+    statusEl.style.background = '#fff3e0'; statusEl.style.color = '#e65100';
+    statusEl.textContent = `⚠️ Subidos: ${uploaded.length}, Error: ${errors.join(', ')}`;
+  }
+  return { ok: errors.length === 0, uploaded, errors };
+}
+
+// Load saved OneDrive config into setup fields when tab opens
+function loadODConfigFields() {
+  const cfg = getODConfig();
+  const cidEl = document.getElementById('od-client-id');
+  const folEl = document.getElementById('od-folder');
+  if (cidEl) cidEl.value = cfg.clientId;
+  if (folEl) folEl.value = cfg.folder;
 }
 
 // ════════════════════════════════════════════════
