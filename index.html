@@ -433,19 +433,37 @@ tr:hover td{background:rgba(156,107,71,.03);}
 .empty{text-align:center;padding:36px 20px;color:var(--sand);font-size:.85rem;}
 
 /* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .stats{grid-template-columns:repeat(3,1fr);}
+}
 @media(max-width:700px){
   .stats{grid-template-columns:1fr 1fr;}
-  .hg{grid-template-columns:1fr;}
+  .hg{grid-template-columns:1fr 1fr;}
   .fc-det{grid-template-columns:1fr 1fr;}
   .ntab{padding:6px 9px;font-size:.72rem;}
   .session-bar{flex-direction:column;}
   .sess-field{width:100%;}
   .close-session-bar{flex-direction:column;text-align:center;}
+  .view{padding:20px 16px;}
+  /* 2-col grids go 1-col on mobile */
+  div[style*="grid-template-columns:1fr 1fr"]{display:block!important;}
+  div[style*="grid-template-columns:1fr 1fr"] > .card,
+  div[style*="grid-template-columns:1fr 1fr"] > div{margin-bottom:16px;}
 }
-@media(max-width:420px){
-  .view{padding:18px 14px;}
-  header{padding:0 14px;}
-  .ntab{padding:6px 7px;font-size:.69rem;}
+@media(max-width:520px){
+  .stats{grid-template-columns:1fr 1fr;}
+  .hg{grid-template-columns:1fr;}
+  .nav{gap:1px;flex-wrap:wrap;justify-content:center;}
+  .ntab{padding:5px 7px;font-size:.67rem;border-radius:6px;}
+  header{height:auto;padding:8px 12px;flex-wrap:wrap;gap:6px;}
+  .logo-text-top{display:none;}
+  .view{padding:16px 12px;}
+  .sh h2{font-size:1.5rem;}
+  .modal{border-radius:14px!important;padding:22px 16px!important;}
+}
+@media(max-width:380px){
+  .ntab{padding:5px 6px;font-size:.63rem;}
+  .logo-text-bot{font-size:.82rem;}
 }
 </style>
 </head>
@@ -463,10 +481,11 @@ tr:hover td{background:rgba(156,107,71,.03);}
   <nav class="nav">
     <button class="ntab on"  onclick="go('scanner',this)">📷 Clase</button>
     <button class="ntab"     onclick="go('faltas',this)">⚠️ Faltas</button>
-    <button class="ntab"     onclick="go('students',this)">👥 Estudiantes</button>
+    <button class="ntab"     onclick="pinGuard('students',this)">👥 Estudiantes</button>
     <button class="ntab"     onclick="go('report',this)">📊 Reportes</button>
     <button class="ntab"     onclick="go('evidencias',this)">📸 Evidencias</button>
-    <button class="ntab"     onclick="go('setup',this)">⚙️ Config</button>
+    <button class="ntab"     onclick="go('logistica',this)">📦 Logística</button>
+    <button class="ntab"     onclick="pinGuard('setup',this)">⚙️ Config</button>
   </nav>
 </header>
 
@@ -636,6 +655,15 @@ tr:hover td{background:rgba(156,107,71,.03);}
         </div>
         <div id="prof-chips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
       </div>
+    </div>
+
+    <!-- ── CARNETS PROFESORES ── -->
+    <div class="card" style="margin-top:14px;">
+      <div class="card-title">🪪 Carnets de Profesores</div>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">
+        Genera el carnet de identificación para cada profesor. Puedes subir la foto del profesor antes de imprimir.
+      </p>
+      <div id="carnet-list"></div>
     </div>
   </div>
 
@@ -849,6 +877,73 @@ function doGet(){
   </div>
 </div>
 
+<!-- ══════════════════ LOGÍSTICA ══════════════════ -->
+<div class="view" id="view-logistica">
+  <div class="sh"><h2>Logística</h2><p>Cada profesor puede registrar los equipos, instrumentos y salón que necesita para su clase.</p></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;">
+    <div class="card">
+      <div class="card-title">➕ Nueva Solicitud</div>
+      <div class="fl"><label>Profesor</label>
+        <select id="log-prof"><option value="">— Selecciona —</option></select>
+      </div>
+      <div class="fl"><label>Clase</label>
+        <select id="log-clase">
+          <option value="">— Selecciona —</option>
+          <option>🎵 Coro</option><option>👂 Auralidad</option>
+          <option>🎸 Instrumento</option><option>🎶 Músicaminadores</option>
+          <option>🎼 Ensamble Musical</option><option>🎹 Expresión Musical</option>
+          <option>🔍 Exploración Musical</option><option>🤸 Expresión Corporal</option>
+          <option>🎵 Comunidad UIS</option><option>📖 Teoría y Solfeo</option>
+          <option>🎼 Teoría Musical</option>
+        </select>
+      </div>
+      <div class="fl"><label>Hora</label>
+        <input type="time" id="log-hora">
+      </div>
+      <div class="fl"><label>Salón / Espacio</label>
+        <input type="text" id="log-salon" placeholder="Ej: Aula 201, Sala de ensayo B">
+      </div>
+      <div class="fl"><label>Equipos e Instrumentos necesarios</label>
+        <textarea id="log-equipos" placeholder="Ej: Piano, 5 flautas, proyector, sillas adicionales…"></textarea>
+      </div>
+      <div class="fl"><label>Observaciones</label>
+        <textarea id="log-obs" placeholder="Cualquier detalle adicional…" style="min-height:60px;"></textarea>
+      </div>
+      <button class="btn btn-ink btn-full" onclick="submitLogistica()">📦 Registrar Solicitud</button>
+      <div id="log-result" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Solicitudes Registradas</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        <select id="log-filter-prof" onchange="renderLogistica()" style="flex:1;background:var(--cream);border:1.5px solid var(--line);border-radius:8px;padding:7px 10px;font-family:'Manrope',sans-serif;font-size:.82rem;color:var(--text);outline:none;">
+          <option value="">Todos los profesores</option>
+        </select>
+        <button class="btn btn-rust btn-sm" onclick="clearLogistica()">🗑️ Limpiar todo</button>
+      </div>
+      <div id="log-list"><div class="empty">Sin solicitudes aún.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PIN MODAL -->
+<div class="moverlay" id="pin-modal">
+  <div class="modal" style="max-width:320px;">
+    <button class="mclose" onclick="closePinModal()">×</button>
+    <div style="font-size:2rem;margin-bottom:8px;">🔒</div>
+    <h3 style="margin-bottom:6px;">Acceso restringido</h3>
+    <p>Ingresa el PIN para continuar.</p>
+    <div style="display:flex;gap:10px;margin:16px 0 4px;">
+      <input type="password" id="pin-input" maxlength="6" placeholder="••••"
+        style="flex:1;text-align:center;font-size:1.4rem;letter-spacing:.3em;background:var(--cream);border:2px solid var(--line);border-radius:10px;padding:10px;font-family:'Manrope',sans-serif;outline:none;"
+        onkeydown="if(event.key==='Enter') checkPin()">
+      <button class="btn btn-ink" onclick="checkPin()">Entrar</button>
+    </div>
+    <div id="pin-error" style="font-size:.78rem;color:var(--rust);min-height:18px;margin-top:4px;"></div>
+  </div>
+</div>
+
 <!-- QR MODAL — MUSIC PASS PREVIEW -->
 <div class="moverlay" id="qr-modal">
   <div class="modal" style="max-width:340px;padding:0;overflow:hidden;border-radius:20px;text-align:left;">
@@ -859,6 +954,10 @@ function doGet(){
       <div style="position:absolute;bottom:-30px;left:-10px;width:80px;height:80px;border-radius:50%;background:rgba(106,191,30,.1);"></div>
       <div style="font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:3px;">Universidad Industrial de Santander</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#fff;letter-spacing:.08em;line-height:1;">MUSIC PASS</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+        <span style="background:rgba(106,191,30,.25);color:#6abf1e;font-size:.55rem;font-weight:700;letter-spacing:.1em;padding:2px 7px;border-radius:20px;">2026-1</span>
+        <span style="color:rgba(255,255,255,.5);font-size:.54rem;">Válido hasta 13 Jun 2026</span>
+      </div>
       <div style="font-size:.68rem;font-weight:600;color:var(--green);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;">Cursos de Música UIS</div>
     </div>
     <!-- Pass body -->
@@ -879,6 +978,64 @@ function doGet(){
       </div>
     </div>
     <button onclick="printQR()" class="btn btn-terra btn-full" style="border-radius:0;margin:0;padding:13px;">🖨️ Imprimir Music Pass</button>
+  </div>
+</div>
+
+<!-- CARNET MODAL — PROFESOR -->
+<div class="moverlay" id="carnet-modal">
+  <div class="modal" style="max-width:300px;padding:0;overflow:hidden;border-radius:22px;text-align:left;box-shadow:0 24px 64px rgba(49,81,30,.32);">
+    <button class="mclose" onclick="closeCarnet()" style="z-index:10;top:11px;right:11px;background:rgba(255,255,255,.25);border-color:transparent;color:#fff;width:26px;height:26px;font-size:.85rem;">×</button>
+
+    <!-- Header: dark green strip with institution name -->
+    <div style="background:#31511E;padding:11px 20px 12px;display:flex;align-items:center;gap:8px;">
+      <div style="width:5px;height:5px;border-radius:50%;background:#859F3D;flex-shrink:0;"></div>
+      <span style="font-size:.5rem;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:rgba(255,255,255,.6);">Universidad Industrial de Santander</span>
+    </div>
+
+    <!-- Photo section: white bg, photo prominently centered -->
+    <div style="background:#fff;padding:24px 20px 18px;display:flex;flex-direction:column;align-items:center;">
+      <!-- Photo with olive-green ring -->
+      <div id="cm-photo" style="width:136px;height:136px;border-radius:50%;overflow:hidden;border:4px solid #859F3D;background:#f4f6f0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:3.5rem;color:#859F3D;box-shadow:0 0 0 7px rgba(133,159,61,.14),0 6px 24px rgba(49,81,30,.18);margin-bottom:16px;flex-shrink:0;"></div>
+
+      <!-- Name -->
+      <div id="cm-name" style="font-size:1.08rem;font-weight:800;color:#31511E;text-align:center;line-height:1.25;letter-spacing:.01em;"></div>
+
+      <!-- Role pill: olive green -->
+      <div style="display:inline-flex;align-items:center;gap:5px;background:#859F3D;color:#fff;font-size:.5rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;padding:3px 12px;border-radius:20px;margin-top:8px;">🎵 Profesor · Cursos de Música</div>
+
+      <!-- Chips -->
+      <div style="display:flex;gap:5px;margin-top:10px;flex-wrap:wrap;justify-content:center;">
+        <span style="background:#f4f6f0;border:1px solid #d4dfc4;color:#31511E;font-size:.5rem;font-weight:700;letter-spacing:.09em;padding:2px 9px;border-radius:20px;">2026-1</span>
+        <span style="background:#f0eef8;border:1px solid #c8c0e0;color:#533E85;font-size:.5rem;font-weight:700;letter-spacing:.09em;padding:2px 9px;border-radius:20px;">UIS Extensión</span>
+      </div>
+    </div>
+
+    <!-- Info section: light warm white -->
+    <div style="background:#fafaf8;border-top:1.5px solid #e8eddf;padding:13px 20px;display:flex;flex-direction:column;gap:9px;">
+      <div style="display:flex;flex-direction:column;gap:1px;">
+        <span style="font-size:.51rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#859F3D;">Institución</span>
+        <span style="font-size:.79rem;font-weight:700;color:#31511E;">Universidad Industrial de Santander</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1px;">
+        <span style="font-size:.51rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#859F3D;">Área</span>
+        <span style="font-size:.79rem;font-weight:700;color:#31511E;">Extensión — Cursos de Música</span>
+      </div>
+      <div style="border-top:1px dashed #d4dfc4;padding-top:9px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span style="font-size:.51rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#859F3D;display:block;margin-bottom:1px;">Vigencia</span>
+          <span style="font-size:.78rem;font-weight:700;color:#31511E;">Válido hasta 13 jun 2026</span>
+        </div>
+        <div style="background:#f0eef8;border:1.5px solid #c8c0e0;border-radius:8px;padding:3px 9px;font-size:.58rem;font-weight:800;color:#533E85;">VIGENTE</div>
+      </div>
+    </div>
+
+    <!-- Footer: dark green -->
+    <div style="background:#31511E;padding:7px 18px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:.5rem;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.07em;">Cursos de Música UIS · 2026-1</span>
+      <span style="font-size:.85rem;">🎵</span>
+    </div>
+
+    <button onclick="printCarnetFromModal()" style="width:100%;border-radius:0;margin:0;padding:12px;background:#859F3D;color:#fff;border:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:.82rem;cursor:pointer;letter-spacing:.02em;">🖨️ Imprimir Carnet</button>
   </div>
 </div>
 
@@ -945,12 +1102,42 @@ function go(id, btn) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
   document.querySelectorAll('.ntab').forEach(t => t.classList.remove('on'));
   document.getElementById('view-' + id).classList.add('on');
-  btn.classList.add('on');
+  if (btn) btn.classList.add('on');
   if (id === 'students')   renderStudents();
   if (id === 'faltas')     renderFaltas();
   if (id === 'report')     renderReport();
   if (id === 'setup')      loadSetup();
   if (id === 'evidencias') loadEvidencias();
+  if (id === 'logistica')  { fillLogSelects(); renderLogistica(); }
+}
+
+// ════════════════════════════════════════════════
+// PIN GUARD
+// ════════════════════════════════════════════════
+let _pendingTab = null, _pendingBtn = null;
+const CORRECT_PIN = '2026';
+
+function pinGuard(id, btn) {
+  _pendingTab = id;
+  _pendingBtn = btn;
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('pin-modal').classList.add('on');
+  setTimeout(() => document.getElementById('pin-input').focus(), 100);
+}
+function checkPin() {
+  const val = document.getElementById('pin-input').value.trim();
+  if (val === CORRECT_PIN) {
+    document.getElementById('pin-modal').classList.remove('on');
+    go(_pendingTab, _pendingBtn);
+  } else {
+    document.getElementById('pin-error').textContent = '❌ PIN incorrecto. Inténtalo de nuevo.';
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-input').focus();
+  }
+}
+function closePinModal() {
+  document.getElementById('pin-modal').classList.remove('on');
 }
 
 // ════════════════════════════════════════════════
@@ -1320,7 +1507,7 @@ function bulkAdd() {
 }
 
 function renderStudents() {
-  renderProfChips(); fillSelects();
+  renderProfChips(); fillSelects(); renderCarnetList();
   const c = document.getElementById('st-list');
   if (!students.length) { c.innerHTML='<div class="empty">No hay estudiantes</div>'; return; }
 
@@ -1593,6 +1780,10 @@ function buildPassHTML(name, img, tagsHTML, title) {
         <div class="univ">Universidad Industrial de Santander</div>
         <div class="pass-title">MUSIC PASS</div>
         <div class="pass-sub">Cursos de Música UIS</div>
+        <div style="margin-top:6px;display:flex;gap:10px;align-items:center;">
+          <span style="background:rgba(106,191,30,.2);color:#6abf1e;font-size:.58rem;font-weight:700;letter-spacing:.1em;padding:2px 8px;border-radius:20px;">2026-1</span>
+          <span style="color:rgba(255,255,255,.45);font-size:.56rem;letter-spacing:.08em;">VIG. HASTA 13 JUN 2026</span>
+        </div>
       </div>
       <div class="pass-body">
         <div class="field-label">Estudiante</div>
@@ -1603,7 +1794,7 @@ function buildPassHTML(name, img, tagsHTML, title) {
         <div class="class-tags">${tagsHTML}</div>
       </div>
       <div class="pass-footer">
-        <span class="foot-text">Cursos de Música UIS · 2026</span>
+        <span class="foot-text">Válido hasta 13 Jun 2026</span>
         <span class="foot-icon">🎵</span>
       </div>
     </div>
@@ -1621,6 +1812,183 @@ function printQR() {
   w.document.write(buildPassHTML(name, img, tagsHTML, `Music Pass — ${name}`));
   w.document.close();
   setTimeout(() => w.print(), 500);
+}
+
+
+// ════════════════════════════════════════════════
+// CARNETS DE PROFESORES
+// ════════════════════════════════════════════════
+function renderCarnetList() {
+  const wrap = document.getElementById('carnet-list');
+  if (!wrap) return;
+  if (!professors.length) {
+    wrap.innerHTML = '<div class="empty" style="font-size:.8rem;">No hay profesores registrados aún.</div>';
+    return;
+  }
+  wrap.innerHTML = professors.map((p, i) => {
+    const photoKey = `prof_photo_${p.replace(/\s+/g,'_')}`;
+    const photoData = localStorage.getItem(photoKey) || '';
+    return `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);gap:10px;">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+        <div style="position:relative;width:44px;height:44px;flex-shrink:0;">
+          ${photoData
+            ? `<img src="${photoData}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--purple);">`
+            : `<div style="width:44px;height:44px;border-radius:50%;background:var(--purpleL);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--purple);">${p[0]}</div>`}
+          <label style="position:absolute;bottom:-2px;right:-2px;background:var(--purple);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.65rem;cursor:pointer;" title="Cambiar foto">
+            📷<input type="file" accept="image/*" style="display:none;" onchange="uploadProfPhoto(this,'${photoKey}',${i})">
+          </label>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:.88rem;">${p}</div>
+          <div style="font-size:.72rem;color:var(--muted);">Profesor · Cursos de Música UIS</div>
+        </div>
+      </div>
+      <button class="btn-xs" onclick="printCarnet(${i})" style="white-space:nowrap;">🪪 Carnet PDF</button>
+    </div>`;
+  }).join('');
+}
+
+function uploadProfPhoto(input, key, idx) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    // Resize to max 200x200 to keep localStorage light
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const SIZE = 200;
+      canvas.width = SIZE; canvas.height = SIZE;
+      const ctx = canvas.getContext('2d');
+      // Crop to square from center
+      const s = Math.min(img.width, img.height);
+      const sx = (img.width - s) / 2, sy = (img.height - s) / 2;
+      ctx.drawImage(img, sx, sy, s, s, 0, 0, SIZE, SIZE);
+      localStorage.setItem(key, canvas.toDataURL('image/jpeg', 0.82));
+      renderCarnetList();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function buildCarnetHTML(nombre, photoData, title) {
+  const photoHTML = photoData
+    ? `<img src="${photoData}" style="width:136px;height:136px;border-radius:50%;object-fit:cover;border:4px solid #859F3D;display:block;box-shadow:0 0 0 7px rgba(133,159,61,.14),0 6px 24px rgba(49,81,30,.18);">`
+    : `<div style="width:136px;height:136px;border-radius:50%;background:#f4f6f0;border:4px solid #859F3D;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:3.5rem;color:#859F3D;box-shadow:0 0 0 7px rgba(133,159,61,.14),0 6px 24px rgba(49,81,30,.18);">${nombre[0]}</div>`;
+
+  return `<!DOCTYPE html><html><head><title>${title}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#eef1e8;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;font-family:'Manrope',sans-serif;}
+    .card{width:295px;border-radius:22px;overflow:hidden;box-shadow:0 16px 48px rgba(49,81,30,.22);background:#fff;}
+    .card-header{background:#31511E;padding:11px 20px 12px;display:flex;align-items:center;gap:8px;}
+    .dot{width:5px;height:5px;border-radius:50%;background:#859F3D;flex-shrink:0;}
+    .univ{font-size:.5rem;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:rgba(255,255,255,.6);}
+    .card-top{background:#fff;padding:24px 20px 18px;display:flex;flex-direction:column;align-items:center;}
+    .photo-wrap{margin-bottom:16px;}
+    .card-name{font-size:1.08rem;font-weight:800;color:#31511E;text-align:center;line-height:1.25;letter-spacing:.01em;}
+    .card-role{display:inline-flex;align-items:center;gap:5px;background:#859F3D;color:#fff;font-size:.5rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;padding:3px 12px;border-radius:20px;margin-top:8px;}
+    .chip-wrap{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap;justify-content:center;}
+    .chip-green{background:#f4f6f0;border:1px solid #d4dfc4;color:#31511E;font-size:.5rem;font-weight:700;letter-spacing:.09em;padding:2px 9px;border-radius:20px;}
+    .chip-purple{background:#f0eef8;border:1px solid #c8c0e0;color:#533E85;font-size:.5rem;font-weight:700;letter-spacing:.09em;padding:2px 9px;border-radius:20px;}
+    .card-bottom{background:#fafaf8;border-top:1.5px solid #e8eddf;padding:13px 20px;display:flex;flex-direction:column;gap:9px;}
+    .info-row{display:flex;flex-direction:column;gap:1px;}
+    .info-label{font-size:.51rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#859F3D;}
+    .info-val{font-size:.79rem;font-weight:700;color:#31511E;}
+    .divider{border:none;border-top:1px dashed #d4dfc4;margin:0;}
+    .vigencia-row{display:flex;justify-content:space-between;align-items:center;}
+    .badge-vigente{background:#f0eef8;border:1.5px solid #c8c0e0;border-radius:7px;padding:3px 9px;font-size:.58rem;font-weight:800;color:#533E85;}
+    .card-footer{background:#31511E;padding:7px 18px;display:flex;align-items:center;justify-content:space-between;}
+    .foot-text{font-size:.5rem;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.07em;}
+    @media print{body{background:#fff;padding:20px;}.card{box-shadow:none;border:1px solid #d4dfc4;}.no-print{display:none;}}
+  </style></head>
+  <body>
+    <div class="card">
+      <div class="card-header">
+        <div class="dot"></div>
+        <span class="univ">Universidad Industrial de Santander</span>
+      </div>
+      <div class="card-top">
+        <div class="photo-wrap">${photoHTML}</div>
+        <div class="card-name">${nombre}</div>
+        <div class="card-role">🎵 Profesor · Cursos de Música</div>
+        <div class="chip-wrap">
+          <span class="chip-green">2026-1</span>
+          <span class="chip-purple">UIS Extensión</span>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="info-row">
+          <span class="info-label">Institución</span>
+          <span class="info-val">Universidad Industrial de Santander</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Área</span>
+          <span class="info-val">Extensión — Cursos de Música</span>
+        </div>
+        <hr class="divider">
+        <div class="vigencia-row">
+          <div class="info-row">
+            <span class="info-label">Vigencia</span>
+            <span class="info-val">Válido hasta 13 jun 2026</span>
+          </div>
+          <span class="badge-vigente">VIGENTE</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="foot-text">Cursos de Música UIS · 2026-1</span>
+        <span style="font-size:.85rem;">🎵</span>
+      </div>
+    </div>
+    <div class="no-print" style="margin-top:22px;text-align:center;">
+      <button onclick="window.print()" style="background:#31511E;color:#fff;border:none;border-radius:10px;padding:11px 28px;font-family:'Manrope',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;letter-spacing:.02em;">🖨️ Imprimir / Guardar PDF</button>
+    </div>
+  </body></html>`;
+}
+
+let _carnetPrintIdx = -1;
+
+function printCarnet(idx) {
+  _carnetPrintIdx = idx;
+  const nombre = professors[idx];
+  const photoKey = `prof_photo_${nombre.replace(/\s+/g,'_')}`;
+  const photoData = localStorage.getItem(photoKey) || '';
+
+  // Populate modal
+  document.getElementById('cm-name').textContent = nombre;
+  const photoEl = document.getElementById('cm-photo');
+  if (photoData) {
+    photoEl.innerHTML = `<img src="${photoData}" style="width:100%;height:100%;object-fit:cover;">`;
+  } else {
+    photoEl.textContent = nombre[0];
+  }
+  document.getElementById('carnet-modal').classList.add('on');
+}
+
+function closeCarnet() {
+  document.getElementById('carnet-modal').classList.remove('on');
+}
+
+function printCarnetFromModal() {
+  const nombre = document.getElementById('cm-name').textContent;
+  const photoKey = `prof_photo_${nombre.replace(/\s+/g,'_')}`;
+  const photoData = localStorage.getItem(photoKey) || '';
+  const safeName = nombre.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9 ]/g,'').trim();
+
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:400px;height:600px;border:none;';
+  document.body.appendChild(iframe);
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(buildCarnetHTML(nombre, photoData, `Carnet — ${safeName}`));
+  iframe.contentDocument.close();
+  setTimeout(() => {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(() => document.body.removeChild(iframe), 2000);
+  }, 600);
 }
 
 // ════════════════════════════════════════════════
@@ -1775,6 +2143,87 @@ function dl(name,content) {
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob(['\uFEFF'+content],{type:'text/csv;charset=utf-8;'}));
   a.download=name; a.click();
+}
+
+// ════════════════════════════════════════════════
+// LOGÍSTICA
+// ════════════════════════════════════════════════
+function fillLogSelects() {
+  const profSel = document.getElementById('log-prof');
+  const filterSel = document.getElementById('log-filter-prof');
+  if (!profSel) return;
+  const cur = profSel.value;
+  profSel.innerHTML = '<option value="">— Selecciona —</option>' +
+    professors.map(p => `<option${p===cur?' selected':''}>${p}</option>`).join('');
+  filterSel.innerHTML = '<option value="">Todos los profesores</option>' +
+    professors.map(p => `<option>${p}</option>`).join('');
+}
+
+function submitLogistica() {
+  const prof   = document.getElementById('log-prof').value;
+  const clase  = document.getElementById('log-clase').value.replace(/^.{1,2}\s/,'');
+  const hora   = document.getElementById('log-hora').value;
+  const salon  = document.getElementById('log-salon').value.trim();
+  const equip  = document.getElementById('log-equipos').value.trim();
+  const obs    = document.getElementById('log-obs').value.trim();
+  const res    = document.getElementById('log-result');
+
+  if (!prof || !clase || !hora) { res.innerHTML = '<div style="color:var(--rust);font-size:.82rem;">⚠️ Completa profesor, clase y hora.</div>'; return; }
+
+  const rec = {
+    id: Date.now(),
+    fecha: new Date().toLocaleDateString('es-CO'),
+    hora, prof, clase, salon, equipos: equip, obs
+  };
+  const logs = JSON.parse(localStorage.getItem('mus_log_logistica')||'[]');
+  logs.unshift(rec);
+  localStorage.setItem('mus_log_logistica', JSON.stringify(logs));
+
+  // Send to Sheets
+  const gsUrl = localStorage.getItem('mus_gs');
+  if (gsUrl) fetch(gsUrl, {method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo:'logistica',...rec})}).catch(()=>{});
+
+  res.innerHTML = `<div style="background:var(--greenL);color:var(--greenD);padding:11px 14px;border-radius:10px;font-weight:700;font-size:.82rem;">✅ Solicitud registrada · ${clase} · ${prof} · ${hora}</div>`;
+  document.getElementById('log-clase').value = '';
+  document.getElementById('log-hora').value = '';
+  document.getElementById('log-salon').value = '';
+  document.getElementById('log-equipos').value = '';
+  document.getElementById('log-obs').value = '';
+  renderLogistica();
+}
+
+function renderLogistica() {
+  const list = document.getElementById('log-list');
+  if (!list) return;
+  const logs = JSON.parse(localStorage.getItem('mus_log_logistica')||'[]');
+  const filter = document.getElementById('log-filter-prof')?.value || '';
+  const filtered = filter ? logs.filter(r => r.prof === filter) : logs;
+  if (!filtered.length) { list.innerHTML = '<div class="empty">Sin solicitudes aún.</div>'; return; }
+  list.innerHTML = filtered.map(r => `
+    <div style="border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:10px;background:#fff;position:relative;">
+      <button onclick="deleteLogistica(${r.id})" style="position:absolute;top:10px;right:10px;background:none;border:none;color:var(--sand);cursor:pointer;font-size:1rem;" title="Eliminar">×</button>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap;">
+        <span style="font-weight:800;font-size:.88rem;color:var(--ink);">${r.prof}</span>
+        <span style="background:var(--purpleL);color:var(--purple);font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:20px;">${r.clase}</span>
+        <span style="background:var(--greenL);color:var(--greenD);font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:20px;">🕐 ${r.hora}</span>
+      </div>
+      ${r.salon ? `<div style="font-size:.8rem;margin-bottom:4px;">🏫 <b>Salón:</b> ${r.salon}</div>` : ''}
+      ${r.equipos ? `<div style="font-size:.8rem;margin-bottom:4px;">🎸 <b>Equipos:</b> ${r.equipos}</div>` : ''}
+      ${r.obs ? `<div style="font-size:.78rem;color:var(--muted);">💬 ${r.obs}</div>` : ''}
+      <div style="font-size:.68rem;color:var(--sand);margin-top:6px;">${r.fecha}</div>
+    </div>`).join('');
+}
+
+function deleteLogistica(id) {
+  let logs = JSON.parse(localStorage.getItem('mus_log_logistica')||'[]');
+  logs = logs.filter(r => r.id !== id);
+  localStorage.setItem('mus_log_logistica', JSON.stringify(logs));
+  renderLogistica();
+}
+function clearLogistica() {
+  if (!confirm('¿Eliminar todas las solicitudes de logística?')) return;
+  localStorage.removeItem('mus_log_logistica');
+  renderLogistica();
 }
 
 // ════════════════════════════════════════════════
@@ -1962,6 +2411,7 @@ async function toSheets(rec) {
 // ════════════════════════════════════════════════
 fillSelects();
 renderLog();
+fillLogSelects();
 
 // Set today's day
 const todayName = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][new Date().getDay()];
@@ -1969,7 +2419,7 @@ const dSel = document.getElementById('s-dia');
 [...dSel.options].forEach(o=>{ if(o.value===todayName) o.selected=true; });
 
 // Close modals on backdrop click
-['qr-modal','sched-modal'].forEach(id=>{
+['qr-modal','sched-modal','carnet-modal','pin-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){ if(e.target===this) this.classList.remove('on'); });
 });
 </script>
