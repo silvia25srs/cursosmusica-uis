@@ -13,44 +13,44 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
 
 :root {
-  --ink:   #3a0078;   /* morado UIS oscuro */
-  --purple:#6b21c8;   /* morado UIS medio */
-  --purpleL:#f3eeff;  /* morado muy claro */
-  --green: #6abf1e;   /* verde UIS */
-  --greenD:#4a8a10;   /* verde oscuro */
-  --greenL:#edfad0;   /* verde muy claro */
-  --paper: #f8f6fc;
-  --cream: #f0ebfb;
-  --line:  #ddd3f5;
-  --sand:  #b8a8d8;
-  --rust:  #c0392b;
-  --moss:  #3a6b4a;
-  --gold:  #c49a2a;
-  --text:  #1a0a2e;
-  --muted: #7060a0;
+  --ink:    #31511E;   /* verde oscuro — textos principales, header, footer */
+  --purple: #533E85;   /* morado — acento moderado */
+  --purpleL:#f0eef8;  /* morado muy claro */
+  --green:  #859F3D;   /* verde oliva — etiquetas, acentos */
+  --greenD: #31511E;   /* verde oscuro */
+  --greenL: #eef3e0;   /* verde muy claro */
+  --paper:  #ffffff;
+  --cream:  #f7f8f4;
+  --line:   #dde4cc;
+  --sand:   #a8b890;
+  --rust:   #c0392b;
+  --moss:   #3a6b4a;
+  --gold:   #c49a2a;
+  --text:   #1e2d0e;
+  --muted:  #6b7c52;
   --r: 14px;
-  --shadow: 0 2px 16px rgba(58,0,120,.09);
+  --shadow: 0 2px 16px rgba(49,81,30,.08);
 }
 
 *{box-sizing:border-box;margin:0;padding:0;}
 
 body{
   font-family:'Manrope',sans-serif;
-  background:var(--paper);
+  background:#ffffff;
   color:var(--text);
   min-height:100vh;
 }
 
 /* ── HEADER ── */
 header{
-  background: linear-gradient(135deg, #3a0078 0%, #6b21c8 100%);
+  background: #31511E;
   height:58px;
   display:flex;
   align-items:center;
   justify-content:space-between;
   padding:0 24px;
   position:sticky;top:0;z-index:200;
-  box-shadow: 0 2px 20px rgba(58,0,120,.4);
+  box-shadow: 0 2px 12px rgba(49,81,30,.3);
 }
 .logo{
   font-family:'Manrope',sans-serif;
@@ -68,7 +68,7 @@ header{
   font-size:.8rem;font-weight:900;color:#fff;
   letter-spacing:-.02em;
 }
-.logo-text-top{font-size:.65rem;font-weight:600;opacity:.75;letter-spacing:.08em;text-transform:uppercase;}
+.logo-text-top{font-size:.65rem;font-weight:600;opacity:.65;letter-spacing:.08em;text-transform:uppercase;}
 .logo-text-bot{font-size:.95rem;font-weight:800;line-height:1;}
 .logo-uis{color:var(--green);}
 .nav{display:flex;gap:2px;}
@@ -105,7 +105,7 @@ header{
 .card+.card{margin-top:16px;}
 .card-title{
   font-family:'Instrument Serif',serif;
-  font-size:1.05rem;color:var(--purple);
+  font-size:1.05rem;color:var(--ink);
   margin-bottom:16px;
   padding-bottom:12px;
   border-bottom:1px solid var(--line);
@@ -116,7 +116,7 @@ header{
 .fl{margin-bottom:13px;}
 .fl label{
   display:block;font-size:.71rem;font-weight:700;
-  color:var(--muted);text-transform:uppercase;
+  color:var(--green);text-transform:uppercase;
   letter-spacing:.09em;margin-bottom:5px;
 }
 .fl input,.fl select,.fl textarea{
@@ -131,7 +131,7 @@ header{
   outline:none;
   transition:border-color .2s;
 }
-.fl input:focus,.fl select:focus,.fl textarea:focus{border-color:var(--purple);}
+.fl input:focus,.fl select:focus,.fl textarea:focus{border-color:var(--green);}
 .fl textarea{resize:vertical;min-height:90px;}
 
 /* ── BUTTONS ── */
@@ -143,11 +143,11 @@ header{
   letter-spacing:.01em;
 }
 .btn-ink{background:var(--ink);color:#fff;}
-.btn-ink:hover{background:var(--purple);}
-.btn-terra{background:var(--purple);color:#fff;}
+.btn-ink:hover{background:#4a7a2a;}
+.btn-terra{background:var(--green);color:#fff;}
 .btn-terra:hover{background:var(--ink);}
 .btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--text);}
-.btn-ghost:hover{border-color:var(--purple);color:var(--purple);}
+.btn-ghost:hover{border-color:var(--green);color:var(--ink);}
 .btn-wapp{background:#25D366;color:#fff;}
 .btn-wapp:hover{background:#1da354;}
 
@@ -161,7 +161,7 @@ header{
   color:var(--muted);cursor:pointer;font-family:'Manrope',sans-serif;
   font-weight:600;transition:all .15s;
 }
-.btn-xs:hover{border-color:var(--purple);color:var(--purple);}
+.btn-xs:hover{border-color:var(--green);color:var(--ink);}
 
 /* ── EVIDENCIAS ── */
 .ev-radio {
@@ -172,17 +172,17 @@ header{
   transition:border-color .15s,background .15s;
 }
 .ev-radio:has(input:checked){
-  border-color:var(--purple);background:var(--purpleL);color:var(--purple);
+  border-color:var(--green);background:var(--greenL);color:var(--ink);
 }
 .ev-radio input{display:none;}
-#ev-file-label:hover{border-color:var(--purple);color:var(--purple);}
+#ev-file-label:hover{border-color:var(--green);color:var(--ink);}
 .ev-thumb{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1.5px solid var(--line);}
 .ev-thumb-wrap{position:relative;display:inline-block;}
 .ev-thumb-del{position:absolute;top:-5px;right:-5px;background:var(--rust);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 
 
 .scanner-shell{
-  background: linear-gradient(160deg, #1a0a2e 0%, #3a0078 100%);
+  background: linear-gradient(160deg, #1e2d0e 0%, #31511E 100%);
   border-radius:16px;
   overflow:hidden;
   min-height:300px;
@@ -195,7 +195,6 @@ header{
   align-items:center;
   justify-content:center;
 }
-/* Forzar que el video de la cámara llene el contenedor */
 #scan-cont #qr-rd {
   width: 100% !important;
 }
@@ -206,15 +205,13 @@ header{
   border-radius: 0 !important;
   display: block !important;
 }
-/* Estilo del recuadro de escaneo */
 #scan-cont #qr-rd > div {
   border: none !important;
 }
 #scan-cont #qr-rd span {
   border-color: var(--green) !important;
-  box-shadow: 0 0 0 4px rgba(106,191,30,0.25) !important;
+  box-shadow: 0 0 0 4px rgba(133,159,61,0.25) !important;
 }
-/* Ocultar botones internos de la librería que no necesitamos */
 #qr-rd #html5-qrcode-button-camera-permission,
 #qr-rd #html5-qrcode-button-camera-start,
 #qr-rd #html5-qrcode-button-camera-stop,
@@ -225,7 +222,7 @@ header{
 #qr-rd #html5-qrcode-button-file-selection {
   display: none !important;
 }
-.scan-idle{text-align:center;color:#8060b0;padding:50px 20px;}
+.scan-idle{text-align:center;color:rgba(133,159,61,.8);padding:50px 20px;}
 .scan-idle .si{font-size:3.2rem;margin-bottom:12px;}
 .scan-idle p{font-size:.85rem;}
 .scan-pulse{
@@ -239,7 +236,7 @@ header{
 
 /* ── SESSION BAR ── */
 .session-bar{
-  background:var(--purpleL);
+  background:var(--greenL);
   border:1.5px solid var(--line);
   border-radius:12px;
   padding:14px 18px;
@@ -248,14 +245,14 @@ header{
   flex-wrap:wrap;
 }
 .sess-field{flex:1;min-width:140px;}
-.sess-field label{font-size:.69rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;display:block;margin-bottom:4px;}
+.sess-field label{font-size:.69rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.09em;display:block;margin-bottom:4px;}
 .sess-field select{
   width:100%;background:#fff;border:1.5px solid var(--line);
   border-radius:8px;padding:8px 11px;
   color:var(--text);font-family:'Manrope',sans-serif;font-size:.86rem;outline:none;
   transition:border-color .2s;
 }
-.sess-field select:focus{border-color:var(--purple);}
+.sess-field select:focus{border-color:var(--green);}
 
 /* ── RESULT ── */
 .result{
@@ -271,20 +268,20 @@ header{
 .result.absent .result-name{color:var(--rust);}
 .result.warn .result-name{color:var(--gold);}
 .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
-.chip{padding:3px 11px;border-radius:20px;font-size:.75rem;background:rgba(107,33,200,.07);color:var(--muted);}
+.chip{padding:3px 11px;border-radius:20px;font-size:.75rem;background:var(--greenL);color:var(--muted);}
 .chip b{color:var(--text);}
 .nact{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;}
 
 /* ── CLOSE SESSION ── */
 .close-session-bar{
-  background:#fef3ff;
-  border:1.5px dashed var(--purple);
+  background:#f7f8f4;
+  border:1.5px dashed var(--sand);
   border-radius:12px;
   padding:16px 20px;
   display:flex;align-items:center;justify-content:space-between;
   margin-bottom:18px;gap:12px;flex-wrap:wrap;
 }
-.close-session-bar p{font-size:.85rem;color:var(--purple);font-weight:600;}
+.close-session-bar p{font-size:.85rem;color:var(--ink);font-weight:600;}
 .close-session-bar span{font-size:.79rem;color:var(--muted);font-weight:400;}
 
 /* ── STATS ROW ── */
@@ -293,7 +290,7 @@ header{
   background:#fff;border:1px solid var(--line);border-radius:13px;
   padding:18px;text-align:center;box-shadow:var(--shadow);
 }
-.sn{font-family:'Instrument Serif',serif;font-size:2.1rem;color:var(--purple);line-height:1;}
+.sn{font-family:'Instrument Serif',serif;font-size:2.1rem;color:var(--ink);line-height:1;}
 .sl{font-size:.74rem;color:var(--muted);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
 
 /* ── TABLE ── */
@@ -301,30 +298,29 @@ header{
 table{width:100%;border-collapse:collapse;font-size:.83rem;}
 th{
   background:var(--cream);padding:10px 13px;text-align:left;
-  font-size:.69rem;font-weight:700;color:var(--muted);
+  font-size:.69rem;font-weight:700;color:var(--green);
   text-transform:uppercase;letter-spacing:.07em;
   border-bottom:1px solid var(--line);
 }
-td{padding:10px 13px;border-bottom:1px solid rgba(224,217,204,.45);vertical-align:middle;}
+td{padding:10px 13px;border-bottom:1px solid rgba(221,228,204,.6);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}
-tr:hover td{background:rgba(156,107,71,.03);}
+tr:hover td{background:var(--greenL);}
 
 /* ── BADGES ── */
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;}
-/* clases */
-.bc  {background:#ede8fb;color:#5a47c0;}  /* Coro */
-.ba  {background:#fef3d8;color:#9c7a10;}  /* Auralidad */
-.bi  {background:#e4f5eb;color:#2e7d4f;}  /* Instrumento */
-.bmu {background:#fce4ec;color:#c2185b;}  /* Músicaminadores */
-.ben {background:#e0f7fa;color:#00695c;}  /* Ensamble Musical */
-.bex {background:#f3e5f5;color:#7b1fa2;}  /* Expresión Musical */
-.bel {background:#fff3e0;color:#e65100;}  /* Exploración Musical */
-.bec {background:#e8f5e9;color:#1b5e20;}  /* Expresión Corporal */
-.bcu {background:#e8eaf6;color:#283593;}  /* Comunidad UIS */
-.bts {background:#fce4ec;color:#880e4f;}  /* Teoría y Solfeo */
-.btm {background:#f3e5f5;color:#4a148c;}  /* Teoría Musical */
-.bf  {background:#fdecea;color:#c0392b;}  /* falta */
-.bv  {background:#e4f5eb;color:#2e7d4f;}  /* asistió */
+.bc  {background:#ede8fb;color:#533E85;}
+.ba  {background:#fef3d8;color:#9c7a10;}
+.bi  {background:#e4f5eb;color:#2e7d4f;}
+.bmu {background:#fce4ec;color:#c2185b;}
+.ben {background:#e0f7fa;color:#00695c;}
+.bex {background:#eef3e0;color:#31511E;}
+.bel {background:#fff3e0;color:#e65100;}
+.bec {background:#e8f5e9;color:#1b5e20;}
+.bcu {background:#eef3e0;color:#31511E;}
+.bts {background:#f0eef8;color:#533E85;}
+.btm {background:#f0eef8;color:#533E85;}
+.bf  {background:#fdecea;color:#c0392b;}
+.bv  {background:#eef3e0;color:#31511E;}
 
 /* ── FALTA CARDS ── */
 .fc-wrap{border:1px solid var(--line);border-radius:13px;margin-bottom:12px;overflow:hidden;}
@@ -333,7 +329,7 @@ tr:hover td{background:rgba(156,107,71,.03);}
   padding:13px 16px;background:var(--cream);gap:10px;flex-wrap:wrap;
   cursor:pointer;
 }
-.fc-head:hover{background:var(--purpleL);}
+.fc-head:hover{background:var(--greenL);}
 .fc-body{padding:0 16px;display:none;}
 .fc-body.open{display:block;}
 .fc-det{
@@ -353,10 +349,10 @@ tr:hover td{background:rgba(156,107,71,.03);}
 /* ── HORARIO GRID ── */
 .hg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px;}
 .hc{
-  background:var(--purpleL);border:1.5px solid var(--line);
+  background:var(--greenL);border:1.5px solid var(--line);
   border-radius:10px;padding:13px;
 }
-.hc h4{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
+.hc h4{font-size:.78rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
 .hc-slot{
   display:flex;align-items:center;gap:8px;
   background:#fff;border:1px solid var(--line);
@@ -375,22 +371,22 @@ tr:hover td{background:rgba(156,107,71,.03);}
   color:var(--muted);font-size:.78rem;font-family:'Manrope',sans-serif;
   cursor:pointer;transition:all .15s;
 }
-.btn-add-slot:hover{border-color:var(--purple);color:var(--purple);}
+.btn-add-slot:hover{border-color:var(--green);color:var(--ink);}
 
 /* ── SETUP ── */
 .ss{background:#fff;border:1px solid var(--line);border-radius:13px;padding:22px;margin-bottom:15px;}
-.ss h3{font-family:'Instrument Serif',serif;font-size:1.05rem;color:var(--purple);margin-bottom:10px;display:flex;align-items:center;gap:9px;}
-.sn2{width:26px;height:26px;border-radius:50%;background:var(--purple);color:#fff;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ss h3{font-family:'Instrument Serif',serif;font-size:1.05rem;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:9px;}
+.sn2{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .ss p{font-size:.82rem;color:var(--muted);line-height:1.65;margin-bottom:8px;}
 .codebox{
   background:var(--ink);border-radius:9px;padding:14px;
-  font-family:monospace;font-size:.76rem;color:#8de08d;
+  font-family:monospace;font-size:.76rem;color:#b8d88a;
   white-space:pre-wrap;word-break:break-all;position:relative;margin:10px 0;
 }
 .copybtn{
   position:absolute;top:8px;right:8px;
   background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
-  border-radius:5px;padding:3px 9px;color:#e0d9cc;
+  border-radius:5px;padding:3px 9px;color:#e0e9cc;
   font-size:.71rem;cursor:pointer;font-family:'Manrope',sans-serif;
 }
 .urow{display:flex;gap:8px;margin-top:10px;}
@@ -399,16 +395,16 @@ tr:hover td{background:rgba(156,107,71,.03);}
   border-radius:8px;padding:9px 12px;color:var(--text);
   font-family:'Manrope',sans-serif;font-size:.84rem;outline:none;
 }
-.urow input:focus{border-color:var(--purple);}
+.urow input:focus{border-color:var(--green);}
 .notice{
-  background:#fff8ed;border:1px solid #f0d898;border-radius:10px;
+  background:#fffbee;border:1px solid #e8d898;border-radius:10px;
   padding:13px 15px;font-size:.81rem;color:#7a5c10;margin-bottom:18px;line-height:1.55;
 }
 .cfg-status{font-size:.84rem;color:var(--muted);line-height:2;}
 
 /* ── MODAL ── */
 .moverlay{
-  position:fixed;inset:0;background:rgba(15,14,12,.65);
+  position:fixed;inset:0;background:rgba(30,45,14,.55);
   z-index:300;display:none;align-items:center;justify-content:center;
   padding:20px;backdrop-filter:blur(4px);
 }
@@ -416,9 +412,9 @@ tr:hover td{background:rgba(156,107,71,.03);}
 .modal{
   background:#fff;border:1px solid var(--line);border-radius:18px;
   padding:30px;max-width:370px;width:100%;text-align:center;
-  position:relative;box-shadow:0 20px 60px rgba(0,0,0,.2);
+  position:relative;box-shadow:0 20px 60px rgba(49,81,30,.18);
 }
-.modal h3{font-family:'Instrument Serif',serif;font-size:1.3rem;color:var(--purple);margin-bottom:3px;}
+.modal h3{font-family:'Instrument Serif',serif;font-size:1.3rem;color:var(--ink);margin-bottom:3px;}
 .modal p{font-size:.81rem;color:var(--muted);margin-bottom:16px;}
 .mclose{
   position:absolute;top:13px;right:13px;
@@ -445,7 +441,6 @@ tr:hover td{background:rgba(156,107,71,.03);}
   .sess-field{width:100%;}
   .close-session-bar{flex-direction:column;text-align:center;}
   .view{padding:20px 16px;}
-  /* 2-col grids go 1-col on mobile */
   div[style*="grid-template-columns:1fr 1fr"]{display:block!important;}
   div[style*="grid-template-columns:1fr 1fr"] > .card,
   div[style*="grid-template-columns:1fr 1fr"] > div{margin-bottom:16px;}
@@ -546,8 +541,8 @@ tr:hover td{background:rgba(156,107,71,.03);}
   <!-- Today log -->
   <div style="margin-top:26px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;">
-      <span style="font-family:'Instrument Serif',serif;font-size:1.05rem;color:var(--purple);">
-        Registros de hoy &nbsp;<span id="log-ct" style="background:var(--purple);color:#fff;border-radius:20px;padding:2px 9px;font-family:'Manrope',sans-serif;font-size:.7rem;">0</span>
+      <span style="font-family:'Instrument Serif',serif;font-size:1.05rem;color:var(--ink);">
+        Registros de hoy &nbsp;<span id="log-ct" style="background:var(--green);color:#fff;border-radius:20px;padding:2px 9px;font-family:'Manrope',sans-serif;font-size:.7rem;">0</span>
       </span>
       <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇️ Exportar CSV</button>
     </div>
@@ -724,7 +719,7 @@ tr:hover td{background:rgba(156,107,71,.03);}
   </div>
 
   <!-- Sesión activa -->
-  <div id="ev-session-info" class="notice" style="background:var(--purpleL);border-color:var(--purple);color:var(--ink);display:none;"></div>
+  <div id="ev-session-info" class="notice" style="background:var(--greenL);border-color:var(--ink);color:var(--ink);display:none;"></div>
   <div id="ev-no-session" class="notice" style="display:none;">
     ⚠️ No hay una sesión activa. Ve a <b>📷 Clase</b>, selecciona tu nombre y la clase antes de registrar evidencias.
   </div>
@@ -774,7 +769,7 @@ tr:hover td{background:rgba(156,107,71,.03);}
       </label>
       <div id="ev-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
       <!-- Estado subida OneDrive -->
-      <div id="od-upload-status" style="display:none;margin-top:10px;font-size:.8rem;padding:10px 14px;border-radius:10px;background:var(--purpleL);color:var(--purple);"></div>
+      <div id="od-upload-status" style="display:none;margin-top:10px;font-size:.8rem;padding:10px 14px;border-radius:10px;background:var(--greenL);color:var(--ink);"></div>
     </div>
 
     <button class="btn btn-terra btn-full" style="font-size:1rem;padding:14px;" onclick="submitEvidencia()">
@@ -810,7 +805,7 @@ tr:hover td{background:rgba(156,107,71,.03);}
     <div id="od-config-status" style="font-size:.78rem;margin-top:6px;color:var(--muted);"></div>
     <div style="margin-top:10px;padding:10px 12px;background:#fff8e1;border-radius:8px;font-size:.75rem;color:#7a5f00;line-height:1.6;">
       <b>¿Cómo obtener el Client ID?</b><br>
-      1. Ve a <a href="https://portal.azure.com" target="_blank" style="color:#3a0078;">portal.azure.com</a> → Registros de aplicaciones → Nueva<br>
+      1. Ve a <a href="https://portal.azure.com" target="_blank" style="color:var(--ink);">portal.azure.com</a> → Registros de aplicaciones → Nueva<br>
       2. Nombre: "Musica UIS Evidencias" · Tipo: <b>Cuentas personales y organizacionales</b><br>
       3. URI de redirección: <b>SPA</b> → pega la URL de tu GitHub Pages<br>
       4. Copia el <b>Application (client) ID</b> y pégalo arriba<br>
@@ -916,11 +911,17 @@ function doGet(){
 
     <div class="card">
       <div class="card-title">📋 Solicitudes Registradas</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
         <select id="log-filter-prof" onchange="renderLogistica()" style="flex:1;background:var(--cream);border:1.5px solid var(--line);border-radius:8px;padding:7px 10px;font-family:'Manrope',sans-serif;font-size:.82rem;color:var(--text);outline:none;">
           <option value="">Todos los profesores</option>
         </select>
         <button class="btn btn-rust btn-sm" onclick="clearLogistica()">🗑️ Limpiar todo</button>
+      </div>
+      <!-- AM / PM filter -->
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <button id="log-btn-all" onclick="setLogPeriod('all')" style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--ink);color:#fff;font-family:'Manrope',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;">Todas</button>
+        <button id="log-btn-am"  onclick="setLogPeriod('am')"  style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--cream);color:var(--muted);font-family:'Manrope',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;">☀️ AM</button>
+        <button id="log-btn-pm"  onclick="setLogPeriod('pm')"  style="flex:1;padding:6px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--cream);color:var(--muted);font-family:'Manrope',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;">🌙 PM</button>
       </div>
       <div id="log-list"><div class="empty">Sin solicitudes aún.</div></div>
     </div>
@@ -949,7 +950,7 @@ function doGet(){
   <div class="modal" style="max-width:340px;padding:0;overflow:hidden;border-radius:20px;text-align:left;">
     <button class="mclose" onclick="closeQR()" style="z-index:10;top:12px;right:12px;background:rgba(255,255,255,.2);border-color:transparent;color:#fff;">×</button>
     <!-- Pass header -->
-    <div style="background:linear-gradient(135deg,#3a0078 0%,#6b21c8 100%);padding:22px 24px 16px;position:relative;overflow:hidden;">
+    <div style="background:#31511E;padding:22px 24px 16px;position:relative;overflow:hidden;">
       <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);"></div>
       <div style="position:absolute;bottom:-30px;left:-10px;width:80px;height:80px;border-radius:50%;background:rgba(106,191,30,.1);"></div>
       <div style="font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:3px;">Universidad Industrial de Santander</div>
@@ -1393,7 +1394,7 @@ function renderFaltas() {
       <div class="fc-wrap">
         <div class="fc-head" onclick="toggleFC(this)">
           <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:34px;height:34px;border-radius:50%;background:var(--purpleL);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;color:var(--purple);font-size:1rem;flex-shrink:0;">${st.nombre[0]}</div>
+            <div style="width:34px;height:34px;border-radius:50%;background:var(--greenL);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;color:var(--ink);font-size:1rem;flex-shrink:0;">${st.nombre[0]}</div>
             <div>
               <div style="font-weight:700;font-size:.9rem;">${st.nombre}</div>
               <div style="font-size:.74rem;color:var(--muted);">${st.programa||'Sin programa'} · ${st.id}</div>
@@ -1548,7 +1549,7 @@ function renderStudents() {
     return `
     <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line);gap:10px;">
       <div style="display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0;">
-        <div style="width:34px;height:34px;border-radius:50%;background:var(--purpleL);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;color:var(--purple);flex-shrink:0;">${st.nombre[0]}</div>
+        <div style="width:34px;height:34px;border-radius:50%;background:var(--greenL);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;color:var(--ink);flex-shrink:0;">${st.nombre[0]}</div>
         <div style="min-width:0;">
           <div style="font-weight:700;font-size:.9rem;">${st.nombre} <span style="color:var(--muted);font-weight:400;font-size:.78rem;">${st.id}</span></div>
           <div style="display:flex;align-items:center;gap:6px;margin:3px 0;flex-wrap:wrap;">
@@ -1651,7 +1652,7 @@ function showQR(i) {
     new QRCode(wrap, {
       text: st.id,
       width: 180, height: 180,
-      colorDark: '#3a0078', colorLight: '#ffffff',
+      colorDark: '#31511E', colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.M
     });
   } catch(e) {
@@ -1660,18 +1661,18 @@ function showQR(i) {
     new QRCode(wrap, {
       text: st.id,
       width: 180, height: 180,
-      colorDark: '#3a0078', colorLight: '#ffffff',
+      colorDark: '#31511E', colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.L
     });
   }
 
   // Show only classes the student actually has
   const CTAG_COLORS = {
-    'Coro':'background:#ede8fb;color:#5a47c0;','Auralidad':'background:#fef3d8;color:#9c7a10;',
+    'Coro':'background:#f0eef8;color:#533E85;','Auralidad':'background:#fef3d8;color:#9c7a10;',
     'Instrumento':'background:#e4f5eb;color:#2e7d4f;','Músicaminadores':'background:#fce4ec;color:#c2185b;',
     'Ensamble Musical':'background:#e0f7fa;color:#00695c;','Expresión Musical':'background:#f3e5f5;color:#7b1fa2;',
     'Exploración Musical':'background:#fff3e0;color:#e65100;','Expresión Corporal':'background:#e8f5e9;color:#1b5e20;',
-    'Comunidad UIS':'background:#e8eaf6;color:#283593;','Teoría y Solfeo':'background:#fce4ec;color:#880e4f;',
+    'Comunidad UIS':'background:#e8eaf6;color:#283593;','Teoría y Solfeo':'background:#f0eef8;color:#533E85;',
     'Teoría Musical':'background:#f3e5f5;color:#4a148c;'
   };
   const activeClases = CLASES.filter(c => (st.horario?.[c]||[]).length > 0);
@@ -1693,7 +1694,7 @@ function downloadStudentQR(stIdx) {
     try {
       new QRCode(tmpWrap, {
         text: st.id, width:180, height:180,
-        colorDark:'#3a0078', colorLight:'#ffffff',
+        colorDark:'#31511E', colorLight:'#ffffff',
         correctLevel: QRCode.CorrectLevel.M
       });
     } catch(e) {}
@@ -1703,12 +1704,12 @@ function downloadStudentQR(stIdx) {
       document.body.removeChild(tmpWrap);
       const activeClases = CLASES.filter(c => (st.horario?.[c]||[]).length > 0);
       const CTAG = {
-        'Coro':'#ede8fb;color:#5a47c0','Auralidad':'#fef3d8;color:#9c7a10',
+        'Coro':'#f0eef8;color:#533E85','Auralidad':'#fef3d8;color:#9c7a10',
         'Instrumento':'#e4f5eb;color:#2e7d4f','Músicaminadores':'#fce4ec;color:#c2185b',
-        'Ensamble Musical':'#e0f7fa;color:#00695c','Expresión Musical':'#f3e5f5;color:#7b1fa2',
+        'Ensamble Musical':'#e0f7fa;color:#00695c','Expresión Musical':'#eef3e0;color:#31511E',
         'Exploración Musical':'#fff3e0;color:#e65100','Expresión Corporal':'#e8f5e9;color:#1b5e20',
-        'Comunidad UIS':'#e8eaf6;color:#283593','Teoría y Solfeo':'#fce4ec;color:#880e4f',
-        'Teoría Musical':'#f3e5f5;color:#4a148c'
+        'Comunidad UIS':'#eef3e0;color:#31511E','Teoría y Solfeo':'#f0eef8;color:#533E85',
+        'Teoría Musical':'#f0eef8;color:#533E85'
       };
       const tagsHTML = activeClases.map(c =>
         `<span style="background:${CTAG[c]||'#eee;color:#555'};font-size:.6rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.04em;display:inline-block;">${c.toUpperCase()}</span>`
@@ -1754,22 +1755,22 @@ function buildPassHTML(name, img, tagsHTML, title) {
     *{box-sizing:border-box;margin:0;padding:0;}
     body{background:#e8e0f5;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;font-family:'Manrope',sans-serif;}
     .pass{width:320px;border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(58,0,120,.25);background:#fff;}
-    .pass-top{background:linear-gradient(135deg,#3a0078 0%,#6b21c8 100%);padding:24px 26px 20px;position:relative;overflow:hidden;}
+    .pass-top{background:#31511E;padding:24px 26px 20px;position:relative;overflow:hidden;}
     .pass-top::before{content:'';position:absolute;top:-24px;right:-24px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);}
     .pass-top::after{content:'';position:absolute;bottom:-32px;left:-12px;width:90px;height:90px;border-radius:50%;background:rgba(106,191,30,.12);}
     .univ{font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px;}
     .pass-title{font-family:'Bebas Neue',sans-serif;font-size:2.1rem;color:#fff;letter-spacing:.1em;line-height:1;}
     .pass-sub{font-size:.64rem;font-weight:700;color:#6abf1e;letter-spacing:.12em;text-transform:uppercase;margin-top:3px;}
     .pass-body{padding:22px 26px;}
-    .field-label{font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#9080c0;margin-bottom:3px;}
-    .student-name{font-size:1.25rem;font-weight:800;color:#1a0a2e;margin-bottom:18px;line-height:1.2;}
+    .field-label{font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#859F3D;margin-bottom:3px;}
+    .student-name{font-size:1.25rem;font-weight:800;color:#31511E;margin-bottom:18px;line-height:1.2;}
     .qr-wrap{display:flex;justify-content:center;margin-bottom:16px;}
-    .qr-border{padding:10px;background:#fff;border:1.5px solid #ddd3f5;border-radius:12px;display:inline-block;}
+    .qr-border{padding:10px;background:#fff;border:1.5px solid #dde4cc;border-radius:12px;display:inline-block;}
     .qr-border img{display:block;border-radius:4px;}
-    .hint{font-size:.65rem;color:#9080c0;text-align:center;line-height:1.5;margin-bottom:18px;}
-    .divider{border:none;border-top:1px dashed #ddd3f5;margin-bottom:14px;}
+    .hint{font-size:.65rem;color:#6b7c52;text-align:center;line-height:1.5;margin-bottom:18px;}
+    .divider{border:none;border-top:1px dashed #dde4cc;margin-bottom:14px;}
     .class-tags{display:flex;gap:5px;flex-wrap:wrap;}
-    .pass-footer{background:linear-gradient(135deg,#3a0078 0%,#6b21c8 100%);padding:10px 26px;display:flex;align-items:center;justify-content:space-between;}
+    .pass-footer{background:#31511E;padding:10px 26px;display:flex;align-items:center;justify-content:space-between;}
     .foot-text{font-size:.6rem;color:rgba(255,255,255,.6);font-weight:600;letter-spacing:.06em;}
     .foot-icon{font-size:1.1rem;}
     @media print{body{background:#fff;padding:20px;}.pass{box-shadow:none;border:1px solid #ddd;}}
@@ -1834,8 +1835,8 @@ function renderCarnetList() {
         <div style="position:relative;width:44px;height:44px;flex-shrink:0;">
           ${photoData
             ? `<img src="${photoData}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--purple);">`
-            : `<div style="width:44px;height:44px;border-radius:50%;background:var(--purpleL);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--purple);">${p[0]}</div>`}
-          <label style="position:absolute;bottom:-2px;right:-2px;background:var(--purple);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.65rem;cursor:pointer;" title="Cambiar foto">
+            : `<div style="width:44px;height:44px;border-radius:50%;background:var(--greenL);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--ink);">${p[0]}</div>`}
+          <label style="position:absolute;bottom:-2px;right:-2px;background:var(--green);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:.65rem;cursor:pointer;" title="Cambiar foto">
             📷<input type="file" accept="image/*" style="display:none;" onchange="uploadProfPhoto(this,'${photoKey}',${i})">
           </label>
         </div>
@@ -2192,26 +2193,70 @@ function submitLogistica() {
   renderLogistica();
 }
 
+let _logPeriod = 'all';
+
+function setLogPeriod(period) {
+  _logPeriod = period;
+  // Update button styles
+  ['all','am','pm'].forEach(p => {
+    const btn = document.getElementById('log-btn-' + p);
+    if (!btn) return;
+    const active = p === period;
+    btn.style.background = active ? 'var(--ink)' : 'var(--cream)';
+    btn.style.color = active ? '#fff' : 'var(--muted)';
+    btn.style.borderColor = active ? 'var(--ink)' : 'var(--line)';
+  });
+  renderLogistica();
+}
+
 function renderLogistica() {
   const list = document.getElementById('log-list');
   if (!list) return;
   const logs = JSON.parse(localStorage.getItem('mus_log_logistica')||'[]');
-  const filter = document.getElementById('log-filter-prof')?.value || '';
-  const filtered = filter ? logs.filter(r => r.prof === filter) : logs;
-  if (!filtered.length) { list.innerHTML = '<div class="empty">Sin solicitudes aún.</div>'; return; }
-  list.innerHTML = filtered.map(r => `
+  const profFilter = document.getElementById('log-filter-prof')?.value || '';
+
+  let filtered = profFilter ? logs.filter(r => r.prof === profFilter) : logs;
+
+  // AM/PM filter: AM = before 12:00, PM = 12:00 and after
+  if (_logPeriod === 'am') {
+    filtered = filtered.filter(r => {
+      const h = parseInt((r.hora||'00:00').split(':')[0], 10);
+      return h < 12;
+    });
+  } else if (_logPeriod === 'pm') {
+    filtered = filtered.filter(r => {
+      const h = parseInt((r.hora||'00:00').split(':')[0], 10);
+      return h >= 12;
+    });
+  }
+
+  // Sort by time ascending
+  filtered = [...filtered].sort((a, b) => (a.hora||'').localeCompare(b.hora||''));
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty">${_logPeriod === 'am' ? 'Sin solicitudes en la mañana.' : _logPeriod === 'pm' ? 'Sin solicitudes en la tarde.' : 'Sin solicitudes aún.'}</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(r => {
+    const h = parseInt((r.hora||'00:00').split(':')[0], 10);
+    const period = h < 12 ? '☀️ AM' : '🌙 PM';
+    const periodBg = h < 12 ? 'background:#fffbe6;color:#92700a;' : 'background:#f0eef8;color:#533E85;';
+    return `
     <div style="border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:10px;background:#fff;position:relative;">
       <button onclick="deleteLogistica(${r.id})" style="position:absolute;top:10px;right:10px;background:none;border:none;color:var(--sand);cursor:pointer;font-size:1rem;" title="Eliminar">×</button>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;flex-wrap:wrap;">
         <span style="font-weight:800;font-size:.88rem;color:var(--ink);">${r.prof}</span>
-        <span style="background:var(--purpleL);color:var(--purple);font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:20px;">${r.clase}</span>
+        <span style="background:var(--greenL);color:var(--ink);font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:20px;">${r.clase}</span>
         <span style="background:var(--greenL);color:var(--greenD);font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:20px;">🕐 ${r.hora}</span>
+        <span style="font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:20px;${periodBg}">${period}</span>
       </div>
       ${r.salon ? `<div style="font-size:.8rem;margin-bottom:4px;">🏫 <b>Salón:</b> ${r.salon}</div>` : ''}
       ${r.equipos ? `<div style="font-size:.8rem;margin-bottom:4px;">🎸 <b>Equipos:</b> ${r.equipos}</div>` : ''}
       ${r.obs ? `<div style="font-size:.78rem;color:var(--muted);">💬 ${r.obs}</div>` : ''}
       <div style="font-size:.68rem;color:var(--sand);margin-top:6px;">${r.fecha}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function deleteLogistica(id) {
@@ -2364,7 +2409,7 @@ async function submitEvidencia() {
   // Note about files: Google Sheets can't receive binary files directly,
   // show Drive upload reminder if there are files
   if (evFiles.length > 0) {
-    res.innerHTML += `<div style="margin-top:8px;background:var(--purpleL);color:var(--purple);padding:10px 14px;border-radius:10px;font-size:.8rem;">
+    res.innerHTML += `<div style="margin-top:8px;background:var(--greenL);color:var(--ink);padding:10px 14px;border-radius:10px;font-size:.8rem;">
       📁 Tienes ${evFiles.length} archivo(s) seleccionado(s). Para subirlos a Drive, usa el botón de abajo.
     </div>
     <button class="btn btn-ink btn-sm" style="margin-top:10px;width:100%;" onclick="openDriveUpload()">📂 Abrir Drive para subir archivos</button>`;
