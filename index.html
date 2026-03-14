@@ -17,12 +17,12 @@
 body{font-family:'DM Sans',sans-serif;background:var(--wh);color:var(--tx);min-height:100vh;-webkit-text-size-adjust:100%;overflow-x:hidden}
 
 /* SPLASH */
-#splash{position:fixed;inset:0;background:linear-gradient(160deg,var(--gd) 0%,#1e3a10 100%);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column;gap:28px}
-.sl-logo{text-align:center}
+#splash{position:fixed;inset:0;background:linear-gradient(160deg,var(--gd) 0%,#1e3a10 100%);display:flex;align-items:flex-start;justify-content:center;z-index:1000;flex-direction:column;gap:24px;overflow-y:auto;padding:28px 0 28px}
+.sl-logo{text-align:center;width:94%;max-width:820px;align-self:center}
 .sl-logo h1{font-family:'Playfair Display',serif;font-size:clamp(24px,5vw,46px);color:var(--gl);letter-spacing:-1px}
 .sl-logo p{color:rgba(255,255,255,.5);font-size:13px;margin-top:5px;letter-spacing:2px;text-transform:uppercase}
-.sl-note{color:rgba(255,255,255,.4);font-size:13px}
-.user-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:10px;max-width:780px;width:92%}
+.sl-note{color:rgba(255,255,255,.4);font-size:13px;align-self:center}
+.user-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:9px;max-width:820px;width:94%;align-self:center}
 .uc{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:var(--r);padding:16px 12px;text-align:center;cursor:pointer;transition:all .25s}
 .uc:hover{background:rgba(133,159,61,.2);border-color:var(--go);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
 .uc .av{width:46px;height:46px;border-radius:50%;background:var(--gd);display:flex;align-items:center;justify-content:center;margin:0 auto 9px;font-size:15px;font-family:'Playfair Display',serif;color:var(--gl);font-weight:700;border:2px solid rgba(133,159,61,.5);overflow:hidden}
@@ -1172,22 +1172,27 @@ function startScan(){
   if(scanIv)clearInterval(scanIv);
   scanIv=setInterval(function(){
     var v=document.getElementById('camVid');
-    if(!v||v.readyState<2)return;
-    scanC.width=v.videoWidth||640;
-    scanC.height=v.videoHeight||480;
-    var ctx=scanC.getContext('2d');
-    ctx.drawImage(v,0,0,scanC.width,scanC.height);
-    var d=ctx.getImageData(0,0,scanC.width,scanC.height);
-    var code=jsQR(d.data,d.width,d.height,{inversionAttempts:'dontInvert'});
-    if(code&&code.data){
-      var now=Date.now();
-      // Debounce: ignore same code within 3 seconds
-      if(code.data===_lastScanned&&now-_lastScannedTime<3000)return;
-      _lastScanned=code.data;
-      _lastScannedTime=now;
-      handleQR(code.data);
-    }
-  },300);
+    if(!v||v.readyState<2||v.videoWidth===0)return;
+    var W=v.videoWidth, H=v.videoHeight;
+    scanC.width=W; scanC.height=H;
+    var ctx=scanC.getContext('2d',{willReadFrequently:true});
+    ctx.drawImage(v,0,0,W,H);
+    try{
+      var d=ctx.getImageData(0,0,W,H);
+      var code=jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'});
+      if(code&&code.data){
+        var now=Date.now();
+        if(code.data===_lastScanned&&now-_lastScannedTime<3000)return;
+        _lastScanned=code.data;
+        _lastScannedTime=now;
+        // Flash green on the scan box
+        var sb=document.querySelector('.sb');
+        if(sb){sb.style.borderColor='#fff';sb.style.boxShadow='0 0 0 9999px rgba(49,81,30,0.6)';}
+        setTimeout(function(){if(sb){sb.style.borderColor='';sb.style.boxShadow='';}},600);
+        handleQR(code.data);
+      }
+    }catch(e){}
+  },200);
 }
 function handleQR(data){
   // Support both | separator (new) and - separator (legacy)
@@ -1365,57 +1370,100 @@ function evOpenGallery(type){
   var el=document.getElementById(type==='find'?'evFindF':'evLeaveF');
   if(el){el.removeAttribute('capture');el.click();}
 }
-function uploadToOneDrive(file,tipo,salon,date,shareUrl){
-  // OneDrive shared folder upload via fetch
-  // Note: Direct upload to a shared link requires the Graph API.
-  // This opens the shared folder so the user can manually upload,
-  // and shows a notification with instructions.
-  notify('\u2601\ufe0f Abriendo carpeta de OneDrive...');
-  window.open(shareUrl,'_blank');
-  setTimeout(function(){
-    notify('\ud83d\udcc2 Sube el archivo "'+file.name+'" a la carpeta de OneDrive que se abrió');
-  },1500);
-}
+
 function saveEv(tipo){
   var pre=tipo==='encuentro'?'F':'L';
   var salon=document.getElementById('ev'+pre+'S').value;
   var obs=document.getElementById('ev'+pre+'O').value;
   var file=tipo==='encuentro'?window._evFindFile:window._evLeaveFile;
   var now=new Date();
-  var fileName=file?file.name:'';
-  var rec={
-    id:Date.now(),
-    user:CU.name+' '+CU.surname,
-    uid:CU.id,
-    tipo:tipo,
-    salon:salon,
-    obs:obs,
-    fileName:fileName,
-    date:now.toLocaleDateString('es-CO'),
-    time:now.toLocaleTimeString('es-CO')
-  };
-  evids.push(rec);
-  localStorage.setItem('mu_ev',JSON.stringify(evids));
+  var ts=now.toLocaleDateString('es-CO').replace(/\//g,'-')
+        +'_'+now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}).replace(/:/g,'-');
+  var ext=file?file.name.split('.').pop():'';
+  var fileName=file
+    ?((CU.name+'_'+CU.surname+'_'+(salon||'SinSalon')+'_'+tipo+'_'+ts+'.'+ext).replace(/\s/g,'_'))
+    :'';
 
-  // Upload to OneDrive if file selected and URL configured
+  var rec={id:Date.now(),user:CU.name+' '+CU.surname,uid:CU.id,tipo:tipo,
+           salon:salon,obs:obs,fileName:fileName,fileData:null,
+           date:now.toLocaleDateString('es-CO'),time:now.toLocaleTimeString('es-CO'),
+           uploadStatus:'pending'};
+
   if(file){
-    var oneDriveUrl=localStorage.getItem('cfg_onedrive')||'';
-    if(oneDriveUrl){
-      uploadToOneDrive(file,tipo,salon,now,oneDriveUrl);
-    } else {
-      notify('\u2705 Evidencia guardada localmente (configura OneDrive para subir archivos)');
-    }
+    // Show upload progress
+    notify('\u2601\ufe0f Subiendo archivo a OneDrive...');
+    var btn=document.querySelector('#page-evidencias .btn[onclick*="saveEv(\''+tipo+'\'"]');
+
+    // Read file as ArrayBuffer for upload
+    var reader=new FileReader();
+    reader.onload=function(e){
+      rec.fileData=e.target.result; // store as data URI for preview
+      uploadFileToOneDrive(file, fileName, function(ok, url){
+        rec.uploadStatus=ok?'ok':'local';
+        rec.oneDriveUrl=url||'';
+        evids.push(rec);
+        localStorage.setItem('mu_ev',JSON.stringify(evids));
+        sendEvToSheets(rec);
+        resetEvForm(pre,tipo);
+        renderEvids();
+        if(ok){
+          notify('\u2705 Evidencia subida a OneDrive correctamente');
+        } else {
+          notify('\u26a0\ufe0f Guardado localmente (verifica conexi\u00f3n a OneDrive)');
+        }
+      });
+    };
+    reader.readAsDataURL(file);
   } else {
-    notify('\u2705 Evidencia guardada');
+    rec.uploadStatus='no-file';
+    evids.push(rec);
+    localStorage.setItem('mu_ev',JSON.stringify(evids));
+    sendEvToSheets(rec);
+    resetEvForm(pre,tipo);
+    renderEvids();
+    notify('\u2705 Evidencia guardada (sin archivo)');
   }
+}
 
-  // Send to Google Sheets
+// ── Upload file directly to OneDrive shared folder via Microsoft Graph API ──
+var OD_SHARE_ID='u!aHR0cHM6Ly9tYWlsdWlzLW15LnNoYXJlcG9pbnQuY29tLzpmOi9nL3BlcnNvbmFsL2N1cnNvc211c2ljYV91aXNfZWR1X2NvL0lnRGJlVVVSdllvSlNyS2J2aXJBdUw3MkFjNUJLaE95QzN1N01OTVRIbzZLTmF3P2U9SzVRRm9m';
+function uploadFileToOneDrive(file, fileName, callback){
+  // Convert DataURL back to Blob for upload
+  var fr=new FileReader();
+  fr.onload=function(e){
+    var arrayBuf=e.target.result;
+    var mime=file.type||'application/octet-stream';
+    // Microsoft Graph: upload to shared folder
+    var url='https://graph.microsoft.com/v1.0/shares/'+OD_SHARE_ID+'/driveItem:/'+encodeURIComponent(fileName)+':/content';
+    fetch(url,{
+      method:'PUT',
+      headers:{'Content-Type':mime},
+      body:arrayBuf
+    })
+    .then(function(r){
+      if(r.ok||r.status===201||r.status===200){
+        return r.json().then(function(data){
+          callback(true, data.webUrl||'');
+        });
+      } else {
+        // If Graph API fails (needs auth), fall back to manual approach
+        console.warn('OneDrive upload failed:',r.status,r.statusText);
+        callback(false,'');
+      }
+    })
+    .catch(function(err){
+      console.warn('OneDrive upload error:',err);
+      callback(false,'');
+    });
+  };
+  fr.readAsArrayBuffer(file);
+}
+function sendEvToSheets(rec){
   var gsUrl=localStorage.getItem('cfg_gsheets')||'';
-  if(gsUrl){
-    fetch(gsUrl,{method:'POST',body:JSON.stringify({action:'guardar_evidencia',fecha:rec.date,hora:rec.time,tipo:tipo,salon:salon,obs:obs,archivo:fileName,profesor:rec.user})}).catch(function(){});
-  }
-
-  // Reset form
+  if(!gsUrl)return;
+  fetch(gsUrl,{method:'POST',body:JSON.stringify({action:'guardar_evidencia',fecha:rec.date,hora:rec.time,tipo:rec.tipo,salon:rec.salon,obs:rec.obs,archivo:rec.fileName,profesor:rec.user})}).catch(function(){});
+}
+function resetEvForm(pre,tipo){
   document.getElementById('ev'+pre+'S').value='';
   document.getElementById('ev'+pre+'O').value='';
   var labelId=tipo==='encuentro'?'evFindN':'evLeaveN';
@@ -1423,40 +1471,106 @@ function saveEv(tipo){
   var zoneId=tipo==='encuentro'?'evFindZone':'evLeaveZone';
   var fileId=tipo==='encuentro'?'evFindF':'evLeaveF';
   document.getElementById(labelId).textContent='';
-  var prevEl=document.getElementById(previewId);
-  if(prevEl){prevEl.style.display='none';prevEl.innerHTML='';}
-  var zone=document.getElementById(zoneId);
-  if(zone)zone.style.borderColor='';
+  var prevEl=document.getElementById(previewId);if(prevEl){prevEl.style.display='none';prevEl.innerHTML='';}
+  var zone=document.getElementById(zoneId);if(zone)zone.style.borderColor='';
   document.getElementById(fileId).value='';
-  if(tipo==='encuentro')window._evFindFile=null;
-  else window._evLeaveFile=null;
-
-  renderEvids();
+  if(tipo==='encuentro')window._evFindFile=null;else window._evLeaveFile=null;
 }
 function renderEvids(){
   var e=CU.role==='coordinadora'?evids:evids.filter(function(x){return x.uid===CU.id;});
   var el=document.getElementById('evidList');
   if(!el)return;
-  if(!e.length){el.innerHTML='<div style="text-align:center;padding:18px;color:var(--tm)">Sin evidencias registradas</div>';return;}
-  el.innerHTML='<div style="overflow-x:auto"><table><thead><tr>'
-    +'<th>Fecha</th><th>Hora</th><th>Tipo</th><th>Sal\u00f3n</th><th>Archivo</th><th>Observaci\u00f3n</th>'
-    +(CU.role==='coordinadora'?'<th>Profesor</th>':'')
-    +'</tr></thead><tbody>'
-    +e.slice().reverse().map(function(x){
-      var fileCell=x.fileName
-        ?('<span style="font-size:10px;color:var(--go);">\ud83d\udcce '+x.fileName+'</span>')
-        :'<span style="color:var(--tm)">—</span>';
-      return '<tr>'
-        +'<td>'+x.date+'</td>'
-        +'<td style="font-size:10px;font-family:DM Mono,monospace">'+x.time+'</td>'
-        +'<td><span class="badge '+(x.tipo==='encuentro'?'bg':'bo')+'">'+(x.tipo==='encuentro'?'Encuentro':'Dejo')+'</span></td>'
-        +'<td>'+(x.salon||'—')+'</td>'
-        +'<td>'+fileCell+'</td>'
-        +'<td style="max-width:150px;font-size:11px">'+(x.obs||'—')+'</td>'
-        +(CU.role==='coordinadora'?'<td style="font-size:11px">'+x.user+'</td>':'')
-        +'</tr>';
-    }).join('')
-    +'</tbody></table></div>';
+  if(!e.length){
+    el.innerHTML='<div style="text-align:center;padding:18px;color:var(--tm)">Sin evidencias registradas</div>';
+    return;
+  }
+  el.innerHTML=e.slice().reverse().map(function(x){
+    // Thumbnail
+    var thumb='';
+    if(x.fileData&&x.fileData.startsWith('data:image')){
+      thumb='<img src="'+x.fileData+'" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid var(--go);cursor:pointer" onclick="viewEvidImg(this.src)">';
+    } else if(x.fileData&&x.fileData.startsWith('data:video')){
+      thumb='<video src="'+x.fileData+'" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid var(--go)" muted playsinline></video>';
+    } else if(x.fileName){
+      thumb='<div style="width:64px;height:64px;border-radius:8px;background:var(--gbg);border:1px solid var(--br);display:flex;align-items:center;justify-content:center;font-size:22px">📎</div>';
+    }
+
+    // Upload status badge
+    var statusBadge='';
+    if(x.uploadStatus==='ok'){
+      statusBadge='<span style="font-size:9px;background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:9px;font-weight:600">\u2601\ufe0f OneDrive</span>';
+    } else if(x.uploadStatus==='local'||x.uploadStatus==='pending'){
+      statusBadge='<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:2px 6px;border-radius:9px;font-weight:600;cursor:pointer" onclick="retryCfg('+x.id+')">\u26a0\ufe0f Local</span>';
+    }
+
+    var dlBtn=x.fileData?('<button onclick="dlEvid(\''+x.id+'\')" class="btn btn-g" style="font-size:10px;padding:3px 7px;margin-top:4px">⬇ Descargar</button>'):'';
+    var retryBtn=(x.uploadStatus==='local'||x.uploadStatus==='pending')&&x.fileData
+      ?('<button onclick="retryUpload('+x.id+')" class="btn btn-o" style="font-size:10px;padding:3px 7px;margin-top:4px">\u2601\ufe0f Reintentar</button>')
+      :'';
+
+    return '<div style="display:grid;grid-template-columns:auto 1fr;gap:12px;padding:12px;border-bottom:1px solid var(--br);align-items:start">'
+      +'<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px">'+thumb+dlBtn+retryBtn+'</div>'
+      +'<div>'
+      +'<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:5px">'
+      +'<span class="badge '+(x.tipo==='encuentro'?'bg':'bo')+'">'+(x.tipo==='encuentro'?'🔍 Encuentro':'✅ Dejo')+'</span>'
+      +statusBadge
+      +'<span style="font-size:10px;color:var(--tm)">'+x.date+' '+x.time+'</span>'
+      +'</div>'
+      +(x.salon?'<div style="font-size:12px;color:var(--gd);font-weight:600">🏫 '+x.salon+'</div>':'')
+      +(x.obs?'<div style="font-size:11px;color:var(--tm);margin-top:3px">'+x.obs+'</div>':'')
+      +(CU.role==='coordinadora'?'<div style="font-size:10px;color:var(--go);margin-top:2px">👤 '+x.user+'</div>':'')
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+function viewEvidImg(src){
+  var m=document.createElement('div');
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;cursor:pointer';
+  m.innerHTML='<img src="'+src+'" style="max-width:100%;max-height:90vh;border-radius:10px;object-fit:contain">';
+  m.onclick=function(){m.remove();};
+  document.body.appendChild(m);
+}
+function dlEvid(id){
+  var rec=evids.find(function(x){return x.id==id;});
+  if(!rec||!rec.fileData)return;
+  var a=document.createElement('a');a.href=rec.fileData;a.download=rec.fileName||('evidencia_'+id);a.click();
+}
+function retryUpload(id){
+  var rec=evids.find(function(x){return x.id==id;});
+  if(!rec||!rec.fileData){notify('\u26a0\ufe0f No hay archivo guardado');return;}
+  notify('\u2601\ufe0f Reintentando subida...');
+  // Reconstruct file from data URI
+  var arr=rec.fileData.split(',');
+  var mime=arr[0].match(/:(.*?);/)[1];
+  var bstr=atob(arr[1]);var n=bstr.length;var u8=new Uint8Array(n);
+  while(n--)u8[n]=bstr.charCodeAt(n);
+  var blob=new Blob([u8],{type:mime});
+  var fakeFile=new File([blob],rec.fileName,{type:mime});
+  uploadFileToOneDrive(fakeFile,rec.fileName,function(ok,url){
+    if(ok){
+      rec.uploadStatus='ok';rec.oneDriveUrl=url;
+      localStorage.setItem('mu_ev',JSON.stringify(evids));
+      renderEvids();
+      notify('\u2705 Subido a OneDrive correctamente');
+    } else {
+      notify('\u26a0\ufe0f No se pudo subir. Verifica la conexi\u00f3n.');
+    }
+  });
+}
+function viewEvidImg(src){
+  var m=document.createElement('div');
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;cursor:pointer';
+  m.innerHTML='<img src="'+src+'" style="max-width:100%;max-height:100%;border-radius:10px;object-fit:contain">';
+  m.onclick=function(){m.remove();};
+  document.body.appendChild(m);
+}
+function dlEvid(id){
+  var rec=evids.find(function(x){return x.id==id;});
+  if(!rec||!rec.fileData)return;
+  var a=document.createElement('a');
+  a.href=rec.fileData;
+  a.download=rec.fileName||('evidencia_'+id);
+  a.click();
 }
 
 function saveLog(){const c=document.getElementById('logClase').value;const it=document.getElementById('logItems').value.trim();if(!it){notify('⚠️ Describe los elementos');return;}const idx=logs.findIndex(r=>r.uid===CU.id&&r.clase===c);const req={id:idx>=0?logs[idx].id:Date.now(),uid:CU.id,user:`${CU.name} ${CU.surname}`,clase:c,items:it,date:new Date().toLocaleDateString('es-CO'),time:new Date().toLocaleTimeString('es-CO')};if(idx>=0){logs[idx]=req;notify('✅ Solicitud actualizada');}else{logs.push(req);notify('✅ Solicitud enviada');}localStorage.setItem('mu_log',JSON.stringify(logs));document.getElementById('logItems').value='';renderLog();}
