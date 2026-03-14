@@ -519,54 +519,51 @@ tr:hover td{background:var(--gbg)}
               <button onclick="copiarScript()" class="btn btn-o" style="position:absolute;top:8px;right:8px;font-size:11px;padding:4px 10px;z-index:1">📋 Copiar</button>
               <pre id="scriptCode" style="background:#1e2a1a;color:#c8e6c9;font-family:'DM Mono',monospace;font-size:10px;padding:14px;border-radius:var(--rs);overflow-x:auto;max-height:260px;overflow-y:auto;overflow-x:auto;margin:0;line-height:1.5;white-space:pre;max-width:100%">// ============================================================
 // CURSOS DE MÚSICA UIS — Google Apps Script Web App
-// Versión: 2026-1
-// 
-// INSTRUCCIONES DE INSTALACIÓN:
-// 1. Abre Google Sheets en la hoja &quot;Asistencia Cursos Música UIS 2026-1&quot;
-// 2. Ve a Extensiones → Apps Script
-// 3. Borra el contenido existente y pega TODO este código
-// 4. Guarda (Ctrl+S)
-// 5. Clic en &quot;Implementar&quot; → &quot;Nueva implementación&quot;
-// 6. Tipo: Aplicación web
-// 7. Ejecutar como: Yo (tu cuenta de Google)
-// 8. Quién puede acceder: Cualquier persona
-// 9. Clic en &quot;Implementar&quot; y copia la URL generada
+// Versión: 2026-1  (con Google Drive para evidencias)
+//
+// INSTRUCCIONES:
+// 1. Abre Google Sheets → Extensiones → Apps Script
+// 2. Pega este código completo (reemplaza todo)
+// 3. Guarda con Ctrl+S
+// 4. Implementar → Nueva implementación → Aplicación web
+//    - Ejecutar como: Yo
+//    - Quién puede acceder: Cualquier persona
+// 5. Implementar → Autorizar → Copiar URL
 // ============================================================
 
 const SPREADSHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
-
-// ---- HOJAS ----
 const HOJA_ASISTENCIA = 'Asistencia';
 const HOJA_FALTAS     = 'Faltas';
 const HOJA_EVIDENCIAS = 'Evidencias';
 const HOJA_LOGISTICA  = 'Logistica';
 
-// ---- CORS ----
+// Carpeta de Google Drive donde se guardan las fotos/videos
+// (se crea automáticamente si no existe)
+const CARPETA_EVIDENCIAS = 'Evidencias_MusicaUIS_2026-1';
+
 function setCORSHeaders(output) {
   return output
     .setHeader('Access-Control-Allow-Origin', '*')
-    .setHeader('Access-Control-Allow-Methods', 'GET, POST')
+    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
     .setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-// ---- ENTRY POINTS ----
+function doOptions(e) {
+  return setCORSHeaders(ContentService.createTextOutput(''));
+}
+
 function doGet(e) {
   const action = e.parameter.action || '';
   let result;
   try {
-    if (action === 'ping')          result = { ok: true, msg: 'Conectado correctamente ✅' };
-    else if (action === 'asistencia') result = getAsistencia(e.parameter);
-    else if (action === 'faltas')     result = getFaltas(e.parameter);
-    else if (action === 'evidencias') result = getEvidencias(e.parameter);
-    else if (action === 'logistica')  result = getLogistica(e.parameter);
+    if      (action === 'ping')         result = { ok: true, msg: 'Conectado ✅' };
+    else if (action === 'asistencia')   result = getAsistencia(e.parameter);
+    else if (action === 'faltas')       result = getFaltas(e.parameter);
+    else if (action === 'evidencias')   result = getEvidencias(e.parameter);
+    else if (action === 'logistica')    result = getLogistica(e.parameter);
     else result = { ok: false, msg: 'Acción no reconocida: ' + action };
-  } catch(err) {
-    result = { ok: false, error: err.message };
-  }
-  return setCORSHeaders(
-    ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON)
-  );
+  } catch(err) { result = { ok: false, error: err.message }; }
+  return setCORSHeaders(ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON));
 }
 
 function doPost(e) {
@@ -574,182 +571,149 @@ function doPost(e) {
   try {
     data   = JSON.parse(e.postData.contents);
     action = data.action || '';
-    if (action === 'registrar_asistencia') result = registrarAsistencia(data);
-    else if (action === 'registrar_falta')  result = registrarFalta(data);
-    else if (action === 'guardar_evidencia') result = guardarEvidencia(data);
-    else if (action === 'guardar_logistica') result = guardarLogistica(data);
+    if      (action === 'registrar_asistencia') result = registrarAsistencia(data);
+    else if (action === 'registrar_falta')      result = registrarFalta(data);
+    else if (action === 'guardar_evidencia')    result = guardarEvidencia(data);
+    else if (action === 'guardar_logistica')    result = guardarLogistica(data);
     else result = { ok: false, msg: 'Acción no reconocida: ' + action };
-  } catch(err) {
-    result = { ok: false, error: err.message };
-  }
-  return setCORSHeaders(
-    ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON)
-  );
+  } catch(err) { result = { ok: false, error: err.message }; }
+  return setCORSHeaders(ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON));
 }
 
-// ============================================================
-// ASISTENCIA
-// ============================================================
+// ── GOOGLE DRIVE: obtener o crear carpeta de evidencias ──
+function getCarpetaEvidencias() {
+  const folders = DriveApp.getFoldersByName(CARPETA_EVIDENCIAS);
+  if (folders.hasNext()) return folders.next();
+  return DriveApp.createFolder(CARPETA_EVIDENCIAS);
+}
+
+// ── ASISTENCIA ──
 function registrarAsistencia(data) {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet   = ss.getSheetByName(HOJA_ASISTENCIA);
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(HOJA_ASISTENCIA);
   if (!sheet) {
     sheet = ss.insertSheet(HOJA_ASISTENCIA);
-    sheet.appendRow(['ID','Fecha','Hora','Estudiante','Clase','Programa','Hora Clase','Profesor','Registrado por']);
-    sheet.getRange(1,1,1,9).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
+    sheet.appendRow(['ID','Fecha','Hora','Estudiante','Clase','Programa','Profesor']);
+    sheet.getRange(1,1,1,7).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
   }
-  sheet.appendRow([
-    data.id       || '',
-    data.fecha    || new Date().toLocaleDateString('es-CO'),
-    data.hora     || new Date().toLocaleTimeString('es-CO'),
-    data.estudiante || '',
-    data.clase    || '',
-    data.programa || '',
-    data.horaClase || '',
-    data.profesor || '',
-    data.registradoPor || '',
-  ]);
+  sheet.appendRow([data.id||'',data.fecha||new Date().toLocaleDateString('es-CO'),data.hora||new Date().toLocaleTimeString('es-CO'),data.estudiante||'',data.clase||'',data.programa||'',data.profesor||'']);
   return { ok: true, msg: 'Asistencia registrada' };
 }
 
 function getAsistencia(params) {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(HOJA_ASISTENCIA);
   if (!sheet) return { ok: true, data: [] };
   const rows = sheet.getDataRange().getValues();
   const headers = rows[0];
-  const data = rows.slice(1).map(r =&gt; {
-    const obj = {};
-    headers.forEach((h, i) =&gt; obj[h] = r[i]);
-    return obj;
-  });
-  // Filter by profesor if provided
-  if (params.profesor) {
-    return { ok: true, data: data.filter(r =&gt; r['Profesor'] === params.profesor) };
-  }
+  let data = rows.slice(1).map(r =&gt; { const o={}; headers.forEach((h,i)=&gt;o[h]=r[i]); return o; });
+  if (params.profesor) data = data.filter(r =&gt; r['Profesor'] === params.profesor);
   return { ok: true, data };
 }
 
-// ============================================================
-// FALTAS
-// ============================================================
+// ── FALTAS ──
 function registrarFalta(data) {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet   = ss.getSheetByName(HOJA_FALTAS);
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(HOJA_FALTAS);
   if (!sheet) {
     sheet = ss.insertSheet(HOJA_FALTAS);
     sheet.appendRow(['Fecha','Estudiante','Clase','Programa','Hora','Profesor']);
     sheet.getRange(1,1,1,6).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
   }
-  sheet.appendRow([
-    data.fecha    || new Date().toLocaleDateString('es-CO'),
-    data.estudiante || '',
-    data.clase    || '',
-    data.programa || '',
-    data.hora     || '',
-    data.profesor || '',
-  ]);
+  sheet.appendRow([data.fecha||new Date().toLocaleDateString('es-CO'),data.estudiante||'',data.clase||'',data.programa||'',data.hora||'',data.profesor||'']);
   return { ok: true, msg: 'Falta registrada' };
 }
 
 function getFaltas(params) {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(HOJA_FALTAS);
   if (!sheet) return { ok: true, data: [] };
-  const rows    = sheet.getDataRange().getValues();
+  const rows = sheet.getDataRange().getValues();
   const headers = rows[0];
-  const data = rows.slice(1).map(r =&gt; {
-    const obj = {};
-    headers.forEach((h, i) =&gt; obj[h] = r[i]);
-    return obj;
-  });
-  if (params.profesor) {
-    return { ok: true, data: data.filter(r =&gt; r['Profesor'] === params.profesor) };
-  }
+  let data = rows.slice(1).map(r =&gt; { const o={}; headers.forEach((h,i)=&gt;o[h]=r[i]); return o; });
+  if (params.profesor) data = data.filter(r =&gt; r['Profesor'] === params.profesor);
   return { ok: true, data };
 }
 
-// ============================================================
-// EVIDENCIAS
-// ============================================================
+// ── EVIDENCIAS (con Google Drive) ──
 function guardarEvidencia(data) {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet   = ss.getSheetByName(HOJA_EVIDENCIAS);
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(HOJA_EVIDENCIAS);
   if (!sheet) {
     sheet = ss.insertSheet(HOJA_EVIDENCIAS);
-    sheet.appendRow(['Fecha','Hora','Tipo','Salón','Observaciones','Profesor']);
-    sheet.getRange(1,1,1,6).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
+    sheet.appendRow(['Fecha','Hora','Tipo','Salón','Observaciones','Profesor','Archivo','URL Drive']);
+    sheet.getRange(1,1,1,8).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
   }
+
+  let driveUrl = '';
+  let driveId  = '';
+
+  // Si viene un archivo en base64, guardarlo en Google Drive
+  if (data.fileBase64 &amp;&amp; data.fileName &amp;&amp; data.fileMime) {
+    try {
+      const folder = getCarpetaEvidencias();
+      // Decodificar base64
+      const decoded = Utilities.base64Decode(data.fileBase64);
+      const blob    = Utilities.newBlob(decoded, data.fileMime, data.fileName);
+      const file    = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      driveUrl = file.getUrl();
+      driveId  = file.getId();
+    } catch(e) {
+      driveUrl = 'Error al guardar: ' + e.message;
+    }
+  }
+
   sheet.appendRow([
-    data.fecha || new Date().toLocaleDateString('es-CO'),
-    data.hora  || new Date().toLocaleTimeString('es-CO'),
-    data.tipo  || '',
-    data.salon || '',
-    data.obs   || '',
+    data.fecha    || new Date().toLocaleDateString('es-CO'),
+    data.hora     || new Date().toLocaleTimeString('es-CO'),
+    data.tipo     || '',
+    data.salon    || '',
+    data.obs      || '',
     data.profesor || '',
+    data.fileName || '',
+    driveUrl,
   ]);
-  return { ok: true, msg: 'Evidencia guardada' };
+
+  return { ok: true, msg: 'Evidencia guardada', driveUrl: driveUrl, driveId: driveId };
 }
 
 function getEvidencias(params) {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(HOJA_EVIDENCIAS);
   if (!sheet) return { ok: true, data: [] };
-  const rows    = sheet.getDataRange().getValues();
+  const rows = sheet.getDataRange().getValues();
   const headers = rows[0];
-  const data = rows.slice(1).map(r =&gt; {
-    const obj = {};
-    headers.forEach((h, i) =&gt; obj[h] = r[i]);
-    return obj;
-  });
-  if (params.profesor) {
-    return { ok: true, data: data.filter(r =&gt; r['Profesor'] === params.profesor) };
-  }
+  let data = rows.slice(1).map(r =&gt; { const o={}; headers.forEach((h,i)=&gt;o[h]=r[i]); return o; });
+  if (params.profesor) data = data.filter(r =&gt; r['Profesor'] === params.profesor);
   return { ok: true, data };
 }
 
-// ============================================================
-// LOGÍSTICA
-// ============================================================
+// ── LOGÍSTICA ──
 function guardarLogistica(data) {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet   = ss.getSheetByName(HOJA_LOGISTICA);
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(HOJA_LOGISTICA);
   if (!sheet) {
     sheet = ss.insertSheet(HOJA_LOGISTICA);
     sheet.appendRow(['Fecha','Clase','Elementos','Profesor']);
     sheet.getRange(1,1,1,4).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
   }
-  // Update existing or append
   const rows = sheet.getDataRange().getValues();
-  const existing = rows.findIndex(r =&gt; r[1] === data.clase &amp;&amp; r[3] === data.profesor);
-  if (existing &gt; 0) {
-    sheet.getRange(existing + 1, 1, 1, 4).setValues([[
-      new Date().toLocaleDateString('es-CO'), data.clase, data.items, data.profesor
-    ]]);
-  } else {
-    sheet.appendRow([
-      new Date().toLocaleDateString('es-CO'),
-      data.clase || '', data.items || '', data.profesor || '',
-    ]);
-  }
+  const existing = rows.findIndex((r,i) =&gt; i&gt;0 &amp;&amp; r[1]===data.clase &amp;&amp; r[3]===data.profesor);
+  const rowData = [new Date().toLocaleDateString('es-CO'), data.clase||'', data.items||'', data.profesor||''];
+  if (existing &gt; 0) sheet.getRange(existing+1,1,1,4).setValues([rowData]);
+  else sheet.appendRow(rowData);
   return { ok: true, msg: 'Logística guardada' };
 }
 
 function getLogistica(params) {
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(HOJA_LOGISTICA);
   if (!sheet) return { ok: true, data: [] };
-  const rows    = sheet.getDataRange().getValues();
+  const rows = sheet.getDataRange().getValues();
   const headers = rows[0];
-  const data = rows.slice(1).map(r =&gt; {
-    const obj = {};
-    headers.forEach((h, i) =&gt; obj[h] = r[i]);
-    return obj;
-  });
-  if (params.profesor) {
-    return { ok: true, data: data.filter(r =&gt; r['Profesor'] === params.profesor) };
-  }
+  let data = rows.slice(1).map(r =&gt; { const o={}; headers.forEach((h,i)=&gt;o[h]=r[i]); return o; });
+  if (params.profesor) data = data.filter(r =&gt; r['Profesor'] === params.profesor);
   return { ok: true, data };
 }</pre>
             </div>
@@ -1398,7 +1362,7 @@ function saveEv(tipo){
     var reader=new FileReader();
     reader.onload=function(e){
       rec.fileData=e.target.result; // store as data URI for preview
-      uploadFileToOneDrive(file, fileName, function(ok, url){
+      uploadFileToOneDrive(file, fileName, {tipo:tipo,salon:salon,obs:obs,fecha:rec.date,hora:rec.time}, function(ok, url){
         rec.uploadStatus=ok?'ok':'local';
         rec.oneDriveUrl=url||'';
         evids.push(rec);
@@ -1427,36 +1391,67 @@ function saveEv(tipo){
 
 // ── Upload file directly to OneDrive shared folder via Microsoft Graph API ──
 var OD_SHARE_ID='u!aHR0cHM6Ly9tYWlsdWlzLW15LnNoYXJlcG9pbnQuY29tLzpmOi9nL3BlcnNvbmFsL2N1cnNvc211c2ljYV91aXNfZWR1X2NvL0lnRGJlVVVSdllvSlNyS2J2aXJBdUw3MkFjNUJLaE95QzN1N01OTVRIbzZLTmF3P2U9SzVRRm9m';
-function uploadFileToOneDrive(file, fileName, callback){
-  // Convert DataURL back to Blob for upload
-  var fr=new FileReader();
-  fr.onload=function(e){
-    var arrayBuf=e.target.result;
+function uploadFileToOneDrive(file, fileName, extraData, callback){
+  if(typeof extraData === 'function'){callback=extraData;extraData={};}
+  var gsUrl=localStorage.getItem('cfg_gsheets')||'';
+  if(!gsUrl){
+    notify('\u26a0\ufe0f Configura la URL de Google Apps Script en Configuraci\u00f3n');
+    callback(false,'');
+    return;
+  }
+  // Show progress
+  var progressMsg=document.createElement('div');
+  progressMsg.id='uploadProgress';
+  progressMsg.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--gd);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3)';
+  progressMsg.innerHTML='\u2601\ufe0f Subiendo archivo... por favor espera';
+  document.body.appendChild(progressMsg);
+
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var dataUri=e.target.result;
+    var base64=dataUri.split(',')[1];
     var mime=file.type||'application/octet-stream';
-    // Microsoft Graph: upload to shared folder
-    var url='https://graph.microsoft.com/v1.0/shares/'+OD_SHARE_ID+'/driveItem:/'+encodeURIComponent(fileName)+':/content';
-    fetch(url,{
-      method:'PUT',
-      headers:{'Content-Type':mime},
-      body:arrayBuf
+    var now=new Date();
+    var payload=JSON.stringify({
+      action:'guardar_evidencia',
+      fecha:extraData.fecha||now.toLocaleDateString('es-CO'),
+      hora:extraData.hora||now.toLocaleTimeString('es-CO'),
+      profesor:CU.name+' '+CU.surname,
+      tipo:extraData.tipo||'archivo',
+      salon:extraData.salon||'',
+      obs:extraData.obs||'',
+      fileName:fileName,
+      fileBase64:base64,
+      fileMime:mime
+    });
+    fetch(gsUrl,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:payload
     })
     .then(function(r){
-      if(r.ok||r.status===201||r.status===200){
-        return r.json().then(function(data){
-          callback(true, data.webUrl||'');
-        });
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      return r.json();
+    })
+    .then(function(data){
+      var prog=document.getElementById('uploadProgress');if(prog)prog.remove();
+      if(data.ok){
+        callback(true, data.driveUrl||'');
       } else {
-        // If Graph API fails (needs auth), fall back to manual approach
-        console.warn('OneDrive upload failed:',r.status,r.statusText);
         callback(false,'');
       }
     })
     .catch(function(err){
-      console.warn('OneDrive upload error:',err);
+      var prog=document.getElementById('uploadProgress');if(prog)prog.remove();
+      console.warn('Upload error:',err);
       callback(false,'');
     });
   };
-  fr.readAsArrayBuffer(file);
+  reader.onerror=function(){
+    var prog=document.getElementById('uploadProgress');if(prog)prog.remove();
+    callback(false,'');
+  };
+  reader.readAsDataURL(file);
 }
 function sendEvToSheets(rec){
   var gsUrl=localStorage.getItem('cfg_gsheets')||'';
