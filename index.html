@@ -328,7 +328,14 @@ tr:hover td{background:var(--gbg)}
         </div>
         <div class="card">
           <div class="cw" id="camWrap" style="display:none"><video id="camVid" autoplay playsinline></video><div class="so"><div class="sb"></div></div></div>
-          <div id="camPh" style="text-align:center;padding:34px 18px;color:var(--tm)"><div style="font-size:42px;margin-bottom:9px">📷</div><p style="font-size:13px">Activa la cámara para escanear Music Pass</p></div>
+          <div id="camPh" style="text-align:center;padding:34px 18px;color:var(--tm)">
+            <div style="font-size:42px;margin-bottom:9px">📷</div>
+            <p style="font-size:13px;font-weight:600;color:var(--gd)">Activa la cámara para escanear</p>
+            <p style="font-size:11px;color:var(--tm);margin-top:4px">Apunta la cámara al <strong>Music Pass</strong> del estudiante</p>
+          </div>
+          <div id="scanStatus" style="display:none;text-align:center;padding:8px;background:var(--gbg);border-radius:8px;font-size:12px;color:var(--gd);margin-top:8px">
+            🔍 Escaneando... apunta al código QR
+          </div>
         </div>
       </div>
       <div class="card" style="margin-top:16px">
@@ -388,31 +395,47 @@ tr:hover td{background:var(--gbg)}
       <div class="g2">
         <div class="card">
           <h3 style="font-size:15px;font-weight:700;color:var(--gd);margin-bottom:12px">🔍 Como lo encuentro</h3>
-          <div class="uz" onclick="document.getElementById('evFindF').click()">
-            <div style="font-size:30px;margin-bottom:5px">📷</div>
-            <p style="font-size:12px;color:var(--tm)">Foto/video → OneDrive</p>
-            <p style="font-size:10px;color:var(--tm);margin-top:2px" id="evFindN">Sin archivo</p>
+          <!-- Upload zone -->
+          <div class="uz" id="evFindZone" onclick="document.getElementById('evFindF').click()" style="min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
+            <div style="font-size:32px">📷</div>
+            <div style="font-size:13px;font-weight:600;color:var(--gd)">Toca para tomar foto o subir archivo</div>
+            <div style="font-size:11px;color:var(--tm)">Foto o video desde cámara o galería</div>
+            <div style="font-size:10px;color:var(--tm)" id="evFindN"></div>
           </div>
-          <input type="file" id="evFindF" accept="image/*,video/*" style="display:none" onchange="hFile(this,'find')">
+          <!-- Hidden inputs: one for camera, one for gallery -->
+          <input type="file" id="evFindF" accept="image/*,video/*" capture="environment" style="display:none" onchange="hFile(this,'find')">
+          <!-- Preview -->
+          <div id="evFindPreview" style="display:none;margin-top:10px;text-align:center"></div>
+          <!-- Buttons: camera | gallery -->
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-p" style="flex:1;justify-content:center" onclick="evOpenCamera('find')">📷 Cámara</button>
+            <button class="btn btn-g" style="flex:1;justify-content:center" onclick="evOpenGallery('find')">🖼️ Galería</button>
+          </div>
           <div style="margin-top:12px;display:grid;gap:9px">
             <div><span class="lbl">Salón</span><input class="inp" id="evFS" placeholder="Ej: Sala 202"></div>
             <div><span class="lbl">Observaciones</span><textarea class="tex inp" id="evFO" rows="3" placeholder="Estado del salón e instrumentos..."></textarea></div>
           </div>
-          <button class="btn btn-p" style="margin-top:10px;width:100%" onclick="saveEv('encuentro')">💾 Guardar</button>
+          <button class="btn btn-p" style="margin-top:10px;width:100%" onclick="saveEv('encuentro')">💾 Guardar evidencia</button>
         </div>
         <div class="card">
           <h3 style="font-size:15px;font-weight:700;color:var(--gd);margin-bottom:12px">✅ Como lo dejo</h3>
-          <div class="uz" onclick="document.getElementById('evLeaveF').click()">
-            <div style="font-size:30px;margin-bottom:5px">📷</div>
-            <p style="font-size:12px;color:var(--tm)">Foto/video → OneDrive</p>
-            <p style="font-size:10px;color:var(--tm);margin-top:2px" id="evLeaveN">Sin archivo</p>
+          <div class="uz" id="evLeaveZone" onclick="document.getElementById('evLeaveF').click()" style="min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
+            <div style="font-size:32px">📷</div>
+            <div style="font-size:13px;font-weight:600;color:var(--gd)">Toca para tomar foto o subir archivo</div>
+            <div style="font-size:11px;color:var(--tm)">Foto o video desde cámara o galería</div>
+            <div style="font-size:10px;color:var(--tm)" id="evLeaveN"></div>
           </div>
-          <input type="file" id="evLeaveF" accept="image/*,video/*" style="display:none" onchange="hFile(this,'leave')">
+          <input type="file" id="evLeaveF" accept="image/*,video/*" capture="environment" style="display:none" onchange="hFile(this,'leave')">
+          <div id="evLeavePreview" style="display:none;margin-top:10px;text-align:center"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-o" style="flex:1;justify-content:center" onclick="evOpenCamera('leave')">📷 Cámara</button>
+            <button class="btn btn-g" style="flex:1;justify-content:center" onclick="evOpenGallery('leave')">🖼️ Galería</button>
+          </div>
           <div style="margin-top:12px;display:grid;gap:9px">
             <div><span class="lbl">Salón</span><input class="inp" id="evLS" placeholder="Ej: Sala 202"></div>
             <div><span class="lbl">Observaciones</span><textarea class="tex inp" id="evLO" rows="3" placeholder="Estado en que dejas el salón..."></textarea></div>
           </div>
-          <button class="btn btn-o" style="margin-top:10px;width:100%" onclick="saveEv('dejo')">💾 Guardar</button>
+          <button class="btn btn-o" style="margin-top:10px;width:100%" onclick="saveEv('dejo')">💾 Guardar evidencia</button>
         </div>
       </div>
       <div class="card" style="margin-top:16px"><h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:12px">Mis Evidencias</h3><div id="evidList"></div></div>
@@ -1142,31 +1165,106 @@ function loadMisClases(){
 function toggleCam(){if(camActive){stopCam();return;}navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(stream=>{camStream=stream;camActive=true;const v=document.getElementById('camVid');v.srcObject=stream;document.getElementById('camWrap').style.display='block';document.getElementById('camPh').style.display='none';notify('📷 Cámara activa');startScan();}).catch(()=>notify('⚠️ Sin acceso a cámara'));}
 function stopCam(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}if(scanIv){clearInterval(scanIv);scanIv=null;}camActive=false;document.getElementById('camWrap').style.display='none';document.getElementById('camPh').style.display='block';}
 let scanC=null;
-function startScan(){if(!scanC)scanC=document.createElement('canvas');scanIv=setInterval(()=>{const v=document.getElementById('camVid');if(!v||v.readyState<2)return;scanC.width=v.videoWidth;scanC.height=v.videoHeight;const ctx=scanC.getContext('2d');ctx.drawImage(v,0,0);const d=ctx.getImageData(0,0,scanC.width,scanC.height);const c=jsQR(d.data,d.width,d.height);if(c)handleQR(c.data);},500);}
+var _lastScanned='';
+var _lastScannedTime=0;
+function startScan(){
+  if(!scanC)scanC=document.createElement('canvas');
+  if(scanIv)clearInterval(scanIv);
+  scanIv=setInterval(function(){
+    var v=document.getElementById('camVid');
+    if(!v||v.readyState<2)return;
+    scanC.width=v.videoWidth||640;
+    scanC.height=v.videoHeight||480;
+    var ctx=scanC.getContext('2d');
+    ctx.drawImage(v,0,0,scanC.width,scanC.height);
+    var d=ctx.getImageData(0,0,scanC.width,scanC.height);
+    var code=jsQR(d.data,d.width,d.height,{inversionAttempts:'dontInvert'});
+    if(code&&code.data){
+      var now=Date.now();
+      // Debounce: ignore same code within 3 seconds
+      if(code.data===_lastScanned&&now-_lastScannedTime<3000)return;
+      _lastScanned=code.data;
+      _lastScannedTime=now;
+      handleQR(code.data);
+    }
+  },300);
+}
 function handleQR(data){
-  if(!data.startsWith('MUSICUIS-')){notify('\u274c QR no v\u00e1lido');return;}
-  var pts=data.split('-');
-  var sid=pts[1]; var sname=pts.slice(2).join(' ');
+  // Support both | separator (new) and - separator (legacy)
+  var sep=data.indexOf('|')>=0?'|':'-';
+  if(!data.startsWith('MUSICUIS'+sep)){
+    // Show what was scanned to help debug
+    notify('\u274c QR no reconocido: '+data.substring(0,30));
+    return;
+  }
+  var pts=data.split(sep);
+  var sid=pts[1];
+  var sname=pts.slice(2).join(sep==='|'?'|':'-');
   var claseId=document.getElementById('att-class').value;
   var claseObj=CLASES_AM.find(function(c){return c.id===claseId;});
   var date=document.getElementById('att-date').value;
   var teacher=CU.name+' '+CU.surname;
   if(!claseId){notify('\u26a0\ufe0f Selecciona la clase antes de escanear');return;}
   if(attRec.find(function(r){return r.sid===sid&&r.claseId===claseId&&r.date===date;})){
-    notify('\u26a0\ufe0f '+sname+' ya registrado/a');return;
+    notify('\u26a0\ufe0f '+sname+' ya registrado/a');
+    return;
   }
-  var rec={id:Date.now(),sid:sid,sname:sname,
+  var rec={
+    id:Date.now(),sid:sid,sname:sname,
     claseId:claseId,clase:claseObj?claseObj.clase:'',
     programa:claseObj?claseObj.programa:'',
-    date:date,time:new Date().toLocaleTimeString('es-CO'),teacher:teacher};
+    date:date,time:new Date().toLocaleTimeString('es-CO'),teacher:teacher
+  };
   attRec.push(rec);
   localStorage.setItem('mu_att',JSON.stringify(attRec));
   notify('\u2705 '+sname+' registrado/a');
   renderAttLog();
+  // Pause scanning 2 seconds after successful read to avoid duplicates
+  if(scanIv){clearInterval(scanIv);scanIv=null;}
+  setTimeout(function(){if(camActive)startScan();},2000);
 }
 function manualEnt(){
-  var n=prompt('Nombre del estudiante:');
-  if(n&&n.trim())handleQR('MUSICUIS-m'+Date.now()+'-'+n.trim());
+  // Show a searchable list of students in the selected class
+  var claseId=document.getElementById('att-class').value;
+  var claseObj=CLASES_AM.find(function(c){return c.id===claseId;});
+  if(!claseObj){
+    var n=prompt('Nombre del estudiante:');
+    if(n&&n.trim())handleQR('MUSICUIS|m'+Date.now()+'|'+n.trim());
+    return;
+  }
+  // Build modal with student list
+  var m=document.createElement('div');
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:3000;display:flex;align-items:center;justify-content:center;padding:14px;overflow-y:auto';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:16px;padding:20px;width:min(420px,96vw);max-height:80vh;overflow-y:auto';
+  var date=document.getElementById('att-date').value;
+  // Mark already present
+  var present=attRec.filter(function(r){return r.claseId===claseId&&r.date===date;}).map(function(r){return r.sid;});
+  var items=claseObj.estudiantes.map(function(nombre,i){
+    var estObj=EST_AM.find(function(e){return e.nombre.toLowerCase()===nombre.toLowerCase();});
+    var sid=estObj?String(estObj.id):'m'+i;
+    var ya=present.indexOf(sid)>=0;
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--br)">'
+      +'<span style="font-size:13px;color:'+(ya?'var(--go)':'var(--tx)')+'">'+nombre+(ya?' ✅':'')+'</span>'
+      +(ya?'<span style="font-size:11px;color:var(--go)">Presente</span>'
+          :'<button class="btn btn-p" style="font-size:11px;padding:5px 12px" onclick="regManual(\''+sid+'\',\''+nombre.replace(/'/g,"\\'")+'\')">\u2714 Marcar</button>')
+      +'</div>';
+  }).join('');
+  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    +'<h3 style="font-family:Playfair Display,serif;font-size:16px;color:var(--gd)">'+claseObj.clase+'</h3>'
+    +'<button onclick="this.closest(\'[style*=fixed]\').remove()" style="background:var(--gd);color:#fff;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px">\u00d7</button>'
+    +'</div>'
+    +'<p style="font-size:11px;color:var(--tm);margin-bottom:12px">'+claseObj.estudiantes.length+' estudiantes &mdash; '+date+'</p>'
+    +items;
+  m.appendChild(box);
+  document.body.appendChild(m);
+  m.addEventListener('click',function(e){if(e.target===m)m.remove();});
+}
+function regManual(sid,nombre){
+  handleQR('MUSICUIS|'+sid+'|'+nombre);
+  // Close modal
+  var modal=document.querySelector('[style*="fixed"][style*="rgba(0,0,0,.78)"][style*="3000"]');
+  if(modal)setTimeout(function(){modal.remove();},500);
 }
 function renderAttLog(){
   var claseId=document.getElementById('att-class').value;
@@ -1221,9 +1319,145 @@ function renderFaltas(){const sr=(document.getElementById('f-search')?.value||''
 function renderRep(){document.getElementById('r-est').textContent=EST.length;document.getElementById('r-att').textContent=attRec.length;let tf=0;for(let k in localStorage)if(k.startsWith('mu_f_'))tf++;document.getElementById('r-flt').textContent=tf;document.getElementById('r-nov').textContent=evids.length;const cc={},pc={};attRec.forEach(r=>{cc[r.clase]=(cc[r.clase]||0)+1;pc[r.teacher]=(pc[r.teacher]||0)+1;});barChart('chartC',cc);barChart('chartP',pc);const ne=document.getElementById('repNov');ne.innerHTML=evids.length?`<table><thead><tr><th>Profesor</th><th>Tipo</th><th>Salón</th><th>Fecha</th><th>Observación</th></tr></thead><tbody>`+evids.slice(-8).reverse().map(e=>`<tr><td>${e.user}</td><td><span class="badge ${e.tipo==='encuentro'?'bg':'bo'}">${e.tipo==='encuentro'?'Encuentro':'Dejo'}</span></td><td>${e.salon||'—'}</td><td>${e.date}</td><td style="max-width:160px;font-size:11px">${e.obs||'—'}</td></tr>`).join('')+'</tbody></table>':'<div style="text-align:center;padding:18px;color:var(--tm)">Sin novedades</div>';}
 function barChart(id,data){const el=document.getElementById(id);if(!el)return;const e=Object.entries(data).sort((a,b)=>b[1]-a[1]).slice(0,6);const mx=e[0]?.[1]||1;el.innerHTML=e.length?e.map(([l,c])=>`<div class="cbr"><div class="cbl" title="${l}">${l.substring(0,22)}</div><div class="cbt"><div class="cbf" style="width:${Math.round(c/mx*100)}%"></div></div><div class="cbc">${c}</div></div>`).join(''):'<div style="color:var(--tm);font-size:12px">Sin datos</div>';}
 
-function hFile(input,type){const f=input.files[0];if(!f)return;const now=new Date();const name=`${CU.name} ${CU.surname}-${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;document.getElementById(type==='find'?'evFindN':'evLeaveN').textContent=f.name;notify(`☁️ "${name}" listo para OneDrive`);}
-function saveEv(tipo){const pre=tipo==='encuentro'?'F':'L';const salon=document.getElementById('ev'+pre+'S').value;const obs=document.getElementById('ev'+pre+'O').value;const now=new Date();evids.push({id:Date.now(),user:`${CU.name} ${CU.surname}`,uid:CU.id,tipo,salon,obs,date:now.toLocaleDateString('es-CO'),time:now.toLocaleTimeString('es-CO')});localStorage.setItem('mu_ev',JSON.stringify(evids));notify('✅ Evidencia guardada');document.getElementById('ev'+pre+'S').value='';document.getElementById('ev'+pre+'O').value='';renderEvids();}
-function renderEvids(){let e=CU.role==='coordinadora'?evids:evids.filter(x=>x.uid===CU.id);document.getElementById('evidList').innerHTML=e.length?`<table><thead><tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Salón</th><th>Observación</th>${CU.role==='coordinadora'?'<th>Profesor</th>':''}</tr></thead><tbody>`+e.slice().reverse().map(x=>`<tr><td>${x.date}</td><td style="font-size:10px;font-family:'DM Mono',monospace">${x.time}</td><td><span class="badge ${x.tipo==='encuentro'?'bg':'bo'}">${x.tipo==='encuentro'?'Encuentro':'Dejo'}</span></td><td>${x.salon||'—'}</td><td style="max-width:160px;font-size:11px">${x.obs||'—'}</td>${CU.role==='coordinadora'?`<td style="font-size:11px">${x.user}</td>`:''}</tr>`).join('')+'</tbody></table>':'<div style="text-align:center;padding:18px;color:var(--tm)">Sin evidencias</div>';}
+function hFile(input,type){
+  var file=input.files[0];
+  if(!file)return;
+  var labelId=type==='find'?'evFindN':'evLeaveN';
+  var previewId=type==='find'?'evFindPreview':'evLeavePreview';
+  var zoneId=type==='find'?'evFindZone':'evLeaveZone';
+
+  // Show filename
+  document.getElementById(labelId).textContent=file.name+' ('+Math.round(file.size/1024)+'KB)';
+
+  // Show preview
+  var prevEl=document.getElementById(previewId);
+  prevEl.style.display='block';
+  if(file.type.startsWith('image/')){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      prevEl.innerHTML='<img src="'+e.target.result+'" style="max-width:100%;max-height:180px;border-radius:10px;border:2px solid var(--go);object-fit:cover">';
+    };
+    reader.readAsDataURL(file);
+  } else if(file.type.startsWith('video/')){
+    var url=URL.createObjectURL(file);
+    prevEl.innerHTML='<video src="'+url+'" controls style="max-width:100%;max-height:180px;border-radius:10px;border:2px solid var(--go)"></video>';
+  } else {
+    prevEl.innerHTML='<div style="padding:10px;background:var(--gbg);border-radius:8px;font-size:12px;color:var(--gd)">📎 '+file.name+'</div>';
+  }
+
+  // Update zone border color
+  var zone=document.getElementById(zoneId);
+  if(zone)zone.style.borderColor='var(--go)';
+
+  // Store file reference for upload
+  if(type==='find') window._evFindFile=file;
+  else window._evLeaveFile=file;
+
+  notify('\u2705 Archivo listo: '+file.name);
+}
+function evOpenCamera(type){
+  // Opens camera directly (capture=environment)
+  var el=document.getElementById(type==='find'?'evFindF':'evLeaveF');
+  if(el){el.removeAttribute('capture');el.setAttribute('capture','environment');el.click();}
+}
+function evOpenGallery(type){
+  // Opens gallery (no capture attribute)
+  var el=document.getElementById(type==='find'?'evFindF':'evLeaveF');
+  if(el){el.removeAttribute('capture');el.click();}
+}
+function uploadToOneDrive(file,tipo,salon,date,shareUrl){
+  // OneDrive shared folder upload via fetch
+  // Note: Direct upload to a shared link requires the Graph API.
+  // This opens the shared folder so the user can manually upload,
+  // and shows a notification with instructions.
+  notify('\u2601\ufe0f Abriendo carpeta de OneDrive...');
+  window.open(shareUrl,'_blank');
+  setTimeout(function(){
+    notify('\ud83d\udcc2 Sube el archivo "'+file.name+'" a la carpeta de OneDrive que se abrió');
+  },1500);
+}
+function saveEv(tipo){
+  var pre=tipo==='encuentro'?'F':'L';
+  var salon=document.getElementById('ev'+pre+'S').value;
+  var obs=document.getElementById('ev'+pre+'O').value;
+  var file=tipo==='encuentro'?window._evFindFile:window._evLeaveFile;
+  var now=new Date();
+  var fileName=file?file.name:'';
+  var rec={
+    id:Date.now(),
+    user:CU.name+' '+CU.surname,
+    uid:CU.id,
+    tipo:tipo,
+    salon:salon,
+    obs:obs,
+    fileName:fileName,
+    date:now.toLocaleDateString('es-CO'),
+    time:now.toLocaleTimeString('es-CO')
+  };
+  evids.push(rec);
+  localStorage.setItem('mu_ev',JSON.stringify(evids));
+
+  // Upload to OneDrive if file selected and URL configured
+  if(file){
+    var oneDriveUrl=localStorage.getItem('cfg_onedrive')||'';
+    if(oneDriveUrl){
+      uploadToOneDrive(file,tipo,salon,now,oneDriveUrl);
+    } else {
+      notify('\u2705 Evidencia guardada localmente (configura OneDrive para subir archivos)');
+    }
+  } else {
+    notify('\u2705 Evidencia guardada');
+  }
+
+  // Send to Google Sheets
+  var gsUrl=localStorage.getItem('cfg_gsheets')||'';
+  if(gsUrl){
+    fetch(gsUrl,{method:'POST',body:JSON.stringify({action:'guardar_evidencia',fecha:rec.date,hora:rec.time,tipo:tipo,salon:salon,obs:obs,archivo:fileName,profesor:rec.user})}).catch(function(){});
+  }
+
+  // Reset form
+  document.getElementById('ev'+pre+'S').value='';
+  document.getElementById('ev'+pre+'O').value='';
+  var labelId=tipo==='encuentro'?'evFindN':'evLeaveN';
+  var previewId=tipo==='encuentro'?'evFindPreview':'evLeavePreview';
+  var zoneId=tipo==='encuentro'?'evFindZone':'evLeaveZone';
+  var fileId=tipo==='encuentro'?'evFindF':'evLeaveF';
+  document.getElementById(labelId).textContent='';
+  var prevEl=document.getElementById(previewId);
+  if(prevEl){prevEl.style.display='none';prevEl.innerHTML='';}
+  var zone=document.getElementById(zoneId);
+  if(zone)zone.style.borderColor='';
+  document.getElementById(fileId).value='';
+  if(tipo==='encuentro')window._evFindFile=null;
+  else window._evLeaveFile=null;
+
+  renderEvids();
+}
+function renderEvids(){
+  var e=CU.role==='coordinadora'?evids:evids.filter(function(x){return x.uid===CU.id;});
+  var el=document.getElementById('evidList');
+  if(!el)return;
+  if(!e.length){el.innerHTML='<div style="text-align:center;padding:18px;color:var(--tm)">Sin evidencias registradas</div>';return;}
+  el.innerHTML='<div style="overflow-x:auto"><table><thead><tr>'
+    +'<th>Fecha</th><th>Hora</th><th>Tipo</th><th>Sal\u00f3n</th><th>Archivo</th><th>Observaci\u00f3n</th>'
+    +(CU.role==='coordinadora'?'<th>Profesor</th>':'')
+    +'</tr></thead><tbody>'
+    +e.slice().reverse().map(function(x){
+      var fileCell=x.fileName
+        ?('<span style="font-size:10px;color:var(--go);">\ud83d\udcce '+x.fileName+'</span>')
+        :'<span style="color:var(--tm)">—</span>';
+      return '<tr>'
+        +'<td>'+x.date+'</td>'
+        +'<td style="font-size:10px;font-family:DM Mono,monospace">'+x.time+'</td>'
+        +'<td><span class="badge '+(x.tipo==='encuentro'?'bg':'bo')+'">'+(x.tipo==='encuentro'?'Encuentro':'Dejo')+'</span></td>'
+        +'<td>'+(x.salon||'—')+'</td>'
+        +'<td>'+fileCell+'</td>'
+        +'<td style="max-width:150px;font-size:11px">'+(x.obs||'—')+'</td>'
+        +(CU.role==='coordinadora'?'<td style="font-size:11px">'+x.user+'</td>':'')
+        +'</tr>';
+    }).join('')
+    +'</tbody></table></div>';
+}
 
 function saveLog(){const c=document.getElementById('logClase').value;const it=document.getElementById('logItems').value.trim();if(!it){notify('⚠️ Describe los elementos');return;}const idx=logs.findIndex(r=>r.uid===CU.id&&r.clase===c);const req={id:idx>=0?logs[idx].id:Date.now(),uid:CU.id,user:`${CU.name} ${CU.surname}`,clase:c,items:it,date:new Date().toLocaleDateString('es-CO'),time:new Date().toLocaleTimeString('es-CO')};if(idx>=0){logs[idx]=req;notify('✅ Solicitud actualizada');}else{logs.push(req);notify('✅ Solicitud enviada');}localStorage.setItem('mu_log',JSON.stringify(logs));document.getElementById('logItems').value='';renderLog();}
 function renderLog(){
@@ -1466,11 +1700,11 @@ function renderEst(){
 function drawQR(el,text){
   el.innerHTML='';
   try{
-    var qr=qrcode(4,'M');
+    var qr=qrcode(7,'M');
     qr.addData(text);
     qr.make();
     var mods=qr.getModuleCount();
-    var sz=Math.max(3,Math.floor(180/mods));
+    var sz=Math.max(2,Math.floor(Math.min(180,window.innerWidth*0.7)/mods));
     var canvas=document.createElement('canvas');
     canvas.width=sz*mods;canvas.height=sz*mods;
     var ctx=canvas.getContext('2d');
@@ -1483,7 +1717,7 @@ function drawQR(el,text){
 function genQR(id,nombre){
   setTimeout(function(){
     var el=document.getElementById('mp-qr-'+id);
-    if(el)drawQR(el,'MUSICUIS-'+id+'-'+nombre);
+    if(el)drawQR(el,'MUSICUIS|'+id+'|'+nombre);
   },400);
 }
 
@@ -1532,7 +1766,7 @@ function showMP(id,nombre,programa,instrumento){
   inner.innerHTML=mpHTML(id,nombre,programa,instrumento)
     +'<button onclick="this.closest(\'[style*=fixed]\').remove()" style="position:absolute;top:-8px;right:-8px;width:29px;height:29px;border-radius:50%;background:var(--gd);color:#fff;border:none;cursor:pointer;font-size:12px">✕</button>';
   m.appendChild(inner);document.body.appendChild(m);
-  setTimeout(function(){var el=document.getElementById('mp-qr-'+id);if(el)drawQR(el,'MUSICUIS-'+id+'-'+nombre);},300);
+  setTimeout(function(){var el=document.getElementById('mp-qr-'+id);if(el)drawQR(el,'MUSICUIS|'+id+'|'+nombre);},300);
   m.addEventListener('click',function(e){if(e.target===m)m.remove();});
 }
 function printMP(id,nombre,programa,instrumento){showMP(id,nombre,programa,instrumento);setTimeout(function(){notify('🖨️ Usa Ctrl+P para imprimir');},500);}
