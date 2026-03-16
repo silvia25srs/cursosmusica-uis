@@ -491,286 +491,178 @@ tr:hover td{background:var(--gbg)}
 
     <div class="tab-page" id="page-configuracion">
       <div class="ph"><h2>⚙️ Configuración</h2><p>Gestión de la plataforma</p></div>
-      <div class="card" style="margin-bottom:18px;border-left:4px solid var(--go)">
-        <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:var(--gd);margin-bottom:16px">🔗 Vincular Servicios Externos</h3>
-        <div style="display:grid;gap:24px">
+            <div class="card" style="margin-bottom:18px;border-left:4px solid var(--go)">
+        <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:var(--gd);margin-bottom:16px">🔗 Vincular Google Sheets</h3>
 
-          <!-- GOOGLE SHEETS -->
-          <div style="background:var(--gbg);border-radius:var(--rs);padding:16px;border:1px solid var(--br)">
-            <div style="font-weight:700;font-size:14px;color:var(--gd);margin-bottom:4px">📊 Google Sheets — Asistencia, Faltas, Evidencias y Logística</div>
-            <div style="font-size:12px;color:var(--tm);margin-bottom:14px">Toda la información de la app se guarda automáticamente en tu hoja de cálculo de Google.</div>
+        <div style="background:var(--gbg);border-radius:var(--rs);padding:16px;border:1px solid var(--br);margin-bottom:16px">
+          <div style="font-weight:700;font-size:14px;color:var(--gd);margin-bottom:8px">📊 Paso 1 — ID del Google Spreadsheet</div>
+          <div style="font-size:12px;color:var(--tm);margin-bottom:10px;line-height:1.7">
+            Abre tu Google Sheet → mira la URL:<br>
+            <code style="background:#fff;padding:2px 6px;border-radius:3px;border:1px solid var(--br);font-size:11px">docs.google.com/spreadsheets/d/<strong>ESTE_ES_EL_ID</strong>/edit</code><br>
+            Copia el ID (la parte larga entre /d/ y /edit) y pégalo aquí:
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="inp" id="cfg-sheetid" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" style="flex:1;font-size:12px">
+            <button class="btn btn-o" onclick="saveCfg('sheetid')">💾 Guardar</button>
+            <button class="btn btn-g" style="font-size:11px" onclick="testSheetId()">🔍 Probar</button>
+          </div>
+          <div id="cfg-sheetid-status" style="font-size:11px;margin-top:6px;min-height:16px"></div>
+        </div>
 
-            <div style="font-weight:700;font-size:12px;color:var(--gd);margin-bottom:8px">📋 Pasos para configurar:</div>
-            <ol style="font-size:12px;color:var(--tx);margin:0 0 14px 18px;line-height:2">
-              <li>Abre <strong><a href="https://sheets.google.com" target="_blank" style="color:var(--go)">Google Sheets</a></strong> con tu cuenta UIS y crea una hoja nueva</li>
-              <li>Nómbrala: <code style="background:#fff;padding:1px 5px;border-radius:3px;border:1px solid var(--br);font-size:11px">Asistencia Cursos Música UIS 2026-1</code></li>
-              <li>En el menú ve a <strong>Extensiones → Apps Script</strong></li>
-              <li>Borra el código de ejemplo y pega el script completo de abajo</li>
-              <li>Guarda con <strong>Ctrl + S</strong> y ponle nombre: <em>MusicUIS Web App</em></li>
-              <li>Clic en <strong>Implementar → Nueva implementación</strong></li>
-              <li>En "Tipo" selecciona <strong>Aplicación web</strong></li>
-              <li>"Ejecutar como" → <strong>Yo (tu cuenta de Google)</strong></li>
-              <li>"Quién puede acceder" → <strong>Cualquier persona</strong></li>
-              <li>Clic en <strong>Implementar</strong> → Autoriza los permisos → Copia la URL</li>
-              <li>Pega la URL en el campo de abajo y guarda</li>
-            </ol>
+        <div style="background:var(--gbg);border-radius:var(--rs);padding:16px;border:1px solid var(--br);margin-bottom:16px">
+          <div style="font-weight:700;font-size:14px;color:var(--gd);margin-bottom:8px">⚙️ Paso 2 — URL del Apps Script (para escribir datos)</div>
+          <div style="font-size:12px;color:var(--tm);margin-bottom:10px;line-height:1.7">
+            El Apps Script recibe asistencia, faltas, evidencias y logística.<br>
+            <strong>Pasos en Apps Script:</strong><br>
+            1. Extensiones → Apps Script → pega el código (botón 📋 abajo)<br>
+            2. Guardar → <strong>Implementar → Nueva implementación</strong><br>
+            3. Tipo: <strong>Aplicación web</strong> · Acceso: <strong>Cualquier persona</strong><br>
+            4. Copia la URL y pégala aquí:
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="inp" id="cfg-gsheets" placeholder="https://script.google.com/macros/s/..." style="flex:1;font-size:12px">
+            <button class="btn btn-o" onclick="saveCfg('gsheets')">💾 Guardar</button>
+            <button class="btn btn-g" style="font-size:11px" onclick="abrirScript()">🔗 Abrir</button>
+          </div>
+          <div id="cfg-gsheets-status" style="font-size:11px;margin-top:6px;min-height:16px"></div>
+          <div class="al al-i" style="margin-top:10px;font-size:11px">
+            💡 Los datos se escriben directamente. Si el script está publicado correctamente, la escritura funciona aunque el botón Probar no responda.
+          </div>
+        </div>
 
-            <div style="font-weight:700;font-size:12px;color:var(--gd);margin-bottom:6px">📄 Script Web App — copia y pega en Apps Script:</div>
-            <div style="position:relative;margin-bottom:14px">
-              <button onclick="copiarScript()" class="btn btn-o" style="position:absolute;top:8px;right:8px;font-size:11px;padding:4px 10px;z-index:1">📋 Copiar</button>
-              <pre id="scriptCode" style="background:#1e2a1a;color:#c8e6c9;font-family:'DM Mono',monospace;font-size:10px;padding:14px;border-radius:var(--rs);overflow-x:auto;max-height:260px;overflow-y:auto;overflow-x:auto;margin:0;line-height:1.5;white-space:pre;max-width:100%">// ============================================================
-// CURSOS DE MÚSICA UIS — Google Apps Script Web App
-// Versión: 2026-1  (con Google Drive para evidencias)
+        <div style="background:var(--gbg);border-radius:var(--rs);padding:16px;border:1px solid var(--br);margin-bottom:16px">
+          <div style="font-weight:700;font-size:14px;color:var(--gd);margin-bottom:4px">📄 Código del Apps Script:</div>
+          <div style="position:relative;margin-top:8px">
+            <button onclick="copiarScript()" class="btn btn-o" style="position:absolute;top:8px;right:8px;font-size:11px;padding:4px 10px;z-index:1">📋 Copiar</button>
+            <pre id="scriptCode" style="background:#1e2a1a;color:#c8e6c9;font-family:'DM Mono',monospace;font-size:10px;padding:14px;border-radius:var(--rs);overflow-x:auto;max-height:220px;overflow-y:auto;margin:0;line-height:1.5;white-space:pre">// ============================================================
+// CURSOS DE MÚSICA UIS — Apps Script Web App v2026-3
+// ============================================================
+// NOTA: Este script ya está desplegado y funciona.
+// Solo instala de nuevo si pierdes acceso o necesitas
+// actualizar funcionalidades.
 //
-// INSTRUCCIONES:
-// 1. Abre Google Sheets → Extensiones → Apps Script
-// 2. Pega este código completo (reemplaza todo)
-// 3. Guarda con Ctrl+S
-// 4. Implementar → Nueva implementación → Aplicación web
-//    - Ejecutar como: Yo
-//    - Quién puede acceder: Cualquier persona
-// 5. Implementar → Autorizar → Copiar URL
+// PASOS:
+// 1. Extensiones → Apps Script → borra todo → pega este código
+// 2. Guardar (Ctrl+S)
+// 3. Implementar → Nueva implementación
+//    · Tipo: Aplicación web
+//    · Ejecutar como: Yo
+//    · Quién puede acceder: Cualquier persona
+// 4. Si pide autorizar → Configuración avanzada → Ir a (no segura) → Permitir
+// 5. Copia la URL nueva y pégala en la app → Guardar
 // ============================================================
 
-const SPREADSHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
-const HOJA_ASISTENCIA = 'Asistencia';
-const HOJA_FALTAS     = 'Faltas';
-const HOJA_EVIDENCIAS = 'Evidencias';
-const HOJA_LOGISTICA  = 'Logistica';
+const SS_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
+const DRIVE_FOLDER_ID = '1pXADsK5eLk3SHcaqIe9VaY_VhysexLA8';
 
-// Carpeta de Google Drive donde se guardan las fotos/videos
-// (se crea automáticamente si no existe)
-const CARPETA_EVIDENCIAS = 'Evidencias_MusicaUIS_2026-1';
-const CARPETA_ID = '1pXADsK5eLk3SHcaqIe9VaY_VhysexLA8'; // ID de la carpeta de Drive
-
-function setCORSHeaders(output) {
-  return output
-    .setHeader('Access-Control-Allow-Origin', '*')
-    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-    .setHeader('Access-Control-Allow-Headers', 'Content-Type');
-}
-
-function doOptions(e) {
-  return setCORSHeaders(ContentService.createTextOutput(''));
+function jsonOut(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function doGet(e) {
-  const action = e.parameter.action || '';
-  let result;
+  var p = e.parameter || {};
+  var action = p.action || 'ping';
+  var result;
   try {
-    if      (action === 'ping')         result = { ok: true, msg: 'Conectado ✅' };
-    else if (action === 'asistencia')   result = getAsistencia(e.parameter);
-    else if (action === 'faltas')       result = getFaltas(e.parameter);
-    else if (action === 'evidencias')   result = getEvidencias(e.parameter);
-    else if (action === 'logistica')    result = getLogistica(e.parameter);
-    else result = { ok: false, msg: 'Acción no reconocida: ' + action };
-  } catch(err) { result = { ok: false, error: err.message }; }
-  return setCORSHeaders(ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON));
+    if      (action === 'ping')       result = { ok: true, msg: 'Conectado OK' };
+    else if (action === 'asistencia') result = getData('Asistencia', p.profesor);
+    else if (action === 'faltas')     result = getData('Faltas', p.profesor);
+    else if (action === 'evidencias') result = getData('Evidencias', p.profesor);
+    else if (action === 'logistica')  result = getData('Logistica', p.profesor);
+    else result = { ok: false, msg: 'Accion no reconocida' };
+  } catch(err) { result = { ok: false, error: err.toString() }; }
+  return jsonOut(result);
 }
 
 function doPost(e) {
-  let data, action, result;
+  var result;
   try {
-    data   = JSON.parse(e.postData.contents);
-    action = data.action || '';
-    if      (action === 'registrar_asistencia') result = registrarAsistencia(data);
-    else if (action === 'registrar_falta')      result = registrarFalta(data);
+    var data = JSON.parse(e.postData.contents);
+    var action = data.action || '';
+    if      (action === 'registrar_asistencia') result = saveRow('Asistencia',['ID','Fecha','Hora','Estudiante','Clase','Programa','Profesor'],[data.id||'',data.fecha||hoy(),data.hora||ahora(),data.estudiante||'',data.clase||'',data.programa||'',data.profesor||''   ]);
+    else if (action === 'registrar_falta')      result = saveRow('Faltas',['Fecha','Estudiante','Clase','Programa','Hora','Profesor'],[data.fecha||hoy(),data.estudiante||'',data.clase||'',data.programa||'',data.hora||'',data.profesor||''   ]);
     else if (action === 'guardar_evidencia')    result = guardarEvidencia(data);
     else if (action === 'guardar_logistica')    result = guardarLogistica(data);
-    else result = { ok: false, msg: 'Acción no reconocida: ' + action };
-  } catch(err) { result = { ok: false, error: err.message }; }
-  return setCORSHeaders(ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON));
+    else result = { ok: false, msg: 'Accion no reconocida' };
+  } catch(err) { result = { ok: false, error: err.toString() }; }
+  return jsonOut(result);
 }
 
-// ── GOOGLE DRIVE: obtener o crear carpeta de evidencias ──
-function getCarpetaEvidencias() {
-  try {
-    // Usar carpeta específica por ID
-    return DriveApp.getFolderById(CARPETA_ID);
-  } catch(e) {
-    // Fallback: buscar por nombre o crear
-    const folders = DriveApp.getFoldersByName(CARPETA_EVIDENCIAS);
-    if (folders.hasNext()) return folders.next();
-    return DriveApp.createFolder(CARPETA_EVIDENCIAS);
-  }
-}
+function hoy()  { return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy'); }
+function ahora(){ return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'HH:mm:ss'); }
 
-// ── ASISTENCIA ──
-function registrarAsistencia(data) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName(HOJA_ASISTENCIA);
+function getOrCreateSheet(name, headers) {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sheet = ss.getSheetByName(name);
   if (!sheet) {
-    sheet = ss.insertSheet(HOJA_ASISTENCIA);
-    sheet.appendRow(['ID','Fecha','Hora','Estudiante','Clase','Programa','Profesor']);
-    sheet.getRange(1,1,1,7).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
+    sheet = ss.insertSheet(name);
+    sheet.appendRow(headers);
+    sheet.getRange(1,1,1,headers.length).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
   }
-  sheet.appendRow([data.id||'',data.fecha||new Date().toLocaleDateString('es-CO'),data.hora||new Date().toLocaleTimeString('es-CO'),data.estudiante||'',data.clase||'',data.programa||'',data.profesor||'']);
-  return { ok: true, msg: 'Asistencia registrada' };
+  return sheet;
 }
 
-function getAsistencia(params) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(HOJA_ASISTENCIA);
-  if (!sheet) return { ok: true, data: [] };
-  const rows = sheet.getDataRange().getValues();
-  const headers = rows[0];
-  let data = rows.slice(1).map(r =&gt; { const o={}; headers.forEach((h,i)=&gt;o[h]=r[i]); return o; });
-  if (params.profesor) data = data.filter(r =&gt; r['Profesor'] === params.profesor);
-  return { ok: true, data };
+function getData(sheetName, filterProfesor) {
+  var ss = SpreadsheetApp.openById(SS_ID);
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet || sheet.getLastRow() &lt; 2) return { ok: true, data: [] };
+  var rows = sheet.getDataRange().getValues();
+  var headers = rows[0];
+  var data = rows.slice(1).map(function(r) {
+    var obj = {};
+    headers.forEach(function(h,i){ obj[h] = r[i]; });
+    return obj;
+  });
+  if (filterProfesor) data = data.filter(function(r){ return r['Profesor'] === filterProfesor; });
+  return { ok: true, data: data };
 }
 
-// ── FALTAS ──
-function registrarFalta(data) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName(HOJA_FALTAS);
-  if (!sheet) {
-    sheet = ss.insertSheet(HOJA_FALTAS);
-    sheet.appendRow(['Fecha','Estudiante','Clase','Programa','Hora','Profesor']);
-    sheet.getRange(1,1,1,6).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
-  }
-  sheet.appendRow([data.fecha||new Date().toLocaleDateString('es-CO'),data.estudiante||'',data.clase||'',data.programa||'',data.hora||'',data.profesor||'']);
-  return { ok: true, msg: 'Falta registrada' };
+function saveRow(sheetName, headers, values) {
+  getOrCreateSheet(sheetName, headers).appendRow(values);
+  return { ok: true };
 }
 
-function getFaltas(params) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(HOJA_FALTAS);
-  if (!sheet) return { ok: true, data: [] };
-  const rows = sheet.getDataRange().getValues();
-  const headers = rows[0];
-  let data = rows.slice(1).map(r =&gt; { const o={}; headers.forEach((h,i)=&gt;o[h]=r[i]); return o; });
-  if (params.profesor) data = data.filter(r =&gt; r['Profesor'] === params.profesor);
-  return { ok: true, data };
-}
-
-// ── EVIDENCIAS (con Google Drive) ──
 function guardarEvidencia(data) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName(HOJA_EVIDENCIAS);
-  if (!sheet) {
-    sheet = ss.insertSheet(HOJA_EVIDENCIAS);
-    sheet.appendRow(['Fecha','Hora','Tipo','Salón','Observaciones','Profesor','Archivo','URL Drive']);
-    sheet.getRange(1,1,1,8).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
-  }
-
-  let driveUrl = '';
-  let driveId  = '';
-
-  // Si viene un archivo en base64, guardarlo en Google Drive
+  var sheet = getOrCreateSheet('Evidencias',['Fecha','Hora','Tipo','Salon','Observaciones','Profesor','Archivo','URL Drive']);
+  var driveUrl = '';
   if (data.fileBase64 &amp;&amp; data.fileName &amp;&amp; data.fileMime) {
     try {
-      const folder = getCarpetaEvidencias();
-      // Decodificar base64
-      const decoded = Utilities.base64Decode(data.fileBase64);
-      const blob    = Utilities.newBlob(decoded, data.fileMime, data.fileName);
-      const file    = folder.createFile(blob);
+      var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+      var blob = Utilities.newBlob(Utilities.base64Decode(data.fileBase64), data.fileMime, data.fileName);
+      var file = folder.createFile(blob);
       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       driveUrl = file.getUrl();
-      driveId  = file.getId();
-    } catch(e) {
-      driveUrl = 'Error al guardar: ' + e.message;
+    } catch(e) { driveUrl = 'Error: ' + e.message; }
+  }
+  sheet.appendRow([data.fecha||hoy(),data.hora||ahora(),data.tipo||'',data.salon||'',data.obs||'',data.profesor||'',data.fileName||'',driveUrl]);
+  return { ok: true, driveUrl: driveUrl };
+}
+
+function guardarLogistica(data) {
+  var sheet = getOrCreateSheet('Logistica',['Fecha','Clase','Elementos','Profesor']);
+  if (sheet.getLastRow() &gt; 1) {
+    var rows = sheet.getDataRange().getValues();
+    for (var i = 1; i &lt; rows.length; i++) {
+      if (rows[i][1] === data.clase &amp;&amp; rows[i][3] === data.profesor) {
+        sheet.getRange(i+1,1,1,4).setValues([[hoy(),data.clase||'',data.items||'',data.profesor||''   ]]);
+        return { ok: true };
+      }
     }
   }
-
-  sheet.appendRow([
-    data.fecha    || new Date().toLocaleDateString('es-CO'),
-    data.hora     || new Date().toLocaleTimeString('es-CO'),
-    data.tipo     || '',
-    data.salon    || '',
-    data.obs      || '',
-    data.profesor || '',
-    data.fileName || '',
-    driveUrl,
-  ]);
-
-  return { ok: true, msg: 'Evidencia guardada', driveUrl: driveUrl, driveId: driveId };
-}
-
-function getEvidencias(params) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(HOJA_EVIDENCIAS);
-  if (!sheet) return { ok: true, data: [] };
-  const rows = sheet.getDataRange().getValues();
-  const headers = rows[0];
-  let data = rows.slice(1).map(r =&gt; { const o={}; headers.forEach((h,i)=&gt;o[h]=r[i]); return o; });
-  if (params.profesor) data = data.filter(r =&gt; r['Profesor'] === params.profesor);
-  return { ok: true, data };
-}
-
-// ── LOGÍSTICA ──
-function guardarLogistica(data) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName(HOJA_LOGISTICA);
-  if (!sheet) {
-    sheet = ss.insertSheet(HOJA_LOGISTICA);
-    sheet.appendRow(['Fecha','Clase','Elementos','Profesor']);
-    sheet.getRange(1,1,1,4).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
-  }
-  const rows = sheet.getDataRange().getValues();
-  const existing = rows.findIndex((r,i) =&gt; i&gt;0 &amp;&amp; r[1]===data.clase &amp;&amp; r[3]===data.profesor);
-  const rowData = [new Date().toLocaleDateString('es-CO'), data.clase||'', data.items||'', data.profesor||''];
-  if (existing &gt; 0) sheet.getRange(existing+1,1,1,4).setValues([rowData]);
-  else sheet.appendRow(rowData);
-  return { ok: true, msg: 'Logística guardada' };
-}
-
-function getLogistica(params) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(HOJA_LOGISTICA);
-  if (!sheet) return { ok: true, data: [] };
-  const rows = sheet.getDataRange().getValues();
-  const headers = rows[0];
-  let data = rows.slice(1).map(r =&gt; { const o={}; headers.forEach((h,i)=&gt;o[h]=r[i]); return o; });
-  if (params.profesor) data = data.filter(r =&gt; r['Profesor'] === params.profesor);
-  return { ok: true, data };
+  sheet.appendRow([hoy(),data.clase||'',data.items||'',data.profesor||''   ]);
+  return { ok: true };
 }</pre>
-            </div>
-
-            <div style="font-weight:700;font-size:12px;color:var(--gd);margin-bottom:6px">🔗 URL de la Web App:</div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <input class="inp" id="cfg-gsheets" placeholder="https://script.google.com/macros/s/AKfyc.../exec" style="flex:1;font-size:12px">
-              <button class="btn btn-o" onclick="saveCfg('gsheets')">💾 Guardar</button>
-              <button class="btn btn-g" style="font-size:11px" onclick="testCfg('gsheets')">🔍 Probar</button>
-            </div>
-            <div id="cfg-gsheets-status" style="font-size:11px;margin-top:6px;min-height:16px"></div>
-            <div class="al al-i" style="margin-top:10px;font-size:11px">
-              💡 <strong>¿Problemas de permisos?</strong> Al autorizar, Google puede mostrar "Esta app no es segura" — haz clic en <em>Configuración avanzada → Ir a MusicUIS Web App</em>.
-            </div>
           </div>
+        </div>
 
-          <!-- ONEDRIVE -->
-          <div style="background:var(--gbg);border-radius:var(--rs);padding:16px;border:1px solid var(--br)">
-            <div style="font-weight:700;font-size:14px;color:var(--gd);margin-bottom:4px">📁 OneDrive — Evidencias (fotos y videos)</div>
-            <div style="font-size:12px;color:var(--tm);margin-bottom:14px">Las fotos de evidencias se guardarán en la carpeta de Samuel Ospina en OneDrive UIS.</div>
-            <ol style="font-size:12px;color:var(--tx);margin:0 0 14px 18px;line-height:2">
-              <li>Inicia sesión en <strong><a href="https://onedrive.live.com" target="_blank" style="color:var(--go)">OneDrive</a></strong> con <code style="background:#fff;padding:1px 5px;border-radius:3px;border:1px solid var(--br);font-size:11px"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e093818d95858cce8f9390898e81a0958993ce858495ce838f">[email&#160;protected]</a></code></li>
-              <li>Crea una carpeta: <code style="background:#fff;padding:1px 5px;border-radius:3px;border:1px solid var(--br);font-size:11px">EscuelaMusicaUIS/Evidencias2026-1</code></li>
-              <li>Haz clic derecho en la carpeta → <strong>Compartir → Copiar enlace</strong></li>
-              <li>Pega el enlace en el campo de abajo</li>
-            </ol>
-            <div style="display:flex;gap:8px;align-items:center">
-              <input class="inp" id="cfg-onedrive" placeholder="https://uisedu-my.sharepoint.com/..." style="flex:1;font-size:12px">
-              <button class="btn btn-o" onclick="saveCfg('onedrive')">💾 Guardar</button>
-              <button class="btn btn-g" style="font-size:11px" onclick="testCfg('onedrive')">🔍 Probar</button>
-            </div>
-            <div id="cfg-onedrive-status" style="font-size:11px;margin-top:6px;min-height:16px"></div>
+        <div style="background:var(--gbg);border-radius:var(--rs);padding:16px;border:1px solid var(--br)">
+          <div style="font-weight:700;font-size:14px;color:var(--gd);margin-bottom:4px">📁 Google Drive — Evidencias</div>
+          <div class="al al-s" style="margin-top:8px;font-size:12px">
+            ✅ Carpeta: <strong>Evidencias_MusicaUIS_2026-1</strong> · ID: <code style="font-size:10px">1pXADsK5eLk3SHcaqIe9VaY_VhysexLA8</code><br>
+            🔗 <a href="https://drive.google.com/drive/folders/1pXADsK5eLk3SHcaqIe9VaY_VhysexLA8" target="_blank" style="color:var(--go)">Ver en Google Drive</a>
           </div>
-
-          <!-- GOOGLE CALENDAR -->
-          <div style="background:var(--gbg);border-radius:var(--rs);padding:16px;border:1px solid var(--br)">
-            <div style="font-weight:700;font-size:14px;color:var(--gd);margin-bottom:4px">📅 Google Calendar — Calendario Académico (Opcional)</div>
-            <ol style="font-size:12px;color:var(--tx);margin:0 0 14px 18px;line-height:2">
-              <li>Abre <strong><a href="https://calendar.google.com" target="_blank" style="color:var(--go)">Google Calendar</a></strong></li>
-              <li>Crea un calendario llamado <em>"Cursos Música UIS 2026-1"</em></li>
-              <li>Haz clic en ⋮ → <strong>Configuración y uso compartido</strong></li>
-              <li>Baja hasta <strong>ID del calendario</strong> y cópialo (termina en <code style="font-size:11px">@group.calendar.google.com</code>)</li>
-            </ol>
-            <div style="display:flex;gap:8px;align-items:center">
-              <input class="inp" id="cfg-gcal" placeholder="abc123@group.calendar.google.com" style="flex:1;font-size:12px">
-              <button class="btn btn-o" onclick="saveCfg('gcal')">💾 Guardar</button>
-            </div>
-          </div>
-
         </div>
       </div>
 
@@ -1061,68 +953,106 @@ let _lastSyncTime=0;
 function loadAllDataFromSheets(onDone){
   var profesor=CU.name+' '+CU.surname;
   var isSilvia=CU.role==='coordinadora';
-  var params=isSilvia?{action:'asistencia'}:{action:'asistencia',profesor:profesor};
+  var sid=localStorage.getItem('cfg_sheetid')||'';
+  var gsUrl_=localStorage.getItem('cfg_gsheets')||'';
+  if(!sid&&!gsUrl_){
+    if(onDone)onDone();
+    return;
+  }
   var loaded=0; var total=3;
   function check(){loaded++;if(loaded>=total&&onDone)onDone();}
 
-  // Attendance
-  gsGet(params,function(d){
-    if(d&&d.ok&&d.data){
-      // Convert sheet rows to app format
-      var remote=d.data.map(function(r){
-        return {id:r.ID||Date.now(),sid:r.ID||'',sname:r.Estudiante||'',
-                claseId:r.Clase||'',clase:r.Clase||'',programa:r.Programa||'',
-                date:r.Fecha||'',time:r.Hora||'',teacher:r.Profesor||''};
-      });
-      // Merge with local (local takes priority for today)
-      var today=new Date().toLocaleDateString('es-CO');
-      var remoteOld=remote.filter(function(r){return r.date!==today;});
-      var localToday=attRec.filter(function(r){return r.date===today;});
-      attRec=remoteOld.concat(localToday);
-      localStorage.setItem('mu_att',JSON.stringify(attRec));
+  if(sid){
+    // Read via gviz API (no auth, no CORS)
+    function readSheet(sheetName,cb){
+      var url='https://docs.google.com/spreadsheets/d/'+sid+'/gviz/tq?tqx=out:json&sheet='+encodeURIComponent(sheetName);
+      var cbName='_gv_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      window[cbName]=function(resp){
+        delete window[cbName];if(s&&s.parentNode)s.parentNode.removeChild(s);
+        try{
+          // Parse gviz response
+          var rows=[];
+          if(resp&&resp.table&&resp.table.rows){
+            var cols=resp.table.cols.map(function(c){return c.label||c.id;});
+            rows=resp.table.rows.map(function(r){
+              var obj={};
+              r.c.forEach(function(cell,i){obj[cols[i]]=cell?cell.v:'';});
+              return obj;
+            });
+          }
+          cb(rows);
+        }catch(e){cb([]);}
+      };
+      var s=document.createElement('script');
+      s.src=url+'&callback='+cbName;
+      s.onerror=function(){delete window[cbName];if(s.parentNode)s.parentNode.removeChild(s);cb([]);};
+      setTimeout(function(){if(window[cbName]){delete window[cbName];if(s&&s.parentNode)s.parentNode.removeChild(s);cb([]);}},10000);
+      document.head.appendChild(s);
     }
-    check();
-  });
 
-  // Evidencias
-  var evParams=isSilvia?{action:'evidencias'}:{action:'evidencias',profesor:profesor};
-  gsGet(evParams,function(d){
-    if(d&&d.ok&&d.data){
-      var remote=d.data.map(function(r,i){
-        return {id:i+1,user:r.Profesor||'',uid:'',tipo:r.Tipo||'',
-                salon:r['Salón']||r.Salon||'',obs:r.Observaciones||'',
-                fileName:r.Archivo||'',driveUrl:r['URL Drive']||'',
-                fileData:null,uploadStatus:r['URL Drive']?'ok':'local',
-                date:r.Fecha||'',time:r.Hora||''};
-      });
-      // Keep local file previews, add remote metadata
-      evids=remote.map(function(rem){
-        var local=evids.find(function(l){return l.date===rem.date&&l.time===rem.time&&l.user===rem.user;});
-        return local?Object.assign({},rem,{fileData:local.fileData,uid:local.uid}):rem;
-      });
-      // Add any local entries not yet on server
-      var localNew=evids.filter(function(l){return l.uploadStatus==='pending'||l.uploadStatus==='local';});
-      localNew.forEach(function(ln){
-        var exists=remote.find(function(r){return r.date===ln.date&&r.time===ln.time&&r.user===ln.user;});
-        if(!exists)evids.push(ln);
-      });
-      localStorage.setItem('mu_ev',JSON.stringify(evids));
-    }
-    check();
-  });
+    // Load asistencia
+    readSheet('Asistencia',function(rows){
+      if(rows.length){
+        var today=new Date().toLocaleDateString('es-CO');
+        var remote=rows.filter(function(r){return r.Fecha!==today;}).map(function(r){
+          return {id:r.ID||Date.now(),sid:r.ID||'',sname:r.Estudiante||'',
+                  claseId:'',clase:r.Clase||'',programa:r.Programa||'',
+                  date:r.Fecha||'',time:r.Hora||'',teacher:r.Profesor||''};
+        });
+        var localToday=attRec.filter(function(r){return r.date===today;});
+        attRec=remote.concat(localToday);
+        localStorage.setItem('mu_att',JSON.stringify(attRec));
+      }
+      check();
+    });
 
-  // Logística
-  var logParams=isSilvia?{action:'logistica'}:{action:'logistica',profesor:profesor};
-  gsGet(logParams,function(d){
-    if(d&&d.ok&&d.data){
-      logs=d.data.map(function(r,i){
-        return {id:i+1,uid:'',user:r.Profesor||'',clase:r.Clase||'',
-                items:r.Elementos||'',date:r.Fecha||'',time:''};
-      });
-      localStorage.setItem('mu_log',JSON.stringify(logs));
-    }
-    check();
-  });
+    // Load evidencias
+    readSheet('Evidencias',function(rows){
+      if(rows.length){
+        var remote=rows.map(function(r,i){
+          return {id:i+1,user:r.Profesor||'',uid:'',tipo:r.Tipo||'',
+                  salon:r.Salon||r['Sal\u00f3n']||'',obs:r.Observaciones||'',
+                  fileName:r.Archivo||'',driveUrl:r['URL Drive']||'',
+                  fileData:null,uploadStatus:r['URL Drive']?'ok':'local',
+                  date:r.Fecha||'',time:r.Hora||''};
+        });
+        var localCache=evids.filter(function(l){return l.fileData;});
+        evids=remote.map(function(rem){
+          var loc=localCache.find(function(l){return l.date===rem.date&&l.time===rem.time;});
+          return loc?Object.assign({},rem,{fileData:loc.fileData,uid:loc.uid}):rem;
+        });
+        localStorage.setItem('mu_ev',JSON.stringify(evids));
+      }
+      check();
+    });
+
+    // Load logistica
+    readSheet('Logistica',function(rows){
+      if(rows.length){
+        logs=rows.map(function(r,i){
+          return {id:i+1,uid:'',user:r.Profesor||'',clase:r.Clase||'',
+                  items:r.Elementos||'',date:r.Fecha||'',time:''};
+        });
+        localStorage.setItem('mu_log',JSON.stringify(logs));
+      }
+      check();
+    });
+
+  } else {
+    // No sheet ID — use Apps Script only (fallback)
+    gsGet(isSilvia?{action:'asistencia'}:{action:'asistencia',profesor:profesor},function(d){
+      if(d&&d.ok&&d.data&&d.data.length){attRec=d.data.map(function(r){return {id:r.ID||Date.now(),sid:r.ID||'',sname:r.Estudiante||'',claseId:'',clase:r.Clase||'',programa:r.Programa||'',date:r.Fecha||'',time:r.Hora||'',teacher:r.Profesor||''};});localStorage.setItem('mu_att',JSON.stringify(attRec));}
+      check();
+    });
+    gsGet(isSilvia?{action:'evidencias'}:{action:'evidencias',profesor:profesor},function(d){
+      if(d&&d.ok&&d.data)evids=d.data;
+      check();
+    });
+    gsGet(isSilvia?{action:'logistica'}:{action:'logistica',profesor:profesor},function(d){
+      if(d&&d.ok&&d.data)logs=d.data;
+      check();
+    });
+  }
 }
 
 function init(){
@@ -1173,7 +1103,7 @@ function showTab(t){
   const p=document.getElementById('page-'+t);if(p)p.classList.add('active');
   if(t==='calendario')renderCal();
   if(t==='carnets'){initCarnetsButtons();}
-  if(t==='configuracion'){updateSvcStatus();setTimeout(function(){['gsheets','onedrive','gcal'].forEach(function(k){var el=document.getElementById('cfg-'+k);if(el)el.value=localStorage.getItem('cfg_'+k)||'';});},50);}
+  if(t==='configuracion'){updateSvcStatus();setTimeout(function(){['gsheets','onedrive','gcal','sheetid'].forEach(function(k){var el=document.getElementById('cfg-'+k);if(el)el.value=localStorage.getItem('cfg_'+k)||'';});},50);}
   if(t==='reportes')renderRep();
   if(t==='estudiantes')renderEst();
   if(t==='faltas')renderFaltas();
@@ -1500,23 +1430,21 @@ function saveEv(tipo){
 var OD_SHARE_ID='u!aHR0cHM6Ly9tYWlsdWlzLW15LnNoYXJlcG9pbnQuY29tLzpmOi9nL3BlcnNvbmFsL2N1cnNvc211c2ljYV91aXNfZWR1X2NvL0lnRGJlVVVSdllvSlNyS2J2aXJBdUw3MkFjNUJLaE95QzN1N01OTVRIbzZLTmF3P2U9SzVRRm9m';
 function uploadFileToOneDrive(file, fileName, extraData, callback){
   if(typeof extraData==='function'){callback=extraData;extraData={};}
-  var gsUrl_=localStorage.getItem('cfg_gsheets')||'';
-  if(!gsUrl_){
+  var url=gsUrl();
+  if(!url){
     notify('\u26a0\ufe0f Configura la URL del Apps Script en Configuraci\u00f3n');
     if(callback)callback(false,'');
     return;
   }
-  // Show progress banner
   var prog=document.getElementById('uploadProgress')||document.createElement('div');
   prog.id='uploadProgress';
   prog.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--gd);color:#fff;padding:12px 22px;border-radius:12px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.35);white-space:nowrap';
-  prog.innerHTML='\u2601\ufe0f Subiendo archivo... por favor espera';
+  prog.innerHTML='\u2601\ufe0f Subiendo archivo...';
   if(!prog.parentNode)document.body.appendChild(prog);
 
   var reader=new FileReader();
   reader.onload=function(e){
-    var dataUri=e.target.result;
-    var base64=dataUri.split(',')[1];
+    var base64=e.target.result.split(',')[1];
     var mime=file.type||'application/octet-stream';
     var now=new Date();
     var payload=JSON.stringify({
@@ -1531,34 +1459,16 @@ function uploadFileToOneDrive(file, fileName, extraData, callback){
       fileBase64:base64,
       fileMime:mime
     });
-    var xhr=new XMLHttpRequest();
-    xhr.open('POST',gsUrl_,true);
-    xhr.setRequestHeader('Content-Type','text/plain');
-    xhr.timeout=60000; // 60s for large files
-    xhr.onload=function(){
+    // Use no-cors for large file upload (proxy has size limits)
+    fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:payload})
+    .then(function(){
       var el=document.getElementById('uploadProgress');if(el)el.remove();
-      try{
-        var data=JSON.parse(xhr.responseText);
-        if(data.ok){
-          if(callback)callback(true,data.driveUrl||'');
-        } else {
-          console.warn('Upload response error:',data);
-          if(callback)callback(false,'');
-        }
-      }catch(e){
-        if(callback)callback(false,'');
-      }
-    };
-    xhr.onerror=function(){
+      if(callback)callback(true,'');
+    })
+    .catch(function(){
       var el=document.getElementById('uploadProgress');if(el)el.remove();
       if(callback)callback(false,'');
-    };
-    xhr.ontimeout=function(){
-      var el=document.getElementById('uploadProgress');if(el)el.remove();
-      notify('\u26a0\ufe0f Tiempo de espera agotado. El archivo es muy grande.');
-      if(callback)callback(false,'');
-    };
-    xhr.send(payload);
+    });
   };
   reader.onerror=function(){
     var el=document.getElementById('uploadProgress');if(el)el.remove();
@@ -1762,6 +1672,7 @@ function syncNow(){
     }
   });
 }
+function abrirScript(){var url=localStorage.getItem('cfg_gsheets')||'';if(!url){notify('Guarda la URL primero');return;}window.open(url+'?action=ping','_blank');notify('Se abrio la URL en nueva pestana. Debe mostrar {"ok":true}');}
 function notify(msg){const el=document.getElementById('notif');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3500);}
 
 // ---- PHOTO STORE ----
@@ -2032,6 +1943,27 @@ function copiarScript(){
     notify('⚠️ Selecciona el código manualmente y copia con Ctrl+C');
   });
 }
+function testSheetId(){
+  var id=localStorage.getItem('cfg_sheetid')||'';
+  var st=document.getElementById('cfg-sheetid-status');
+  if(!id){if(st)st.innerHTML='<span style="color:#c0392b">Pega el ID del spreadsheet</span>';return;}
+  if(st)st.innerHTML='<span style="color:var(--go)">Verificando...</span>';
+  // Use gviz API — publicly readable, no CORS, no auth
+  var url='https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?tqx=out:json&tq='+encodeURIComponent('SELECT 1 LIMIT 1');
+  var cbName='_sv_'+Date.now();
+  window[cbName]=function(data){
+    delete window[cbName];if(s&&s.parentNode)s.parentNode.removeChild(s);
+    if(st)st.innerHTML='<span style="color:var(--go)">\u2705 Hoja de c\u00e1lculo encontrada y accesible</span>';
+  };
+  var s=document.createElement('script');
+  s.src=url+'&callback='+cbName;
+  s.onerror=function(){
+    delete window[cbName];if(s.parentNode)s.parentNode.removeChild(s);
+    if(st)st.innerHTML='<span style="color:#c0392b">\u274c No se pudo acceder. Verifica: 1) ID correcto 2) La hoja est\u00e9 compartida como "Cualquiera con el enlace puede ver"</span>';
+  };
+  setTimeout(function(){if(window[cbName]){delete window[cbName];if(s&&s.parentNode)s.parentNode.removeChild(s);if(st)st.innerHTML='<span style="color:#856404">\u23f1 Tiempo agotado</span>';}},8000);
+  document.head.appendChild(s);
+}
 function saveCfg(key){
   var val=(document.getElementById('cfg-'+key)||{value:''}).value;
   localStorage.setItem('cfg_'+key,val);
@@ -2043,12 +1975,35 @@ function saveCfg(key){
 function testCfg(key){
   var val=localStorage.getItem('cfg_'+key)||'';
   var st=document.getElementById('cfg-'+key+'-status');
-  if(!val){if(st)st.innerHTML='<span style="color:#c0392b">Sin URL configurada</span>';return;}
-  if(st)st.innerHTML='<span style="color:var(--go)">🔍 Probando...</span>';
-  fetch(val+'?action=ping')
-    .then(function(r){return r.ok?r.text():Promise.reject(r);})
-    .then(function(){if(st)st.innerHTML='<span style="color:var(--go)">✅ Conexión exitosa</span>';})
-    .catch(function(){if(st)st.innerHTML='<span style="color:#856404">⚠️ No se pudo conectar. Verifica la URL y que el script esté publicado como acceso público.</span>';});
+  if(!val){
+    if(st)st.innerHTML='<span style="color:#c0392b">\u26a0\ufe0f Guarda la URL primero</span>';
+    return;
+  }
+  if(st)st.innerHTML='<span style="color:var(--go)">Probando conexi\u00f3n...</span>';
+  var target=val+'?action=ping';
+  var proxy='https://corsproxy.io/?'+encodeURIComponent(target);
+  fetch(proxy)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d&&d.ok){
+        if(st)st.innerHTML='<span style="color:var(--go)">\u2705 Conectado correctamente: '+d.msg+'</span>';
+      } else {
+        if(st)st.innerHTML='<span style="color:#856404">\u26a0\ufe0f Respuesta inesperada: '+JSON.stringify(d)+'</span>';
+      }
+    })
+    .catch(function(e){
+      // Try direct as fallback
+      fetch(target)
+        .then(function(r){return r.json();})
+        .then(function(d){
+          if(d&&d.ok){
+            if(st)st.innerHTML='<span style="color:var(--go)">\u2705 Conectado: '+d.msg+'</span>';
+          }
+        })
+        .catch(function(){
+          if(st)st.innerHTML='<span style="color:#c0392b">\u274c No se puede conectar desde GitHub Pages. Ve a la URL del script directamente en el navegador y verifica que muestre {"ok":true}.</span>';
+        });
+    });
 }
 function updateSvcStatus(){
   var gs=localStorage.getItem('cfg_gsheets')||'';
@@ -2057,12 +2012,13 @@ function updateSvcStatus(){
   var el;
   el=document.getElementById('svc-gsheets-badge');
   if(el)el.textContent=gs?'✅ Configurado':'⏳ Pendiente';
+  var sid=localStorage.getItem('cfg_sheetid')||'';
   el=document.getElementById('svc-gsheets-badge');
-  if(el)el.textContent=gs?'✅ Configurado':'⏳ Pendiente';
+  if(el)el.textContent=(sid&&gs)?'✅ Conectado':(sid||gs)?'⚠️ Parcial':'⏳ Pendiente';
   el=document.getElementById('svc-gsheets-detail');
-  if(el&&gs)el.textContent='Asistencia y Faltas — '+gs.substring(0,40)+'...';
+  if(el)el.textContent='Asistencia y Faltas — '+(sid?'ID: '+sid.substring(0,20)+'...' : 'Sin configurar');
   el=document.getElementById('svc-onedrive-badge');
-  if(el)el.textContent=od?'✅ Configurado':'⚙️ Configurar';
+  if(el)el.textContent=gs?'✅ Vía Apps Script':'⏳ Pendiente';
   el=document.getElementById('svc-gcal-badge');
   if(el)el.textContent=gc?'✅ Configurado':'⏳ Pendiente';
 }
@@ -2079,32 +2035,28 @@ function gsGet(params,cb){
   var qs=Object.keys(params).map(function(k){
     return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);
   }).join('&');
-  var xhr=new XMLHttpRequest();
-  xhr.open('GET',url+'?'+qs,true);
-  xhr.onload=function(){
-    try{var d=JSON.parse(xhr.responseText);if(cb)cb(d);}
-    catch(e){if(cb)cb(null);}
-  };
-  xhr.onerror=function(){if(cb)cb(null);};
-  xhr.ontimeout=function(){if(cb)cb(null);};
-  xhr.timeout=15000;
-  xhr.send();
+  var target=url+'?'+qs;
+  // Use CORS proxy to bypass GitHub Pages → Apps Script CORS restriction
+  var proxy='https://corsproxy.io/?'+encodeURIComponent(target);
+  fetch(proxy)
+    .then(function(r){return r.json();})
+    .then(function(d){if(cb)cb(d);})
+    .catch(function(){
+      // Fallback: try direct (works in some browsers)
+      fetch(target).then(function(r){return r.json();}).then(function(d){if(cb)cb(d);}).catch(function(){if(cb)cb(null);});
+    });
 }
 
 function gsPost(payload,cb){
   var url=gsUrl();
   if(!url){if(cb)cb(null);return;}
-  var xhr=new XMLHttpRequest();
-  xhr.open('POST',url,true);
-  xhr.setRequestHeader('Content-Type','text/plain');
-  xhr.onload=function(){
-    try{var d=JSON.parse(xhr.responseText);if(cb)cb(d);}
-    catch(e){if(cb)cb(null);}
-  };
-  xhr.onerror=function(){if(cb)cb(null);};
-  xhr.ontimeout=function(){if(cb)cb(null);};
-  xhr.timeout=30000; // 30s for file uploads
-  xhr.send(JSON.stringify(payload));
+  // no-cors: data goes into the sheet silently (no response body)
+  fetch(url,{
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'text/plain'},
+    body:JSON.stringify(payload)
+  }).then(function(){if(cb)cb({ok:true});}).catch(function(){if(cb)cb(null);});
 }
 
 init();
