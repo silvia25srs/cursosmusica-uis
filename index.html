@@ -1273,24 +1273,36 @@ function syncNow() {
 function toggleCam() { camActive ? stopCam() : startCam(); }
 
 function startCam() {
-  var constraints = { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } };
+  var constraints = { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } };
   navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream){
       camStream = stream; camActive = true;
       var v = document.getElementById('camVid');
       v.srcObject = stream;
-      v.setAttribute('playsinline',''); v.setAttribute('autoplay',''); v.muted = true;
+      v.setAttribute('playsinline','');
+      v.setAttribute('autoplay','');
+      v.muted = true;
       document.getElementById('camWrap').style.display = 'block';
       document.getElementById('camPh').style.display = 'none';
       var cb = document.getElementById('closeCamBtn'); if(cb) cb.style.display = 'inline-flex';
       var ss = document.getElementById('scanStatus'); if(ss) ss.style.display = 'block';
-      v.onloadeddata = function(){
+      notify('\u{1F4F7} Cámara activa — apunta al QR del estudiante');
+
+      // Arrancar escaneo con múltiples eventos + fallback para garantizar inicio en móvil
+      var scanStarted = false;
+      function tryStart() {
+        if (scanStarted) return;
+        scanStarted = true;
         v.play().catch(function(){});
-        notify('📷 Cámara activa — apunta al QR del estudiante');
-        setTimeout(startScan, 500);
-      };
+        setTimeout(startScan, 300);
+      }
+      v.onloadedmetadata = tryStart;
+      v.onloadeddata    = tryStart;
+      v.oncanplay       = tryStart;
+      // Fallback: si en 2 s no arrancó por ningún evento, iniciamos igual
+      setTimeout(function(){ tryStart(); }, 2000);
     })
-    .catch(function(err){ notify('⚠️ Sin acceso a cámara: ' + err.message); });
+    .catch(function(err){ notify('\u26A0\uFE0F Sin acceso a cámara: ' + err.message); });
 }
 
 function stopCam() {
@@ -1312,9 +1324,21 @@ var _lastScannedTime = 0;
 function startScan() {
   if (!_scanCanvas) _scanCanvas = document.createElement('canvas');
   if (scanIv) clearInterval(scanIv);
+  var frameCount = 0;
   scanIv = setInterval(function(){
     var v = document.getElementById('camVid');
     if (!v || v.readyState < 2 || v.videoWidth === 0) return;
+
+    // Indicador visual de actividad cada ~1 s
+    frameCount++;
+    if (frameCount % 5 === 0) {
+      var ss = document.getElementById('scanStatus');
+      if (ss) {
+        var dots = '.'.repeat((Math.floor(frameCount/5) % 3) + 1);
+        ss.textContent = '🔍 Escaneando' + dots + ' apunta al código QR';
+      }
+    }
+
     _scanCanvas.width = v.videoWidth; _scanCanvas.height = v.videoHeight;
     var ctx = _scanCanvas.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(v, 0, 0);
@@ -1325,10 +1349,15 @@ function startScan() {
         var now = Date.now();
         if (code.data === _lastScanned && now - _lastScannedTime < 3000) return;
         _lastScanned = code.data; _lastScannedTime = now;
-        // Flash
+        // Flash verde en el recuadro
         var sb = document.querySelector('.sb');
-        if (sb) { sb.style.borderColor = '#fff'; sb.style.boxShadow = '0 0 0 9999px rgba(49,81,30,0.6)'; }
-        setTimeout(function(){ if(sb){ sb.style.borderColor = ''; sb.style.boxShadow = ''; } }, 600);
+        if (sb) {
+          sb.style.borderColor = 'lime';
+          sb.style.boxShadow = '0 0 0 9999px rgba(49,81,30,0.7)';
+          setTimeout(function(){ if(sb){ sb.style.borderColor = ''; sb.style.boxShadow = ''; } }, 700);
+        }
+        var ss2 = document.getElementById('scanStatus');
+        if (ss2) ss2.textContent = '✅ QR detectado!';
         handleQR(code.data);
       }
     } catch(e) {}
@@ -1421,16 +1450,28 @@ function regManual(sid, nombre) {
 function renderAttLog() {
   var claseId = document.getElementById('att-class').value;
   var fecha = document.getElementById('att-date').value || fechaISO();
-  var teacher = CU.name + ' ' + CU.surname;
-  var r = attRec.filter(function(x){ return x.claseId === claseId && x.date === fecha && x.teacher === teacher; });
-  document.getElementById('attCnt').textContent = r.length + ' registros';
+  // Mostrar todos los registros de esta clase y fecha (sin filtrar por teacher)
+  // así se ven aunque el campo att-teacher no coincida exactamente
+  var r = claseId
+    ? attRec.filter(function(x){ return x.claseId === claseId && x.date === fecha; })
+    : attRec.filter(function(x){ return x.date === fecha; });
+  var claseObj = CLASES_AM.find(function(c){ return c.id === claseId; });
+  var total = claseObj ? claseObj.estudiantes.length : '?';
+  document.getElementById('attCnt').textContent = r.length + ' presentes' + (claseId ? ' de ' + total : '');
   document.getElementById('attLog').innerHTML = r.length
     ? r.map(function(x){
-        return '<div class="ae"><div><div style="font-weight:600;font-size:12px">' + x.sname + '</div>'
-          + '<div style="font-size:10px;color:var(--tm)">' + x.clase + '</div></div>'
-          + '<div style="font-size:10px;color:var(--tm);font-family:\'DM Mono\',monospace">' + x.time + '</div></div>';
+        return '<div class="ae">'
+          + '<div>'
+          + '<div style="font-weight:600;font-size:13px;color:var(--gd)">' + x.sname + '</div>'
+          + '<div style="font-size:10px;color:var(--tm)">' + (x.clase || '—') + '</div>'
+          + '</div>'
+          + '<div style="text-align:right">'
+          + '<div style="font-size:11px;font-weight:600;color:var(--go);font-family:\'DM Mono\',monospace">' + x.time + '</div>'
+          + '<div style="font-size:9px;color:var(--tm)">✅ presente</div>'
+          + '</div>'
+          + '</div>';
       }).join('')
-    : '<div style="text-align:center;padding:18px;color:var(--tm);font-size:12px">Sin registros aún</div>';
+    : '<div style="text-align:center;padding:18px;color:var(--tm);font-size:12px">Sin registros aún — escanea un QR o usa ✍️ Manual</div>';
 }
 
 // ── Detectar faltas ──
