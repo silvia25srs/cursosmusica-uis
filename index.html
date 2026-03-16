@@ -323,6 +323,7 @@ tr:hover td{background:var(--gbg)}
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-p" onclick="toggleCam()">📷 Activar Cámara</button>
+            <button class="btn btn-e" id="closeCamBtn" onclick="stopCam()" style="display:none;background:#c0392b;color:#fff;border:none;border-radius:var(--rr);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;align-items:center;gap:6px">⛔ Cerrar Cámara</button>
             <button class="btn btn-o" onclick="detFaltas()">⚠️ Detectar Faltas</button>
             <button class="btn btn-g" onclick="manualEnt()">✍️ Manual</button>
           </div>
@@ -1153,8 +1154,47 @@ function loadMisClases(){
 }
 
 
-function toggleCam(){if(camActive){stopCam();return;}navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(stream=>{camStream=stream;camActive=true;const v=document.getElementById('camVid');v.srcObject=stream;document.getElementById('camWrap').style.display='block';document.getElementById('camPh').style.display='none';notify('📷 Cámara activa');startScan();}).catch(()=>notify('⚠️ Sin acceso a cámara'));}
-function stopCam(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}if(scanIv){clearInterval(scanIv);scanIv=null;}camActive=false;document.getElementById('camWrap').style.display='none';document.getElementById('camPh').style.display='block';}
+function toggleCam(){
+  if(camActive){stopCam();return;}
+  var constraints={video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}};
+  navigator.mediaDevices.getUserMedia(constraints)
+  .then(function(stream){
+    camStream=stream;
+    camActive=true;
+    var v=document.getElementById('camVid');
+    v.srcObject=stream;
+    v.setAttribute('playsinline','');
+    v.setAttribute('autoplay','');
+    v.muted=true;
+    document.getElementById('camWrap').style.display='block';
+    document.getElementById('camPh').style.display='none';
+    // Show close button
+    var cb=document.getElementById('closeCamBtn');
+    if(cb)cb.style.display='inline-flex';
+    var ss=document.getElementById('scanStatus');if(ss)ss.style.display='block';
+    // Wait for video to actually play before scanning
+    v.onloadeddata=function(){
+      v.play().catch(function(){});
+      notify('\ud83d\udcf7 C\u00e1mara activa \u2014 apunta al QR del estudiante');
+      setTimeout(startScan, 500);
+    };
+    v.onerror=function(){notify('\u26a0\ufe0f Error al iniciar la c\u00e1mara');};
+  })
+  .catch(function(err){
+    notify('\u26a0\ufe0f Sin acceso a c\u00e1mara: '+err.message);
+  });
+}
+function stopCam(){
+  if(camStream){camStream.getTracks().forEach(function(t){t.stop();});camStream=null;}
+  if(scanIv){clearInterval(scanIv);scanIv=null;}
+  camActive=false;
+  var v=document.getElementById('camVid');if(v){v.srcObject=null;v.onloadeddata=null;}
+  document.getElementById('camWrap').style.display='none';
+  document.getElementById('camPh').style.display='block';
+  var cb=document.getElementById('closeCamBtn');if(cb)cb.style.display='none';
+  var ss=document.getElementById('scanStatus');if(ss)ss.style.display='none';
+  _lastScanned='';_lastScannedTime=0;
+}
 let scanC=null;
 var _lastScanned='';
 var _lastScannedTime=0;
@@ -1198,9 +1238,10 @@ function handleQR(data){
   var sname=pts.slice(2).join(sep==='|'?'|':'-');
   var claseId=document.getElementById('att-class').value;
   var claseObj=CLASES_AM.find(function(c){return c.id===claseId;});
-  var date=document.getElementById('att-date').value;
+  var dateEl=document.getElementById('att-date');
+  var date=dateEl&&dateEl.value?dateEl.value:new Date().toLocaleDateString('es-CO');
   var teacher=CU.name+' '+CU.surname;
-  if(!claseId){notify('\u26a0\ufe0f Selecciona la clase antes de escanear');return;}
+  if(!claseId){stopCam();notify('⚠️ Selecciona la clase antes de escanear');return;}
   if(attRec.find(function(r){return r.sid===sid&&r.claseId===claseId&&r.date===date;})){
     notify('\u26a0\ufe0f '+sname+' ya registrado/a');
     return;
@@ -1432,14 +1473,14 @@ function uploadFileToOneDrive(file, fileName, extraData, callback){
   if(typeof extraData==='function'){callback=extraData;extraData={};}
   var url=gsUrl();
   if(!url){
-    notify('\u26a0\ufe0f Configura la URL del Apps Script en Configuraci\u00f3n');
+    notify('\u26a0\ufe0f Configura el Apps Script en Configuraci\u00f3n');
     if(callback)callback(false,'');
     return;
   }
   var prog=document.getElementById('uploadProgress')||document.createElement('div');
   prog.id='uploadProgress';
   prog.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--gd);color:#fff;padding:12px 22px;border-radius:12px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.35);white-space:nowrap';
-  prog.innerHTML='\u2601\ufe0f Subiendo archivo...';
+  prog.innerHTML='\u2601\ufe0f Subiendo a Google Drive...';
   if(!prog.parentNode)document.body.appendChild(prog);
 
   var reader=new FileReader();
@@ -1459,15 +1500,23 @@ function uploadFileToOneDrive(file, fileName, extraData, callback){
       fileBase64:base64,
       fileMime:mime
     });
-    // Use no-cors for large file upload (proxy has size limits)
-    fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:payload})
-    .then(function(){
+    // Try via corsproxy first (gets Drive URL back)
+    var proxy='https://corsproxy.io/?'+encodeURIComponent(url);
+    fetch(proxy,{method:'POST',headers:{'Content-Type':'text/plain'},body:payload})
+    .then(function(r){return r.json();})
+    .then(function(data){
       var el=document.getElementById('uploadProgress');if(el)el.remove();
-      if(callback)callback(true,'');
+      if(data&&data.ok){
+        if(callback)callback(true, data.driveUrl||'');
+      } else {
+        // fallback no-cors
+        _uploadNoCors(url,payload,callback);
+      }
     })
     .catch(function(){
       var el=document.getElementById('uploadProgress');if(el)el.remove();
-      if(callback)callback(false,'');
+      // fallback no-cors (data goes in, no Drive URL back)
+      _uploadNoCors(url,payload,callback);
     });
   };
   reader.onerror=function(){
@@ -1475,6 +1524,11 @@ function uploadFileToOneDrive(file, fileName, extraData, callback){
     if(callback)callback(false,'');
   };
   reader.readAsDataURL(file);
+}
+function _uploadNoCors(url,payload,callback){
+  fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:payload})
+  .then(function(){if(callback)callback(true,'');})
+  .catch(function(){if(callback)callback(false,'');});
 }
 function sendEvToSheets(rec){
   if(!rec.fileName){
