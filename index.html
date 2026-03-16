@@ -2079,8 +2079,12 @@ function updateSvcStatus(){
 
 if(!localStorage.getItem('cfg_gsheets'))localStorage.setItem('cfg_gsheets','https://script.google.com/macros/s/AKfycbyUKOD3y9GmChK12XE2RbaAy1lrNL4L4BrxNJp_FykQ6B4LG-fDHakbq1T3UWOH7Obf/exec');
 if(!localStorage.getItem('cfg_onedrive'))localStorage.setItem('cfg_onedrive','https://mailuis-my.sharepoint.com/:f:/g/personal/cursosmusica_uis_edu_co/IgDbeUURvYoJSrKbvirAuL72Ac5BKhOyC3u7MNMTHo6KNaw?e=K5QFof');
+if(!localStorage.getItem('cfg_sheetid'))localStorage.setItem('cfg_sheetid','1yYHcNGFutt5dcIhE6K7U7RUdCQLZG2JmtgrZZ5Bb7jk');
 
-// ── Google Apps Script communication via XHR (handles 302 redirect) ──
+// ── Google Apps Script communication ──
+// NOTA TÉCNICA: Google Apps Script con "Cualquiera puede acceder" responde a GET
+// sin restricciones CORS. Enviamos todos los datos como parámetros de URL (GET)
+// para evitar el problema de CORS que afecta a los POST desde GitHub Pages.
 function gsUrl(){return localStorage.getItem('cfg_gsheets')||'';}
 
 function gsGet(params,cb){
@@ -2090,27 +2094,25 @@ function gsGet(params,cb){
     return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);
   }).join('&');
   var target=url+'?'+qs;
-  // Use CORS proxy to bypass GitHub Pages → Apps Script CORS restriction
-  var proxy='https://corsproxy.io/?'+encodeURIComponent(target);
-  fetch(proxy)
+  fetch(target)
     .then(function(r){return r.json();})
     .then(function(d){if(cb)cb(d);})
-    .catch(function(){
-      // Fallback: try direct (works in some browsers)
-      fetch(target).then(function(r){return r.json();}).then(function(d){if(cb)cb(d);}).catch(function(){if(cb)cb(null);});
-    });
+    .catch(function(){if(cb)cb(null);});
 }
 
+// gsPost: enviamos como GET con todos los campos como parámetros de URL.
+// Esto evita el problema de CORS/redirección que afecta a fetch POST desde GitHub Pages.
 function gsPost(payload,cb){
   var url=gsUrl();
   if(!url){if(cb)cb(null);return;}
-  // no-cors: data goes into the sheet silently (no response body)
-  fetch(url,{
-    method:'POST',
-    mode:'no-cors',
-    headers:{'Content-Type':'text/plain'},
-    body:JSON.stringify(payload)
-  }).then(function(){if(cb)cb({ok:true});}).catch(function(){if(cb)cb(null);});
+  var qs=Object.keys(payload).map(function(k){
+    return encodeURIComponent(k)+'='+encodeURIComponent(payload[k]||'');
+  }).join('&');
+  var target=url+'?'+qs;
+  fetch(target)
+    .then(function(r){return r.json();})
+    .then(function(d){if(cb)cb(d);})
+    .catch(function(){if(cb)cb(null);});
 }
 
 init();
