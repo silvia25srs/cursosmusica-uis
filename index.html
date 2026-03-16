@@ -329,7 +329,7 @@ tr:hover td{background:var(--gbg)}
           </div>
         </div>
         <div class="card">
-          <div class="cw" id="camWrap" style="display:none"><video id="camVid" autoplay playsinline></video><div class="so"><div class="sb"></div></div></div>
+          <div class="cw" id="camWrap" style="display:none"><video id="camVid" autoplay playsinline webkit-playsinline muted></video><div class="so"><div class="sb"></div></div></div>
           <div id="camPh" style="text-align:center;padding:34px 18px;color:var(--tm)">
             <div style="font-size:42px;margin-bottom:9px">📷</div>
             <p style="font-size:13px;font-weight:600;color:var(--gd)">Activa la cámara para escanear</p>
@@ -1273,36 +1273,72 @@ function syncNow() {
 function toggleCam() { camActive ? stopCam() : startCam(); }
 
 function startCam() {
-  var constraints = { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } };
-  navigator.mediaDevices.getUserMedia(constraints)
-    .then(function(stream){
-      camStream = stream; camActive = true;
-      var v = document.getElementById('camVid');
-      v.srcObject = stream;
-      v.setAttribute('playsinline','');
-      v.setAttribute('autoplay','');
-      v.muted = true;
-      document.getElementById('camWrap').style.display = 'block';
-      document.getElementById('camPh').style.display = 'none';
-      var cb = document.getElementById('closeCamBtn'); if(cb) cb.style.display = 'inline-flex';
-      var ss = document.getElementById('scanStatus'); if(ss) ss.style.display = 'block';
-      notify('\u{1F4F7} Cámara activa — apunta al QR del estudiante');
+  // Verificar que jsQR está disponible
+  if (typeof jsQR === 'undefined') {
+    notify('⚠️ La librería de escaneo no cargó. Verifica tu conexión e intenta de nuevo.');
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    notify('⚠️ Tu navegador no soporta acceso a cámara. Usa Chrome o Safari actualizado.');
+    return;
+  }
 
-      // Arrancar escaneo con múltiples eventos + fallback para garantizar inicio en móvil
-      var scanStarted = false;
-      function tryStart() {
-        if (scanStarted) return;
-        scanStarted = true;
-        v.play().catch(function(){});
-        setTimeout(startScan, 300);
-      }
-      v.onloadedmetadata = tryStart;
-      v.onloadeddata    = tryStart;
-      v.oncanplay       = tryStart;
-      // Fallback: si en 2 s no arrancó por ningún evento, iniciamos igual
-      setTimeout(function(){ tryStart(); }, 2000);
-    })
-    .catch(function(err){ notify('\u26A0\uFE0F Sin acceso a cámara: ' + err.message); });
+  // Intentar primero cámara trasera, si falla usar cualquier cámara
+  function intentarConCamara(constraints) {
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then(function(stream){
+        camStream = stream; camActive = true;
+        var v = document.getElementById('camVid');
+        v.srcObject = stream;
+        v.muted = true;
+        v.setAttribute('playsinline','');
+        v.setAttribute('webkit-playsinline','');
+        v.setAttribute('autoplay','');
+
+        document.getElementById('camWrap').style.display = 'block';
+        document.getElementById('camPh').style.display = 'none';
+        var cb = document.getElementById('closeCamBtn'); if(cb) cb.style.display = 'inline-flex';
+        var ss = document.getElementById('scanStatus');
+        if (ss) { ss.style.display = 'block'; ss.textContent = '📷 Cámara lista, iniciando escaneo...'; }
+
+        // Múltiples eventos + fallback para iOS Safari y Android Chrome
+        var scanStarted = false;
+        function tryStart() {
+          if (scanStarted) return;
+          scanStarted = true;
+          v.play().then(function(){
+            notify('📷 Cámara activa — apunta al QR del Music Pass');
+            setTimeout(startScan, 300);
+          }).catch(function(err){
+            // En iOS el play() puede requerir interacción del usuario
+            // pero con muted + playsinline generalmente funciona
+            notify('📷 Cámara lista — apunta al QR');
+            setTimeout(startScan, 500);
+          });
+        }
+
+        v.addEventListener('loadedmetadata', tryStart);
+        v.addEventListener('loadeddata', tryStart);
+        v.addEventListener('canplay', tryStart);
+        // Fallback robusto: si en 3s ningún evento disparó, arrancamos igual
+        setTimeout(function(){ tryStart(); }, 3000);
+      })
+      .catch(function(err){
+        if (constraints.video.facingMode) {
+          // Si falló con cámara trasera específica, intentar sin preferencia
+          intentarConCamara({ video: true });
+        } else {
+          var msg = err.name === 'NotAllowedError'
+            ? '⚠️ Permiso de cámara denegado. Ve a Ajustes del navegador y permite el acceso.'
+            : err.name === 'NotFoundError'
+            ? '⚠️ No se encontró cámara en este dispositivo.'
+            : '⚠️ Error de cámara: ' + err.message;
+          notify(msg);
+        }
+      });
+  }
+
+  intentarConCamara({ video: { facingMode: { ideal: 'environment' } } });
 }
 
 function stopCam() {
@@ -1339,17 +1375,21 @@ function startScan() {
       }
     }
 
-    _scanCanvas.width = v.videoWidth; _scanCanvas.height = v.videoHeight;
+    // En móvil escalar a máx 640px para mejor rendimiento sin perder legibilidad del QR
+    var scale = Math.min(1, 640 / Math.max(v.videoWidth, v.videoHeight));
+    var w = Math.floor(v.videoWidth * scale);
+    var h = Math.floor(v.videoHeight * scale);
+    _scanCanvas.width = w; _scanCanvas.height = h;
     var ctx = _scanCanvas.getContext('2d', { willReadFrequently: true });
-    ctx.drawImage(v, 0, 0);
+    ctx.drawImage(v, 0, 0, w, h);
     try {
-      var d = ctx.getImageData(0, 0, _scanCanvas.width, _scanCanvas.height);
+      var d = ctx.getImageData(0, 0, w, h);
       var code = jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
       if (code && code.data) {
         var now = Date.now();
         if (code.data === _lastScanned && now - _lastScannedTime < 3000) return;
         _lastScanned = code.data; _lastScannedTime = now;
-        // Flash verde en el recuadro
+        // Flash verde en el recuadro de escaneo
         var sb = document.querySelector('.sb');
         if (sb) {
           sb.style.borderColor = 'lime';
@@ -1357,10 +1397,13 @@ function startScan() {
           setTimeout(function(){ if(sb){ sb.style.borderColor = ''; sb.style.boxShadow = ''; } }, 700);
         }
         var ss2 = document.getElementById('scanStatus');
-        if (ss2) ss2.textContent = '✅ QR detectado!';
+        if (ss2) ss2.textContent = '✅ QR detectado! Registrando...';
         handleQR(code.data);
       }
-    } catch(e) {}
+    } catch(scanErr) {
+      // Loguear en consola pero no interrumpir el loop
+      console.warn('jsQR error:', scanErr);
+    }
   }, 200);
 }
 
