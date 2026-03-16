@@ -536,124 +536,106 @@ tr:hover td{background:var(--gbg)}
           <div style="position:relative;margin-top:8px">
             <button onclick="copiarScript()" class="btn btn-o" style="position:absolute;top:8px;right:8px;font-size:11px;padding:4px 10px;z-index:1">📋 Copiar</button>
             <pre id="scriptCode" style="background:#1e2a1a;color:#c8e6c9;font-family:'DM Mono',monospace;font-size:10px;padding:14px;border-radius:var(--rs);overflow-x:auto;max-height:220px;overflow-y:auto;margin:0;line-height:1.5;white-space:pre">// ============================================================
-// CURSOS DE MÚSICA UIS — Apps Script Web App v2026-3
+// CURSOS DE MÚSICA UIS — Apps Script v2026-6
+// BACKEND LIMPIO — Sin problemas de CORS
 // ============================================================
-// NOTA: Este script ya está desplegado y funciona.
-// Solo instala de nuevo si pierdes acceso o necesitas
-// actualizar funcionalidades.
-//
 // PASOS:
 // 1. Extensiones → Apps Script → borra todo → pega este código
 // 2. Guardar (Ctrl+S)
 // 3. Implementar → Nueva implementación
 //    · Tipo: Aplicación web
 //    · Ejecutar como: Yo
-//    · Quién puede acceder: Cualquier persona
-// 4. Si pide autorizar → Configuración avanzada → Ir a (no segura) → Permitir
-// 5. Copia la URL nueva y pégala en la app → Guardar
+//    · Quién puede acceder: Cualquier persona (anónimo)
+// 4. Autorizar → Copia la URL → Pégala en Configuración → Guardar
 // ============================================================
 
-const SS_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
-const DRIVE_FOLDER_ID = '1pXADsK5eLk3SHcaqIe9VaY_VhysexLA8';
-
-function jsonOut(data) {
-  return ContentService
-    .createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
 function doGet(e) {
-  var p = e.parameter || {};
+  var p = (e && e.parameter) ? e.parameter : {};
   var action = p.action || 'ping';
   var result;
   try {
-    if      (action === 'ping')       result = { ok: true, msg: 'Conectado OK' };
-    else if (action === 'asistencia') result = getData('Asistencia', p.profesor);
-    else if (action === 'faltas')     result = getData('Faltas', p.profesor);
-    else if (action === 'evidencias') result = getData('Evidencias', p.profesor);
-    else if (action === 'logistica')  result = getData('Logistica', p.profesor);
-    else result = { ok: false, msg: 'Accion no reconocida' };
-  } catch(err) { result = { ok: false, error: err.toString() }; }
-  return jsonOut(result);
+    if      (action === 'ping')                result = { ok:true, msg:'Conectado OK v2026-6' };
+    else if (action === 'registrar_asistencia') result = registrarAsistencia(p);
+    else if (action === 'registrar_falta')      result = registrarFalta(p);
+    else if (action === 'guardar_evidencia')    result = guardarEvidencia(p);
+    else if (action === 'guardar_logistica')    result = guardarLogistica(p);
+    else if (action === 'asistencia')           result = getData('Asistencia', p.profesor);
+    else if (action === 'faltas')               result = getData('Faltas', p.profesor);
+    else if (action === 'evidencias')           result = getData('Evidencias', p.profesor);
+    else if (action === 'logistica')            result = getData('Logistica', p.profesor);
+    else result = { ok:false, msg:'Accion no reconocida: ' + action };
+  } catch(err) { result = { ok:false, error: err.toString() }; }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
-  var result;
   try {
     var data = JSON.parse(e.postData.contents);
-    var action = data.action || '';
-    if      (action === 'registrar_asistencia') result = saveRow('Asistencia',['ID','Fecha','Hora','Estudiante','Clase','Programa','Profesor'],[data.id||'',data.fecha||hoy(),data.hora||ahora(),data.estudiante||'',data.clase||'',data.programa||'',data.profesor||''   ]);
-    else if (action === 'registrar_falta')      result = saveRow('Faltas',['Fecha','Estudiante','Clase','Programa','Hora','Profesor'],[data.fecha||hoy(),data.estudiante||'',data.clase||'',data.programa||'',data.hora||'',data.profesor||''   ]);
-    else if (action === 'guardar_evidencia')    result = guardarEvidencia(data);
-    else if (action === 'guardar_logistica')    result = guardarLogistica(data);
-    else result = { ok: false, msg: 'Accion no reconocida' };
-  } catch(err) { result = { ok: false, error: err.toString() }; }
-  return jsonOut(result);
+    return doGet({ parameter: data });
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ ok:false, error:err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function hoy()  { return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy'); }
 function ahora(){ return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'HH:mm:ss'); }
 
 function getOrCreateSheet(name, headers) {
-  var ss = SpreadsheetApp.openById(SS_ID);
-  var sheet = ss.getSheetByName(name);
-  if (!sheet) {
-    sheet = ss.insertSheet(name);
-    sheet.appendRow(headers);
-    sheet.getRange(1,1,1,headers.length).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(name);
+  if (!sh) {
+    sh = ss.insertSheet(name);
+    sh.appendRow(headers);
+    sh.getRange(1,1,1,headers.length).setFontWeight('bold').setBackground('#31511E').setFontColor('#ffffff');
+    sh.setFrozenRows(1);
   }
-  return sheet;
+  return sh;
 }
 
 function getData(sheetName, filterProfesor) {
-  var ss = SpreadsheetApp.openById(SS_ID);
-  var sheet = ss.getSheetByName(sheetName);
-  if (!sheet || sheet.getLastRow() &lt; 2) return { ok: true, data: [] };
-  var rows = sheet.getDataRange().getValues();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(sheetName);
+  if (!sh || sh.getLastRow() < 2) return { ok:true, data:[] };
+  var rows = sh.getDataRange().getValues();
   var headers = rows[0];
-  var data = rows.slice(1).map(function(r) {
-    var obj = {};
-    headers.forEach(function(h,i){ obj[h] = r[i]; });
-    return obj;
+  var data = rows.slice(1).map(function(r){
+    var obj = {}; headers.forEach(function(h,i){ obj[h] = r[i]; }); return obj;
   });
   if (filterProfesor) data = data.filter(function(r){ return r['Profesor'] === filterProfesor; });
-  return { ok: true, data: data };
+  return { ok:true, data:data };
 }
 
-function saveRow(sheetName, headers, values) {
-  getOrCreateSheet(sheetName, headers).appendRow(values);
-  return { ok: true };
+function registrarAsistencia(p) {
+  getOrCreateSheet('Asistencia',['ID','Fecha','Hora','Estudiante','Clase','Programa','Profesor'])
+    .appendRow([p.id||'', p.fecha||hoy(), p.hora||ahora(), p.estudiante||'', p.clase||'', p.programa||'', p.profesor||'']);
+  return { ok:true };
 }
 
-function guardarEvidencia(data) {
-  var sheet = getOrCreateSheet('Evidencias',['Fecha','Hora','Tipo','Salon','Observaciones','Profesor','Archivo','URL Drive']);
-  var driveUrl = '';
-  if (data.fileBase64 &amp;&amp; data.fileName &amp;&amp; data.fileMime) {
-    try {
-      var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
-      var blob = Utilities.newBlob(Utilities.base64Decode(data.fileBase64), data.fileMime, data.fileName);
-      var file = folder.createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      driveUrl = file.getUrl();
-    } catch(e) { driveUrl = 'Error: ' + e.message; }
-  }
-  sheet.appendRow([data.fecha||hoy(),data.hora||ahora(),data.tipo||'',data.salon||'',data.obs||'',data.profesor||'',data.fileName||'',driveUrl]);
-  return { ok: true, driveUrl: driveUrl };
+function registrarFalta(p) {
+  getOrCreateSheet('Faltas',['Fecha','Estudiante','Clase','Programa','Hora','Profesor'])
+    .appendRow([p.fecha||hoy(), p.estudiante||'', p.clase||'', p.programa||'', p.hora||'', p.profesor||'']);
+  return { ok:true };
 }
 
-function guardarLogistica(data) {
-  var sheet = getOrCreateSheet('Logistica',['Fecha','Clase','Elementos','Profesor']);
-  if (sheet.getLastRow() &gt; 1) {
-    var rows = sheet.getDataRange().getValues();
-    for (var i = 1; i &lt; rows.length; i++) {
-      if (rows[i][1] === data.clase &amp;&amp; rows[i][3] === data.profesor) {
-        sheet.getRange(i+1,1,1,4).setValues([[hoy(),data.clase||'',data.items||'',data.profesor||''   ]]);
-        return { ok: true };
+function guardarEvidencia(p) {
+  getOrCreateSheet('Evidencias',['Fecha','Hora','Tipo','Salon','Observaciones','Profesor','Archivo'])
+    .appendRow([p.fecha||hoy(), p.hora||ahora(), p.tipo||'', p.salon||'', p.obs||'', p.profesor||'', p.fileName||'']);
+  return { ok:true };
+}
+
+function guardarLogistica(p) {
+  var sh = getOrCreateSheet('Logistica',['Fecha','Clase','Elementos','Profesor']);
+  if (sh.getLastRow() > 1) {
+    var rows = sh.getDataRange().getValues();
+    for (var i = 1; i < rows.length; i++) {
+      if (rows[i][1] === p.clase && rows[i][3] === p.profesor) {
+        sh.getRange(i+1,1,1,4).setValues([[hoy(),p.clase||'',p.items||'',p.profesor||'']]);
+        return { ok:true };
       }
     }
   }
-  sheet.appendRow([hoy(),data.clase||'',data.items||'',data.profesor||''   ]);
-  return { ok: true };
+  sh.appendRow([hoy(), p.clase||'', p.items||'', p.profesor||'']);
+  return { ok:true };
 }</pre>
           </div>
         </div>
@@ -943,1178 +925,1162 @@ let logs=JSON.parse(localStorage.getItem('mu_log')||'[]');
 let _syncPending=false;
 let _lastSyncTime=0;
 
-// ── GS API helpers ──
+// ============================================================
+// BACKEND LIMPIO — Cursos de Música UIS 2026-1
+// Reescrito desde cero. Todas las pestañas funcionales.
+// Comunicación con Google Sheets via GET (sin CORS).
+// ============================================================
 
+// ── Defaults de configuración ──
+(function(){
+  var defs = {
+    'cfg_sheetid': '1yYHcNGFutt5dcIhE6K7U7RUdCQLZG2JmtgrZZ5Bb7jk',
+    'cfg_gsheets': 'https://script.google.com/macros/s/AKfycbyUKOD3y9GmChK12XE2RbaAy1lrNL4L4BrxNJp_FykQ6B4LG-fDHakbq1T3UWOH7Obf/exec'
+  };
+  Object.keys(defs).forEach(function(k){
+    if(!localStorage.getItem(k)) localStorage.setItem(k, defs[k]);
+  });
+})();
 
+// ============================================================
+// GOOGLE SHEETS — Todas las escrituras van por GET para evitar CORS
+// ============================================================
+function gsUrl(){ return localStorage.getItem('cfg_gsheets') || ''; }
 
+// Envía datos a Google Sheets via GET (sin CORS, sin proxy)
+function gsEnviar(params, cb) {
+  var url = gsUrl();
+  if (!url) { if(cb) cb(false); return; }
+  var qs = Object.keys(params).map(function(k){
+    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k] != null ? params[k] : '');
+  }).join('&');
+  fetch(url + '?' + qs)
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if(cb) cb(d && d.ok === true, d); })
+    .catch(function(){ if(cb) cb(false); });
+}
 
+// Lee datos de una hoja via gviz (sin auth, no requiere login Google)
+function gsLeerHoja(nombre, cb) {
+  var sid = localStorage.getItem('cfg_sheetid') || '';
+  if (!sid) { cb([]); return; }
+  var cbName = '_gv_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  var url = 'https://docs.google.com/spreadsheets/d/' + sid
+    + '/gviz/tq?tqx=out:json&sheet=' + encodeURIComponent(nombre);
+  var tid = setTimeout(function(){
+    if (window[cbName]) { delete window[cbName]; cb([]); }
+  }, 8000);
+  window[cbName] = function(resp) {
+    clearTimeout(tid);
+    delete window[cbName];
+    try {
+      var rows = resp.table.rows || [];
+      var cols = (resp.table.cols || []).map(function(c){ return c.label; });
+      var data = rows.map(function(r){
+        var obj = {};
+        cols.forEach(function(h,i){ obj[h] = r.c[i] ? (r.c[i].v != null ? r.c[i].v : '') : ''; });
+        return obj;
+      });
+      cb(data);
+    } catch(e) { cb([]); }
+  };
+  var s = document.createElement('script');
+  s.src = url + '&callback=' + cbName;
+  s.onerror = function(){ clearTimeout(tid); delete window[cbName]; cb([]); };
+  document.head.appendChild(s);
+}
 
+// ============================================================
+// NOTIFICACIÓN
+// ============================================================
+function notify(msg) {
+  var el = document.getElementById('notif');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(function(){ el.classList.remove('show'); }, 3500);
+}
 
-// ── Load all data from GSheets after login ──
-function loadAllDataFromSheets(onDone){
-  var profesor=CU.name+' '+CU.surname;
-  var isSilvia=CU.role==='coordinadora';
-  var sid=localStorage.getItem('cfg_sheetid')||'';
-  var gsUrl_=localStorage.getItem('cfg_gsheets')||'';
-  if(!sid&&!gsUrl_){
-    if(onDone)onDone();
-    return;
-  }
-  var loaded=0; var total=3;
-  function check(){loaded++;if(loaded>=total&&onDone)onDone();}
+// ============================================================
+// UTILIDADES FECHA/HORA
+// ============================================================
+function fechaISO(d) {
+  d = d || new Date();
+  return d.getFullYear() + '-'
+    + String(d.getMonth()+1).padStart(2,'0') + '-'
+    + String(d.getDate()).padStart(2,'0');
+}
+function fechaCO(isoStr) {
+  if (!isoStr) return '';
+  var p = isoStr.split('-');
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+function horaCO() {
+  return new Date().toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
 
-  if(sid){
-    // Read via gviz API (no auth, no CORS)
-    function readSheet(sheetName,cb){
-      var url='https://docs.google.com/spreadsheets/d/'+sid+'/gviz/tq?tqx=out:json&sheet='+encodeURIComponent(sheetName);
-      var cbName='_gv_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-      window[cbName]=function(resp){
-        delete window[cbName];if(s&&s.parentNode)s.parentNode.removeChild(s);
-        try{
-          // Parse gviz response
-          var rows=[];
-          if(resp&&resp.table&&resp.table.rows){
-            var cols=resp.table.cols.map(function(c){return c.label||c.id;});
-            rows=resp.table.rows.map(function(r){
-              var obj={};
-              r.c.forEach(function(cell,i){obj[cols[i]]=cell?cell.v:'';});
-              return obj;
-            });
-          }
-          cb(rows);
-        }catch(e){cb([]);}
-      };
-      var s=document.createElement('script');
-      s.src=url+'&callback='+cbName;
-      s.onerror=function(){delete window[cbName];if(s.parentNode)s.parentNode.removeChild(s);cb([]);};
-      setTimeout(function(){if(window[cbName]){delete window[cbName];if(s&&s.parentNode)s.parentNode.removeChild(s);cb([]);}},10000);
-      document.head.appendChild(s);
-    }
+// ============================================================
+// INIT — construye el splash con los usuarios
+// ============================================================
+function init() {
+  document.getElementById('userGrid').innerHTML = USERS.map(function(u){
+    var foto = PHOTO_DATA[u.id]
+      ? '<img src="' + PHOTO_DATA[u.id] + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+      : u.av;
+    return '<div class="uc" onclick="selUser(\'' + u.id + '\')">'
+      + '<div class="av">' + foto + '</div>'
+      + '<div class="un">' + u.name + ' ' + u.surname + '</div>'
+      + '<div class="ur">' + u.role + '</div>'
+      + '</div>';
+  }).join('');
+}
 
-    // Load asistencia
-    readSheet('Asistencia',function(rows){
-      if(rows.length){
-        var today=new Date().toLocaleDateString('es-CO');
-        var remote=rows.filter(function(r){return r.Fecha!==today;}).map(function(r){
-          return {id:r.ID||Date.now(),sid:r.ID||'',sname:r.Estudiante||'',
-                  claseId:'',clase:r.Clase||'',programa:r.Programa||'',
-                  date:r.Fecha||'',time:r.Hora||'',teacher:r.Profesor||''};
-        });
-        var localToday=attRec.filter(function(r){return r.date===today;});
-        attRec=remote.concat(localToday);
-        localStorage.setItem('mu_att',JSON.stringify(attRec));
-      }
-      check();
-    });
-
-    // Load evidencias
-    readSheet('Evidencias',function(rows){
-      if(rows.length){
-        var remote=rows.map(function(r,i){
-          return {id:i+1,user:r.Profesor||'',uid:'',tipo:r.Tipo||'',
-                  salon:r.Salon||r['Sal\u00f3n']||'',obs:r.Observaciones||'',
-                  fileName:r.Archivo||'',driveUrl:r['URL Drive']||'',
-                  fileData:null,uploadStatus:r['URL Drive']?'ok':'local',
-                  date:r.Fecha||'',time:r.Hora||''};
-        });
-        var localCache=evids.filter(function(l){return l.fileData;});
-        evids=remote.map(function(rem){
-          var loc=localCache.find(function(l){return l.date===rem.date&&l.time===rem.time;});
-          return loc?Object.assign({},rem,{fileData:loc.fileData,uid:loc.uid}):rem;
-        });
-        localStorage.setItem('mu_ev',JSON.stringify(evids));
-      }
-      check();
-    });
-
-    // Load logistica
-    readSheet('Logistica',function(rows){
-      if(rows.length){
-        logs=rows.map(function(r,i){
-          return {id:i+1,uid:'',user:r.Profesor||'',clase:r.Clase||'',
-                  items:r.Elementos||'',date:r.Fecha||'',time:''};
-        });
-        localStorage.setItem('mu_log',JSON.stringify(logs));
-      }
-      check();
-    });
-
+// ============================================================
+// LOGIN CON PIN
+// ============================================================
+function selUser(uid) {
+  pendU = USERS.find(function(u){ return u.id === uid; });
+  pinBuf = '';
+  updDots();
+  var pav = document.getElementById('pinAv');
+  if (PHOTO_DATA[pendU.id]) {
+    pav.style.padding = '0'; pav.style.overflow = 'hidden';
+    pav.innerHTML = '<img src="' + PHOTO_DATA[pendU.id] + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
   } else {
-    // No sheet ID — use Apps Script only (fallback)
-    gsGet(isSilvia?{action:'asistencia'}:{action:'asistencia',profesor:profesor},function(d){
-      if(d&&d.ok&&d.data&&d.data.length){attRec=d.data.map(function(r){return {id:r.ID||Date.now(),sid:r.ID||'',sname:r.Estudiante||'',claseId:'',clase:r.Clase||'',programa:r.Programa||'',date:r.Fecha||'',time:r.Hora||'',teacher:r.Profesor||''};});localStorage.setItem('mu_att',JSON.stringify(attRec));}
-      check();
-    });
-    gsGet(isSilvia?{action:'evidencias'}:{action:'evidencias',profesor:profesor},function(d){
-      if(d&&d.ok&&d.data)evids=d.data;
-      check();
-    });
-    gsGet(isSilvia?{action:'logistica'}:{action:'logistica',profesor:profesor},function(d){
-      if(d&&d.ok&&d.data)logs=d.data;
-      check();
-    });
+    pav.textContent = pendU.av;
+  }
+  document.getElementById('pinTitle').textContent = pendU.name + ' ' + pendU.surname;
+  document.getElementById('pinSub').textContent = 'Ingresa tu PIN de 4 dígitos';
+  document.getElementById('pinErr').textContent = '';
+  document.getElementById('pinModal').classList.add('active');
+}
+function pk(k) { if(pinBuf.length >= 4) return; pinBuf += k; updDots(); if(pinBuf.length === 4) setTimeout(valPin, 200); }
+function pd() { pinBuf = pinBuf.slice(0,-1); updDots(); }
+function pc() { document.getElementById('pinModal').classList.remove('active'); pendU = null; pinBuf = ''; }
+function updDots() { for(var i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i < pinBuf.length); }
+function valPin() {
+  if (pinBuf === pendU.pin) {
+    document.getElementById('pinModal').classList.remove('active');
+    loginU(pendU);
+  } else {
+    document.getElementById('pinErr').textContent = 'PIN incorrecto.';
+    pinBuf = ''; updDots();
   }
 }
 
-function init(){
-  document.getElementById('userGrid').innerHTML=USERS.map(u=>`
-    <div class="uc" onclick="selUser('${u.id}')">
-      <div class="av">${u.av}</div>
-      <div class="un">${u.name} ${u.surname}</div>
-      <div class="ur">${u.role}</div>
-    </div>`).join('');
-}
-
-function selUser(uid){pendU=USERS.find(u=>u.id===uid);pinBuf='';updDots();var _pav=document.getElementById('pinAv');
-  if(PHOTO_DATA[pendU.id]){_pav.style.padding='0';_pav.style.overflow='hidden';_pav.innerHTML='<img src="'+PHOTO_DATA[pendU.id]+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';}else{_pav.textContent=pendU.av;}document.getElementById('pinTitle').textContent=`${pendU.name} ${pendU.surname}`;document.getElementById('pinSub').textContent='Ingresa tu PIN de 4 dígitos';document.getElementById('pinErr').textContent='';document.getElementById('pinModal').classList.add('active');}
-function pk(k){if(pinBuf.length>=4)return;pinBuf+=k;updDots();if(pinBuf.length===4)setTimeout(valPin,200);}
-function pd(){pinBuf=pinBuf.slice(0,-1);updDots();}
-function pc(){document.getElementById('pinModal').classList.remove('active');pendU=null;pinBuf='';}
-function updDots(){for(let i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<pinBuf.length);}
-function valPin(){if(pinBuf===pendU.pin){document.getElementById('pinModal').classList.remove('active');loginU(pendU);}else{document.getElementById('pinErr').textContent='PIN incorrecto.';pinBuf='';updDots();}}
-
-function loginU(u){
-  CU=u;
-  document.getElementById('splash').style.display='none';
-  const app=document.getElementById('app');app.style.display='flex';app.style.flexDirection='column';
-  var _tav=document.getElementById('topAv');
-  if(PHOTO_DATA[u.id]){_tav.innerHTML='<img src="'+PHOTO_DATA[u.id]+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';}else{_tav.textContent=u.av;}
-  document.getElementById('topN').textContent=`${u.name} ${u.surname}`;
-  document.getElementById('topC').textContent=u.carnet;
-  buildNav();initData();
-  const ft=TABS[u.role][0];showTab(ft==='salir'?'evidencias':ft);
-
-  // Sync all shared data from Google Sheets
-  var loader=document.createElement('div');
-  loader.id='gsLoader';
-  loader.style.cssText='position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--gd);color:#fff;padding:10px 18px;border-radius:10px;font-size:12px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.3);white-space:nowrap';
-  loader.innerHTML='☁️ Sincronizando datos...';
+// ============================================================
+// LOGIN / LOGOUT
+// ============================================================
+function loginU(u) {
+  CU = u;
+  document.getElementById('splash').style.display = 'none';
+  var app = document.getElementById('app');
+  app.style.display = 'flex'; app.style.flexDirection = 'column';
+  app.classList.add('on');
+  // Topbar avatar
+  var tav = document.getElementById('topAv');
+  if (PHOTO_DATA[u.id]) {
+    tav.innerHTML = '<img src="' + PHOTO_DATA[u.id] + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+  } else { tav.textContent = u.av; }
+  document.getElementById('topN').textContent = u.name + ' ' + u.surname;
+  document.getElementById('topC').textContent = u.carnet;
+  buildNav();
+  initData();
+  var ft = TABS[u.role][0];
+  showTab(ft === 'salir' ? 'asistencia' : ft);
+  // Sync desde Sheets
+  var loader = document.createElement('div');
+  loader.id = 'gsLoader';
+  loader.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--gd);color:#fff;padding:10px 18px;border-radius:10px;font-size:12px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.3);white-space:nowrap';
+  loader.innerHTML = '☁️ Sincronizando datos...';
   document.body.appendChild(loader);
-  loadAllDataFromSheets(function(){
-    var el=document.getElementById('gsLoader');if(el)el.remove();
+  sincronizarTodo(function(){
+    var el = document.getElementById('gsLoader'); if(el) el.remove();
     notify('✅ Datos sincronizados');
   });
 }
-function buildNav(){document.getElementById('navTabs').innerHTML=TABS[CU.role].map(t=>`<div class="nt" id="nav-${t}" onclick="showTab('${t}')">${TL[t]}</div>`).join('');}
-function showTab(t){
-  if(t==='salir'){logout();return;}
-  document.querySelectorAll('.nt').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.tab-page').forEach(x=>x.classList.remove('active'));
-  const n=document.getElementById('nav-'+t);if(n)n.classList.add('active');
-  const p=document.getElementById('page-'+t);if(p)p.classList.add('active');
-  if(t==='calendario')renderCal();
-  if(t==='carnets'){initCarnetsButtons();}
-  if(t==='configuracion'){updateSvcStatus();setTimeout(function(){['gsheets','onedrive','gcal','sheetid'].forEach(function(k){var el=document.getElementById('cfg-'+k);if(el)el.value=localStorage.getItem('cfg_'+k)||'';});},50);}
-  if(t==='reportes')renderRep();
-  if(t==='estudiantes')renderEst();
-  if(t==='faltas')renderFaltas();
-  if(t==='logistica')renderLog();
-  if(t==='comunicacion')renderCom();
-  if(t==='evidencias')renderEvids();
-  if(t==='configuracion')renderCfg();
-}
-function logout(){if(camActive)stopCam();CU=null;document.getElementById('app').style.display='none';document.getElementById('splash').style.display='flex';document.getElementById('navTabs').innerHTML='';document.querySelectorAll('.tab-page').forEach(x=>x.classList.remove('active'));}
 
-function initData(){
-  const el=document.getElementById('att-teacher');if(el)el.value=`${CU.name} ${CU.surname}`;
-  const de=document.getElementById('att-date');if(de)de.value=new Date().toISOString().split('T')[0];
-  setTimeout(loadMisClases,100);
-  if(CU.role==='coordinadora'){
-    const fe=document.getElementById('fFiltExtra');if(fe)fe.style.display='flex';
-    const sq=document.getElementById('silviaQRbtn');if(sq)sq.style.display='block';
+function logout() {
+  if (camActive) stopCam();
+  CU = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('splash').style.display = 'flex';
+  document.getElementById('navTabs').innerHTML = '';
+  document.querySelectorAll('.tab-page').forEach(function(x){ x.classList.remove('active'); });
+}
+
+// ============================================================
+// NAVEGACIÓN
+// ============================================================
+// TL ya declarado en los datos (línea ~714)
+function buildNav() {
+  document.getElementById('navTabs').innerHTML = TABS[CU.role].map(function(t){
+    return '<div class="nt" id="nav-' + t + '" onclick="showTab(\'' + t + '\')">' + TL[t] + '</div>';
+  }).join('');
+}
+function showTab(t) {
+  if (t === 'salir') { logout(); return; }
+  document.querySelectorAll('.nt').forEach(function(x){ x.classList.remove('active'); });
+  document.querySelectorAll('.tab-page').forEach(function(x){ x.classList.remove('active'); });
+  var n = document.getElementById('nav-' + t); if(n) n.classList.add('active');
+  var p = document.getElementById('page-' + t); if(p) p.classList.add('active');
+  if (t === 'calendario') renderCal();
+  if (t === 'carnets') initCarnetsButtons();
+  if (t === 'configuracion') { updateSvcStatus(); cargarValoresCfg(); renderCfg(); }
+  if (t === 'reportes') renderRep();
+  if (t === 'estudiantes') renderEst();
+  if (t === 'faltas') renderFaltas();
+  if (t === 'logistica') renderLog();
+  if (t === 'comunicacion') renderCom();
+  if (t === 'evidencias') renderEvids();
+}
+
+// ============================================================
+// INICIALIZACIÓN DE DATOS DESPUÉS DEL LOGIN
+// ============================================================
+function initData() {
+  var el = document.getElementById('att-teacher');
+  if (el) el.value = CU.name + ' ' + CU.surname;
+  var de = document.getElementById('att-date');
+  if (de) de.value = fechaISO();
+  setTimeout(loadMisClases, 100);
+  if (CU.role === 'coordinadora') {
+    var fe = document.getElementById('fFiltExtra'); if(fe) fe.style.display = 'flex';
+    var sq = document.getElementById('silviaQRbtn'); if(sq) sq.style.display = 'block';
   }
-  if(CU.role==='coordinadora'||CU.role==='logistico'){const la=document.getElementById('logAdminFilt');if(la)la.style.display='block';}
+  if (CU.role === 'coordinadora' || CU.role === 'logistico') {
+    var la = document.getElementById('logAdminFilt'); if(la) la.style.display = 'block';
+  }
   popLogClase();
 }
-function myClases(){
-  var fn=CU.name+' '+CU.surname;
-  return CLASES_AM.filter(function(c){return c.profesor===fn;});
-}
-function popLogClase(){
-  var sel=document.getElementById('logClase');if(!sel)return;
-  var mine=myClases();
-  sel.innerHTML=mine.length
-    ?mine.map(function(c){return '<option value="'+c.id+'">'+c.programa+' — '+c.clase+' ('+c.hora+')</option>';}).join('')
-    :'<option>Sin clases asignadas</option>';
+
+function myClases() {
+  if (!CU) return [];
+  if (CU.role === 'coordinadora') return CLASES_AM;
+  var fn = CU.name + ' ' + CU.surname;
+  return CLASES_AM.filter(function(c){ return c.profesor === fn; });
 }
 
-function loadMisClases(){
-  var mine=myClases();
-  var sel=document.getElementById('att-class');
-  if(!sel)return;
-  if(!mine.length){
-    sel.innerHTML='<option value="">Sin clases asignadas</option>';
+function loadMisClases() {
+  var sel = document.getElementById('att-class');
+  if (!sel) return;
+  var mine = myClases();
+  if (!mine.length) {
+    sel.innerHTML = '<option value="">Sin clases asignadas</option>';
     return;
   }
-  sel.innerHTML='<option value="">— Selecciona una clase —</option>'
-    +mine.map(function(c){
-      var label=c.programa+' — '+c.clase+(c.hora?' ('+c.hora+')':'');
-      return '<option value="'+c.id+'">'+label+'</option>';
+  sel.innerHTML = '<option value="">— Selecciona una clase —</option>'
+    + mine.map(function(c){
+      return '<option value="' + c.id + '">' + c.programa + ' — ' + c.clase + (c.hora ? ' (' + c.hora + ')' : '') + '</option>';
     }).join('');
 }
 
+function popLogClase() {
+  var sel = document.getElementById('logClase'); if (!sel) return;
+  var mine = myClases();
+  sel.innerHTML = mine.length
+    ? mine.map(function(c){ return '<option value="' + c.id + '">' + c.programa + ' — ' + c.clase + ' (' + c.hora + ')</option>'; }).join('')
+    : '<option>Sin clases asignadas</option>';
+}
 
-function toggleCam(){
-  if(camActive){stopCam();return;}
-  var constraints={video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}};
-  navigator.mediaDevices.getUserMedia(constraints)
-  .then(function(stream){
-    camStream=stream;
-    camActive=true;
-    var v=document.getElementById('camVid');
-    v.srcObject=stream;
-    v.setAttribute('playsinline','');
-    v.setAttribute('autoplay','');
-    v.muted=true;
-    document.getElementById('camWrap').style.display='block';
-    document.getElementById('camPh').style.display='none';
-    // Show close button
-    var cb=document.getElementById('closeCamBtn');
-    if(cb)cb.style.display='inline-flex';
-    var ss=document.getElementById('scanStatus');if(ss)ss.style.display='block';
-    // Wait for video to actually play before scanning
-    v.onloadeddata=function(){
-      v.play().catch(function(){});
-      notify('\ud83d\udcf7 C\u00e1mara activa \u2014 apunta al QR del estudiante');
-      setTimeout(startScan, 500);
-    };
-    v.onerror=function(){notify('\u26a0\ufe0f Error al iniciar la c\u00e1mara');};
-  })
-  .catch(function(err){
-    notify('\u26a0\ufe0f Sin acceso a c\u00e1mara: '+err.message);
+// ============================================================
+// SINCRONIZACIÓN DESDE SHEETS (al hacer login o al presionar 🔄)
+// ============================================================
+function sincronizarTodo(onDone) {
+  var profesor = CU.name + ' ' + CU.surname;
+  var isCoor = CU.role === 'coordinadora';
+  var listo = 0; var total = 3;
+  function check(){ listo++; if(listo >= total && onDone) onDone(); }
+
+  // Asistencia
+  gsLeerHoja('Asistencia', function(rows){
+    if (rows.length) {
+      var hoy = fechaISO();
+      var remote = rows
+        .filter(function(r){ return r.Fecha !== fechaCO(hoy); })
+        .map(function(r){
+          return { id: r.ID || Date.now(), sid: r.ID || '',
+                   sname: r.Estudiante || '', claseId: '',
+                   clase: r.Clase || '', programa: r.Programa || '',
+                   date: r.Fecha || '', time: r.Hora || '', teacher: r.Profesor || '' };
+        });
+      if (!isCoor) remote = remote.filter(function(r){ return r.teacher === profesor; });
+      var localHoy = attRec.filter(function(r){ return r.date === hoy; });
+      attRec = remote.concat(localHoy);
+      localStorage.setItem('mu_att', JSON.stringify(attRec));
+    }
+    check();
+  });
+
+  // Evidencias
+  gsLeerHoja('Evidencias', function(rows){
+    if (rows.length) {
+      var remote = rows.map(function(r, i){
+        return { id: i+1, user: r.Profesor || '', uid: '', tipo: r.Tipo || '',
+                 salon: r.Salon || r['Salón'] || '', obs: r.Observaciones || '',
+                 fileName: r.Archivo || '', driveUrl: r['URL Drive'] || '',
+                 fileData: null, uploadStatus: r['URL Drive'] ? 'ok' : 'local',
+                 date: r.Fecha || '', time: r.Hora || '' };
+      });
+      if (!isCoor) remote = remote.filter(function(r){ return r.user === profesor; });
+      var localCache = evids.filter(function(l){ return l.fileData; });
+      evids = remote.map(function(rem){
+        var loc = localCache.find(function(l){ return l.date === rem.date && l.time === rem.time; });
+        return loc ? Object.assign({}, rem, { fileData: loc.fileData, uid: loc.uid }) : rem;
+      });
+      localStorage.setItem('mu_ev', JSON.stringify(evids));
+    }
+    check();
+  });
+
+  // Logística
+  gsLeerHoja('Logistica', function(rows){
+    if (rows.length) {
+      logs = rows.map(function(r, i){
+        return { id: i+1, uid: '', user: r.Profesor || '', clase: r.Clase || '',
+                 items: r.Elementos || '', date: r.Fecha || '', time: '' };
+      });
+      if (!isCoor) logs = logs.filter(function(l){ return l.user === profesor; });
+      localStorage.setItem('mu_log', JSON.stringify(logs));
+    }
+    check();
   });
 }
-function stopCam(){
-  if(camStream){camStream.getTracks().forEach(function(t){t.stop();});camStream=null;}
-  if(scanIv){clearInterval(scanIv);scanIv=null;}
-  camActive=false;
-  var v=document.getElementById('camVid');if(v){v.srcObject=null;v.onloadeddata=null;}
-  document.getElementById('camWrap').style.display='none';
-  document.getElementById('camPh').style.display='block';
-  var cb=document.getElementById('closeCamBtn');if(cb)cb.style.display='none';
-  var ss=document.getElementById('scanStatus');if(ss)ss.style.display='none';
-  _lastScanned='';_lastScannedTime=0;
+
+function syncNow() {
+  notify('☁️ Sincronizando...');
+  sincronizarTodo(function(){
+    notify('✅ Todo actualizado');
+    var active = document.querySelector('.tab-page.active');
+    if (active) {
+      var id = active.id.replace('page-','');
+      if (id === 'asistencia') renderAttLog();
+      else if (id === 'faltas') renderFaltas();
+      else if (id === 'evidencias') renderEvids();
+      else if (id === 'logistica') renderLog();
+      else if (id === 'reportes') renderRep();
+    }
+  });
 }
-let scanC=null;
-var _lastScanned='';
-var _lastScannedTime=0;
-function startScan(){
-  if(!scanC)scanC=document.createElement('canvas');
-  if(scanIv)clearInterval(scanIv);
-  scanIv=setInterval(function(){
-    var v=document.getElementById('camVid');
-    if(!v||v.readyState<2||v.videoWidth===0)return;
-    var W=v.videoWidth, H=v.videoHeight;
-    scanC.width=W; scanC.height=H;
-    var ctx=scanC.getContext('2d',{willReadFrequently:true});
-    ctx.drawImage(v,0,0,W,H);
-    try{
-      var d=ctx.getImageData(0,0,W,H);
-      var code=jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'});
-      if(code&&code.data){
-        var now=Date.now();
-        if(code.data===_lastScanned&&now-_lastScannedTime<3000)return;
-        _lastScanned=code.data;
-        _lastScannedTime=now;
-        // Flash green on the scan box
-        var sb=document.querySelector('.sb');
-        if(sb){sb.style.borderColor='#fff';sb.style.boxShadow='0 0 0 9999px rgba(49,81,30,0.6)';}
-        setTimeout(function(){if(sb){sb.style.borderColor='';sb.style.boxShadow='';}},600);
+
+// ============================================================
+// PESTAÑA: ASISTENCIA
+// ============================================================
+
+// ── Cámara ──
+function toggleCam() { camActive ? stopCam() : startCam(); }
+
+function startCam() {
+  var constraints = { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } };
+  navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(stream){
+      camStream = stream; camActive = true;
+      var v = document.getElementById('camVid');
+      v.srcObject = stream;
+      v.setAttribute('playsinline',''); v.setAttribute('autoplay',''); v.muted = true;
+      document.getElementById('camWrap').style.display = 'block';
+      document.getElementById('camPh').style.display = 'none';
+      var cb = document.getElementById('closeCamBtn'); if(cb) cb.style.display = 'inline-flex';
+      var ss = document.getElementById('scanStatus'); if(ss) ss.style.display = 'block';
+      v.onloadeddata = function(){
+        v.play().catch(function(){});
+        notify('📷 Cámara activa — apunta al QR del estudiante');
+        setTimeout(startScan, 500);
+      };
+    })
+    .catch(function(err){ notify('⚠️ Sin acceso a cámara: ' + err.message); });
+}
+
+function stopCam() {
+  if (camStream) { camStream.getTracks().forEach(function(t){ t.stop(); }); camStream = null; }
+  if (scanIv) { clearInterval(scanIv); scanIv = null; }
+  camActive = false;
+  var v = document.getElementById('camVid'); if(v){ v.srcObject = null; v.onloadeddata = null; }
+  document.getElementById('camWrap').style.display = 'none';
+  document.getElementById('camPh').style.display = 'block';
+  var cb = document.getElementById('closeCamBtn'); if(cb) cb.style.display = 'none';
+  var ss = document.getElementById('scanStatus'); if(ss) ss.style.display = 'none';
+  _lastScanned = ''; _lastScannedTime = 0;
+}
+
+var _scanCanvas = null;
+var _lastScanned = '';
+var _lastScannedTime = 0;
+
+function startScan() {
+  if (!_scanCanvas) _scanCanvas = document.createElement('canvas');
+  if (scanIv) clearInterval(scanIv);
+  scanIv = setInterval(function(){
+    var v = document.getElementById('camVid');
+    if (!v || v.readyState < 2 || v.videoWidth === 0) return;
+    _scanCanvas.width = v.videoWidth; _scanCanvas.height = v.videoHeight;
+    var ctx = _scanCanvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(v, 0, 0);
+    try {
+      var d = ctx.getImageData(0, 0, _scanCanvas.width, _scanCanvas.height);
+      var code = jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
+      if (code && code.data) {
+        var now = Date.now();
+        if (code.data === _lastScanned && now - _lastScannedTime < 3000) return;
+        _lastScanned = code.data; _lastScannedTime = now;
+        // Flash
+        var sb = document.querySelector('.sb');
+        if (sb) { sb.style.borderColor = '#fff'; sb.style.boxShadow = '0 0 0 9999px rgba(49,81,30,0.6)'; }
+        setTimeout(function(){ if(sb){ sb.style.borderColor = ''; sb.style.boxShadow = ''; } }, 600);
         handleQR(code.data);
       }
-    }catch(e){}
-  },200);
+    } catch(e) {}
+  }, 200);
 }
-function handleQR(data){
-  // Support both | separator (new) and - separator (legacy)
-  var sep=data.indexOf('|')>=0?'|':'-';
-  if(!data.startsWith('MUSICUIS'+sep)){
-    // Show what was scanned to help debug
-    notify('\u274c QR no reconocido: '+data.substring(0,30));
+
+// ── Procesar QR ──
+function handleQR(data) {
+  var sep = data.indexOf('|') >= 0 ? '|' : '-';
+  if (!data.startsWith('MUSICUIS' + sep)) {
+    notify('❌ QR no reconocido: ' + data.substring(0, 30));
     return;
   }
-  var pts=data.split(sep);
-  var sid=pts[1];
-  var sname=pts.slice(2).join(sep==='|'?'|':'-');
-  var claseId=document.getElementById('att-class').value;
-  var claseObj=CLASES_AM.find(function(c){return c.id===claseId;});
-  var dateEl=document.getElementById('att-date');
-  var date=dateEl&&dateEl.value?dateEl.value:new Date().toLocaleDateString('es-CO');
-  var teacher=CU.name+' '+CU.surname;
-  if(!claseId){stopCam();notify('⚠️ Selecciona la clase antes de escanear');return;}
-  if(attRec.find(function(r){return r.sid===sid&&r.claseId===claseId&&r.date===date;})){
-    notify('\u26a0\ufe0f '+sname+' ya registrado/a');
+  var pts = data.split(sep);
+  var sid = pts[1];
+  var sname = pts.slice(2).join(sep === '|' ? '|' : '-');
+  var claseId = document.getElementById('att-class').value;
+  var claseObj = CLASES_AM.find(function(c){ return c.id === claseId; });
+  var fecha = document.getElementById('att-date').value || fechaISO();
+  var teacher = CU.name + ' ' + CU.surname;
+  if (!claseId) { stopCam(); notify('⚠️ Selecciona la clase antes de escanear'); return; }
+  // Evitar duplicados
+  if (attRec.find(function(r){ return r.sid === sid && r.claseId === claseId && r.date === fecha; })) {
+    notify('⚠️ ' + sname + ' ya registrado/a');
     return;
   }
-  var rec={
-    id:Date.now(),sid:sid,sname:sname,
-    claseId:claseId,clase:claseObj?claseObj.clase:'',
-    programa:claseObj?claseObj.programa:'',
-    date:date,time:new Date().toLocaleTimeString('es-CO'),teacher:teacher
+  var rec = {
+    id: Date.now(), sid: sid, sname: sname,
+    claseId: claseId, clase: claseObj ? claseObj.clase : '',
+    programa: claseObj ? claseObj.programa : '',
+    date: fecha, time: horaCO(), teacher: teacher
   };
   attRec.push(rec);
-  localStorage.setItem('mu_att',JSON.stringify(attRec));
-  notify('\u2705 '+sname+' registrado/a');
+  localStorage.setItem('mu_att', JSON.stringify(attRec));
+  notify('✅ ' + sname + ' registrado/a');
   renderAttLog();
-  // Push to Google Sheets (shared backend)
-  gsPost({action:'registrar_asistencia',
-          id:String(rec.id),
-          fecha:rec.date,
-          hora:rec.time,
-          estudiante:rec.sname,
-          clase:rec.clase,
-          programa:rec.programa,
-          profesor:rec.teacher},null);
-  // Pause scanning 2 seconds after successful read to avoid duplicates
-  if(scanIv){clearInterval(scanIv);scanIv=null;}
-  setTimeout(function(){if(camActive)startScan();},2000);
+  // Enviar a Sheets
+  gsEnviar({
+    action: 'registrar_asistencia',
+    id: String(rec.id), fecha: fechaCO(rec.date), hora: rec.time,
+    estudiante: rec.sname, clase: rec.clase, programa: rec.programa, profesor: rec.teacher
+  }, null);
+  // Pausa 2 s anti-duplicado
+  if (scanIv) { clearInterval(scanIv); scanIv = null; }
+  setTimeout(function(){ if(camActive) startScan(); }, 2000);
 }
-function manualEnt(){
-  // Show a searchable list of students in the selected class
-  var claseId=document.getElementById('att-class').value;
-  var claseObj=CLASES_AM.find(function(c){return c.id===claseId;});
-  if(!claseObj){
-    var n=prompt('Nombre del estudiante:');
-    if(n&&n.trim())handleQR('MUSICUIS|m'+Date.now()+'|'+n.trim());
+
+// ── Entrada manual (lista de estudiantes de la clase) ──
+function manualEnt() {
+  var claseId = document.getElementById('att-class').value;
+  var claseObj = CLASES_AM.find(function(c){ return c.id === claseId; });
+  if (!claseObj) {
+    var n = prompt('Nombre del estudiante:');
+    if (n && n.trim()) handleQR('MUSICUIS|m' + Date.now() + '|' + n.trim());
     return;
   }
-  // Build modal with student list
-  var m=document.createElement('div');
-  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:3000;display:flex;align-items:center;justify-content:center;padding:14px;overflow-y:auto';
-  var box=document.createElement('div');
-  box.style.cssText='background:#fff;border-radius:16px;padding:20px;width:min(420px,96vw);max-height:80vh;overflow-y:auto';
-  var date=document.getElementById('att-date').value;
-  // Mark already present
-  var present=attRec.filter(function(r){return r.claseId===claseId&&r.date===date;}).map(function(r){return r.sid;});
-  var items=claseObj.estudiantes.map(function(nombre,i){
-    var estObj=EST_AM.find(function(e){return e.nombre.toLowerCase()===nombre.toLowerCase();});
-    var sid=estObj?String(estObj.id):'m'+i;
-    var ya=present.indexOf(sid)>=0;
+  var fecha = document.getElementById('att-date').value || fechaISO();
+  var presentes = attRec.filter(function(r){ return r.claseId === claseId && r.date === fecha; }).map(function(r){ return r.sid; });
+  var m = document.createElement('div');
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:3000;display:flex;align-items:center;justify-content:center;padding:14px;overflow-y:auto';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:16px;padding:20px;width:min(420px,96vw);max-height:80vh;overflow-y:auto';
+  var items = claseObj.estudiantes.map(function(nombre, i){
+    var estObj = EST_AM.find(function(e){ return e.nombre.toLowerCase() === nombre.toLowerCase(); });
+    var sid = estObj ? String(estObj.id) : 'm' + i;
+    var ya = presentes.indexOf(sid) >= 0;
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--br)">'
-      +'<span style="font-size:13px;color:'+(ya?'var(--go)':'var(--tx)')+'">'+nombre+(ya?' ✅':'')+'</span>'
-      +(ya?'<span style="font-size:11px;color:var(--go)">Presente</span>'
-          :'<button class="btn btn-p" style="font-size:11px;padding:5px 12px" onclick="regManual(\''+sid+'\',\''+nombre.replace(/'/g,"\\'")+'\')">\u2714 Marcar</button>')
-      +'</div>';
+      + '<span style="font-size:13px;color:' + (ya ? 'var(--go)' : 'var(--tx)') + '">' + nombre + (ya ? ' ✅' : '') + '</span>'
+      + (ya ? '<span style="font-size:11px;color:var(--go)">Presente</span>'
+            : '<button class="btn btn-p" style="font-size:11px;padding:5px 12px" onclick="regManual(\'' + sid + '\',\'' + nombre.replace(/'/g,"\\'") + '\')">✔ Marcar</button>')
+      + '</div>';
   }).join('');
-  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
-    +'<h3 style="font-family:Playfair Display,serif;font-size:16px;color:var(--gd)">'+claseObj.clase+'</h3>'
-    +'<button onclick="this.closest(\'[style*=fixed]\').remove()" style="background:var(--gd);color:#fff;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px">\u00d7</button>'
-    +'</div>'
-    +'<p style="font-size:11px;color:var(--tm);margin-bottom:12px">'+claseObj.estudiantes.length+' estudiantes &mdash; '+date+'</p>'
-    +items;
+  box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    + '<h3 style="font-family:\'Playfair Display\',serif;font-size:16px;color:var(--gd)">' + claseObj.clase + '</h3>'
+    + '<button onclick="this.closest(\'[style*=fixed]\').remove()" style="background:var(--gd);color:#fff;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px">×</button>'
+    + '</div>'
+    + '<p style="font-size:11px;color:var(--tm);margin-bottom:12px">' + claseObj.estudiantes.length + ' estudiantes — ' + fechaCO(fecha) + '</p>'
+    + items;
   m.appendChild(box);
   document.body.appendChild(m);
-  m.addEventListener('click',function(e){if(e.target===m)m.remove();});
+  m.addEventListener('click', function(e){ if(e.target===m) m.remove(); });
 }
-function regManual(sid,nombre){
-  handleQR('MUSICUIS|'+sid+'|'+nombre);
-  // Close modal
-  var modal=document.querySelector('[style*="fixed"][style*="rgba(0,0,0,.78)"][style*="3000"]');
-  if(modal)setTimeout(function(){modal.remove();},500);
+function regManual(sid, nombre) {
+  handleQR('MUSICUIS|' + sid + '|' + nombre);
+  var modal = document.querySelector('[style*="rgba(0,0,0,.78)"][style*="3000"]');
+  if (modal) setTimeout(function(){ modal.remove(); }, 500);
 }
-// manualEnt registration syncs through handleQR which calls gsPost
-function renderAttLog(){
-  var claseId=document.getElementById('att-class').value;
-  var dt=document.getElementById('att-date').value;
-  var tc=CU.name+' '+CU.surname;
-  var r=attRec.filter(function(x){return x.claseId===claseId&&x.date===dt&&x.teacher===tc;});
-  document.getElementById('attCnt').textContent=r.length+' registros';
-  document.getElementById('attLog').innerHTML=r.length
-    ?r.map(function(x){return '<div class="ae"><div><div style="font-weight:600;font-size:12px">'+x.sname+'</div>'
-      +'<div style="font-size:10px;color:var(--tm)">'+x.clase+'</div></div>'
-      +'<div style="font-size:10px;color:var(--tm);font-family:DM Mono,monospace">'+x.time+'</div></div>';}).join('')
-    :'<div style="text-align:center;padding:18px;color:var(--tm);font-size:12px">Sin registros a\u00fan</div>';
+
+// ── Render lista del día ──
+function renderAttLog() {
+  var claseId = document.getElementById('att-class').value;
+  var fecha = document.getElementById('att-date').value || fechaISO();
+  var teacher = CU.name + ' ' + CU.surname;
+  var r = attRec.filter(function(x){ return x.claseId === claseId && x.date === fecha && x.teacher === teacher; });
+  document.getElementById('attCnt').textContent = r.length + ' registros';
+  document.getElementById('attLog').innerHTML = r.length
+    ? r.map(function(x){
+        return '<div class="ae"><div><div style="font-weight:600;font-size:12px">' + x.sname + '</div>'
+          + '<div style="font-size:10px;color:var(--tm)">' + x.clase + '</div></div>'
+          + '<div style="font-size:10px;color:var(--tm);font-family:\'DM Mono\',monospace">' + x.time + '</div></div>';
+      }).join('')
+    : '<div style="text-align:center;padding:18px;color:var(--tm);font-size:12px">Sin registros aún</div>';
 }
-function detFaltas(){
-  var claseId=document.getElementById('att-class').value;
-  var dt=document.getElementById('att-date').value;
-  if(!claseId){notify('\u26a0\ufe0f Selecciona la clase primero');return;}
-  var claseObj=CLASES_AM.find(function(c){return c.id===claseId;});
-  if(!claseObj){notify('Clase no encontrada');return;}
-  var presentes=attRec.filter(function(r){return r.claseId===claseId&&r.date===dt;}).map(function(r){return r.sname.toLowerCase();});
-  var faltas=claseObj.estudiantes.filter(function(e){return presentes.indexOf(e.toLowerCase())<0;});
-  var card=document.getElementById('faltasCard');
-  card.style.display='block';
-  var list=document.getElementById('faltasList');
-  if(!faltas.length){list.innerHTML='<div class="al al-s">\u2705 Todos presentes</div>';return;}
-  list.innerHTML='<div class="al al-w" style="margin-bottom:10px">'+faltas.length+' falta(s) detectadas</div>'
-    +'<table><thead><tr><th>Estudiante</th><th>Clase</th><th>Hora</th></tr></thead><tbody>'
-    +faltas.map(function(e){
-      return '<tr><td>'+e+'</td><td>'+claseObj.clase+'</td><td>'+claseObj.hora+'</td></tr>';
-    }).join('')+'</tbody></table>';
+
+// ── Detectar faltas ──
+function detFaltas() {
+  var claseId = document.getElementById('att-class').value;
+  var fecha = document.getElementById('att-date').value || fechaISO();
+  if (!claseId) { notify('⚠️ Selecciona la clase primero'); return; }
+  var claseObj = CLASES_AM.find(function(c){ return c.id === claseId; });
+  if (!claseObj) { notify('Clase no encontrada'); return; }
+  var presentes = attRec.filter(function(r){ return r.claseId === claseId && r.date === fecha; }).map(function(r){ return r.sname.toLowerCase(); });
+  var faltas = claseObj.estudiantes.filter(function(e){ return presentes.indexOf(e.toLowerCase()) < 0; });
+  var card = document.getElementById('faltasCard');
+  card.style.display = 'block';
+  var list = document.getElementById('faltasList');
+  if (!faltas.length) { list.innerHTML = '<div class="al al-s">✅ Todos presentes</div>'; return; }
+  list.innerHTML = '<div class="al al-w" style="margin-bottom:10px">' + faltas.length + ' falta(s) detectadas</div>'
+    + '<table><thead><tr><th>Estudiante</th><th>Clase</th><th>Hora</th></tr></thead><tbody>'
+    + faltas.map(function(e){ return '<tr><td>' + e + '</td><td>' + claseObj.clase + '</td><td>' + claseObj.hora + '</td></tr>'; }).join('')
+    + '</tbody></table>';
+  // Guardar cada falta
   faltas.forEach(function(e){
-    var fRec={sname:e,clase:claseObj.clase,programa:claseObj.programa,hora:claseObj.hora,date:dt,teacher:claseObj.profesor};
-    localStorage.setItem('mu_f_'+Date.now()+'_'+e.replace(/\s/g,'_'),JSON.stringify(fRec));
-    gsPost({action:'registrar_falta',fecha:dt,estudiante:e,clase:claseObj.clase,
-            programa:claseObj.programa,hora:claseObj.hora,profesor:claseObj.profesor},null);
+    var key = 'mu_f_' + Date.now() + '_' + e.replace(/\s/g,'_').substring(0,20);
+    var fRec = { sname: e, clase: claseObj.clase, programa: claseObj.programa,
+                 hora: claseObj.hora, date: fecha, dia: '', teacher: claseObj.profesor };
+    localStorage.setItem(key, JSON.stringify(fRec));
+    // Enviar a Sheets
+    gsEnviar({
+      action: 'registrar_falta', fecha: fechaCO(fecha), estudiante: e,
+      clase: claseObj.clase, programa: claseObj.programa, hora: claseObj.hora, profesor: claseObj.profesor
+    }, null);
   });
-  notify('\u26a0\ufe0f '+faltas.length+' faltas guardadas');
+  notify('⚠️ ' + faltas.length + ' faltas guardadas');
 }
 
-function renderFaltas(){const sr=(document.getElementById('f-search')?.value||'').toLowerCase();const fd=document.getElementById('f-day')?.value||'';let fl=[];for(let k in localStorage){if(k.startsWith('mu_f_'))try{fl.push(JSON.parse(localStorage[k]));}catch(e){}}if(CU.role!=='coordinadora')fl=fl.filter(f=>f.teacher===`${CU.name} ${CU.surname}`);if(sr)fl=fl.filter(f=>f.sname.toLowerCase().includes(sr));if(fd)fl=fl.filter(f=>f.dia===fd);const el=document.getElementById('faltasTable');if(!fl.length){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--tm)">Sin faltas registradas</div>';return;}const bc={};fl.forEach(f=>{if(!bc[f.clase])bc[f.clase]={clase:f.clase,items:[]};bc[f.clase].items.push(f);});el.innerHTML=Object.values(bc).map(g=>`<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><h4 style="font-size:13px;font-weight:700;color:var(--gd)">${g.clase}</h4><span class="badge br2">${g.items.length} falta(s)</span></div><table><thead><tr><th>Estudiante</th><th>Día</th><th>Fecha</th><th>Profesor</th></tr></thead><tbody>${g.items.map(f=>`<tr><td>${f.sname}</td><td>${f.dia||'—'}</td><td>${f.date||'—'}</td><td>${f.teacher}</td></tr>`).join('')}</tbody></table></div>`).join('');}
-
-
-
-
-
-
-
-
-
-
-
-function renderRep(){document.getElementById('r-est').textContent=EST.length;document.getElementById('r-att').textContent=attRec.length;let tf=0;for(let k in localStorage)if(k.startsWith('mu_f_'))tf++;document.getElementById('r-flt').textContent=tf;document.getElementById('r-nov').textContent=evids.length;const cc={},pc={};attRec.forEach(r=>{cc[r.clase]=(cc[r.clase]||0)+1;pc[r.teacher]=(pc[r.teacher]||0)+1;});barChart('chartC',cc);barChart('chartP',pc);const ne=document.getElementById('repNov');ne.innerHTML=evids.length?`<table><thead><tr><th>Profesor</th><th>Tipo</th><th>Salón</th><th>Fecha</th><th>Observación</th></tr></thead><tbody>`+evids.slice(-8).reverse().map(e=>`<tr><td>${e.user}</td><td><span class="badge ${e.tipo==='encuentro'?'bg':'bo'}">${e.tipo==='encuentro'?'Encuentro':'Dejo'}</span></td><td>${e.salon||'—'}</td><td>${e.date}</td><td style="max-width:160px;font-size:11px">${e.obs||'—'}</td></tr>`).join('')+'</tbody></table>':'<div style="text-align:center;padding:18px;color:var(--tm)">Sin novedades</div>';}
-function barChart(id,data){const el=document.getElementById(id);if(!el)return;const e=Object.entries(data).sort((a,b)=>b[1]-a[1]).slice(0,6);const mx=e[0]?.[1]||1;el.innerHTML=e.length?e.map(([l,c])=>`<div class="cbr"><div class="cbl" title="${l}">${l.substring(0,22)}</div><div class="cbt"><div class="cbf" style="width:${Math.round(c/mx*100)}%"></div></div><div class="cbc">${c}</div></div>`).join(''):'<div style="color:var(--tm);font-size:12px">Sin datos</div>';}
-
-function hFile(input,type){
-  var file=input.files[0];
-  if(!file)return;
-  var labelId=type==='find'?'evFindN':'evLeaveN';
-  var previewId=type==='find'?'evFindPreview':'evLeavePreview';
-  var zoneId=type==='find'?'evFindZone':'evLeaveZone';
-
-  // Show filename
-  document.getElementById(labelId).textContent=file.name+' ('+Math.round(file.size/1024)+'KB)';
-
-  // Show preview
-  var prevEl=document.getElementById(previewId);
-  prevEl.style.display='block';
-  if(file.type.startsWith('image/')){
-    var reader=new FileReader();
-    reader.onload=function(e){
-      prevEl.innerHTML='<img src="'+e.target.result+'" style="max-width:100%;max-height:180px;border-radius:10px;border:2px solid var(--go);object-fit:cover">';
-    };
-    reader.readAsDataURL(file);
-  } else if(file.type.startsWith('video/')){
-    var url=URL.createObjectURL(file);
-    prevEl.innerHTML='<video src="'+url+'" controls style="max-width:100%;max-height:180px;border-radius:10px;border:2px solid var(--go)"></video>';
-  } else {
-    prevEl.innerHTML='<div style="padding:10px;background:var(--gbg);border-radius:8px;font-size:12px;color:var(--gd)">📎 '+file.name+'</div>';
+// ============================================================
+// PESTAÑA: FALTAS
+// ============================================================
+function renderFaltas() {
+  var sr = (document.getElementById('f-search') || {}).value ? document.getElementById('f-search').value.toLowerCase() : '';
+  var fd = (document.getElementById('f-day') || {}).value || '';
+  var fl = [];
+  for (var k in localStorage) {
+    if (k.startsWith('mu_f_')) try { fl.push(JSON.parse(localStorage[k])); } catch(e) {}
   }
-
-  // Update zone border color
-  var zone=document.getElementById(zoneId);
-  if(zone)zone.style.borderColor='var(--go)';
-
-  // Store file reference for upload
-  if(type==='find') window._evFindFile=file;
-  else window._evLeaveFile=file;
-
-  notify('\u2705 Archivo listo: '+file.name);
-}
-function evOpenCamera(type){
-  // Opens camera directly (capture=environment)
-  var el=document.getElementById(type==='find'?'evFindF':'evLeaveF');
-  if(el){el.removeAttribute('capture');el.setAttribute('capture','environment');el.click();}
-}
-function evOpenGallery(type){
-  // Opens gallery (no capture attribute)
-  var el=document.getElementById(type==='find'?'evFindF':'evLeaveF');
-  if(el){el.removeAttribute('capture');el.click();}
+  if (CU.role !== 'coordinadora') fl = fl.filter(function(f){ return f.teacher === CU.name + ' ' + CU.surname; });
+  if (sr) fl = fl.filter(function(f){ return f.sname.toLowerCase().includes(sr); });
+  if (fd) fl = fl.filter(function(f){ return f.dia === fd; });
+  var el = document.getElementById('faltasTable');
+  if (!fl.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--tm)">Sin faltas registradas</div>'; return; }
+  var bc = {};
+  fl.forEach(function(f){ if(!bc[f.clase]) bc[f.clase] = { clase: f.clase, items: [] }; bc[f.clase].items.push(f); });
+  el.innerHTML = Object.values(bc).map(function(g){
+    return '<div style="margin-bottom:16px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">'
+      + '<h4 style="font-size:13px;font-weight:700;color:var(--gd)">' + g.clase + '</h4>'
+      + '<span class="badge br2">' + g.items.length + ' falta(s)</span></div>'
+      + '<table><thead><tr><th>Estudiante</th><th>Día</th><th>Fecha</th><th>Profesor</th></tr></thead><tbody>'
+      + g.items.map(function(f){ return '<tr><td>' + f.sname + '</td><td>' + (f.dia||'—') + '</td><td>' + (f.date||'—') + '</td><td>' + f.teacher + '</td></tr>'; }).join('')
+      + '</tbody></table></div>';
+  }).join('');
 }
 
-function saveEv(tipo){
-  var pre=tipo==='encuentro'?'F':'L';
-  var salon=document.getElementById('ev'+pre+'S').value;
-  var obs=document.getElementById('ev'+pre+'O').value;
-  var file=tipo==='encuentro'?window._evFindFile:window._evLeaveFile;
-  var now=new Date();
-  var ts=now.toLocaleDateString('es-CO').replace(/\//g,'-')
-        +'_'+now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}).replace(/:/g,'-');
-  var ext=file?file.name.split('.').pop():'';
-  var fileName=file
-    ?((CU.name+'_'+CU.surname+'_'+(salon||'SinSalon')+'_'+tipo+'_'+ts+'.'+ext).replace(/\s/g,'_'))
-    :'';
+// ============================================================
+// PESTAÑA: ESTUDIANTES
+// ============================================================
+function myStudents() {
+  if (!CU || CU.role === 'coordinadora') return EST_AM;
+  var fn = CU.name + ' ' + CU.surname;
+  var names = {};
+  CLASES_AM.filter(function(c){ return c.profesor === fn; })
+    .forEach(function(c){ c.estudiantes.forEach(function(e){ names[e.toLowerCase()] = true; }); });
+  if (!Object.keys(names).length) return [];
+  return EST_AM.filter(function(s){ return names[s.nombre.toLowerCase()]; });
+}
 
-  var rec={id:Date.now(),user:CU.name+' '+CU.surname,uid:CU.id,tipo:tipo,
-           salon:salon,obs:obs,fileName:fileName,fileData:null,
-           date:now.toLocaleDateString('es-CO'),time:now.toLocaleTimeString('es-CO'),
-           uploadStatus:'pending'};
+function onProgChange() {
+  var p = document.getElementById('est-prog');
+  var jw = document.getElementById('estJorWrap');
+  var val = p ? p.value : '';
+  if (jw) jw.style.display = (val === '' || val === 'Instrumental AM' || val === 'Instrumental PM') ? 'block' : 'none';
+  renderEst();
+}
 
-  if(file){
-    // Show upload progress
-    notify('\u2601\ufe0f Subiendo archivo a OneDrive...');
-    var btn=document.querySelector('#page-evidencias .btn[onclick*="saveEv(\''+tipo+'\'"]');
-
-    // Read file as ArrayBuffer for upload
-    var reader=new FileReader();
-    reader.onload=function(e){
-      rec.fileData=e.target.result; // store as data URI for preview
-      uploadFileToOneDrive(file, fileName, {tipo:tipo,salon:salon,obs:obs,fecha:rec.date,hora:rec.time}, function(ok, url){
-        rec.uploadStatus=ok?'ok':'local';
-        rec.oneDriveUrl=url||'';
-        evids.push(rec);
-        localStorage.setItem('mu_ev',JSON.stringify(evids));
-        sendEvToSheets(rec);
-        resetEvForm(pre,tipo);
-        renderEvids();
-        if(ok){
-          notify('\u2705 Evidencia subida a OneDrive correctamente');
-        } else {
-          notify('\u26a0\ufe0f Guardado localmente (verifica conexi\u00f3n a OneDrive)');
+function renderEst() {
+  var sr = (document.getElementById('est-search') || {value:''}).value.toLowerCase();
+  var j = (document.getElementById('est-jornada') || {value:''}).value;
+  var p = (document.getElementById('est-prog') || {value:''}).value;
+  var s = myStudents();
+  if (sr) s = s.filter(function(x){ return x.nombre.toLowerCase().indexOf(sr) >= 0; });
+  if (p) {
+    if (p === 'Instrumental AM') s = s.filter(function(x){ return x.programas.indexOf('Instrumental AM') >= 0; });
+    else if (p === 'Instrumental PM') s = s.filter(function(x){ return x.programas.indexOf('Instrumental PM') >= 0; });
+    else s = s.filter(function(x){ return x.programas.indexOf(p) >= 0; });
+  }
+  if (j) s = s.filter(function(x){ return x.jornada === j; });
+  var isCoor = CU && CU.role === 'coordinadora';
+  var groups = {};
+  s.forEach(function(x){ var prog = x.programas[0] || 'Sin programa'; if(!groups[prog]) groups[prog] = []; groups[prog].push(x); });
+  var out = '';
+  Object.keys(groups).sort().forEach(function(prog){
+    out += '<div style="margin-bottom:20px">';
+    out += '<h3 style="font-family:\'Playfair Display\',serif;font-size:15px;color:var(--gd);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--br)">'
+      + prog + ' <span class="badge bo" style="font-size:10px">' + groups[prog].length + '</span></h3>';
+    out += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(275px,100%),1fr));gap:11px">';
+    groups[prog].forEach(function(x){
+      var instrumento = '';
+      if (x.clases && x.clases.length) {
+        for (var ci = 0; ci < x.clases.length; ci++) {
+          if (x.clases[ci].clase && x.clases[ci].clase.indexOf('Instrumento') >= 0) { instrumento = x.clases[ci].clase; break; }
         }
+        if (!instrumento) instrumento = x.clases[0].clase || '';
+      }
+      var profDisplay = x.profesores ? x.profesores.join(' / ') : '';
+      var claseSummary = x.clases ? x.clases.map(function(c){ return c.clase + ' (' + c.hora + ')'; }).join(', ') : '';
+      var sn = x.nombre.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      var sp = (x.programas[0]||'').replace(/'/g,"\\'");
+      var si = instrumento.replace(/'/g,"\\'");
+      var qrBtns = isCoor
+        ? '<div style="display:flex;gap:5px;margin-top:8px">'
+          + '<button class="btn btn-g" style="font-size:10px;padding:3px 8px;flex:1" onclick="showMP(' + x.id + ',\'' + sn + '\',\'' + sp + '\',\'' + si + '\')">🎵 Pass</button>'
+          + '<button class="btn btn-p" style="font-size:10px;padding:3px 8px" onclick="printMP(' + x.id + ',\'' + sn + '\',\'' + sp + '\',\'' + si + '\')">🖨️</button>'
+          + '</div>'
+        : '';
+      out += '<div class="card" style="padding:13px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px">'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-weight:700;font-size:12px;color:var(--gd);line-height:1.3">' + x.nombre + '</div>'
+        + '<div style="font-size:10px;color:var(--go);margin-top:1px">' + profDisplay + '</div>'
+        + '</div>'
+        + '<span class="badge ' + (x.jornada === 'AM' ? 'bo' : 'bpu') + '" style="flex-shrink:0;margin-left:5px">' + x.jornada + '</span>'
+        + '</div>'
+        + '<div style="font-size:10px;color:var(--tm);display:grid;gap:2px">'
+        + '<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📚 ' + claseSummary + '</div>'
+        + '</div>'
+        + qrBtns + '</div>';
+    });
+    out += '</div></div>';
+  });
+  document.getElementById('estGrid').innerHTML = out || '<div style="text-align:center;padding:24px;color:var(--tm)">Sin estudiantes asignados</div>';
+}
+
+// ============================================================
+// PESTAÑA: REPORTES
+// ============================================================
+function renderRep() {
+  document.getElementById('r-est').textContent = EST_AM.length;
+  document.getElementById('r-att').textContent = attRec.length;
+  var tf = 0;
+  for (var k in localStorage) if (k.startsWith('mu_f_')) tf++;
+  document.getElementById('r-flt').textContent = tf;
+  document.getElementById('r-nov').textContent = evids.length;
+  var cc = {}, pc = {};
+  attRec.forEach(function(r){ cc[r.clase] = (cc[r.clase]||0)+1; pc[r.teacher] = (pc[r.teacher]||0)+1; });
+  barChart('chartC', cc);
+  barChart('chartP', pc);
+  var ne = document.getElementById('repNov');
+  ne.innerHTML = evids.length
+    ? '<table><thead><tr><th>Profesor</th><th>Tipo</th><th>Salón</th><th>Fecha</th><th>Observación</th></tr></thead><tbody>'
+      + evids.slice(-8).reverse().map(function(e){
+          return '<tr><td>' + e.user + '</td><td><span class="badge ' + (e.tipo==='encuentro'?'bg':'bo') + '">'
+            + (e.tipo==='encuentro'?'Encuentro':'Dejo') + '</span></td><td>' + (e.salon||'—') + '</td><td>' + e.date + '</td><td style="max-width:160px;font-size:11px">' + (e.obs||'—') + '</td></tr>';
+        }).join('') + '</tbody></table>'
+    : '<div style="text-align:center;padding:18px;color:var(--tm)">Sin novedades</div>';
+}
+function barChart(id, data) {
+  var el = document.getElementById(id); if (!el) return;
+  var e = Object.entries(data).sort(function(a,b){ return b[1]-a[1]; }).slice(0,6);
+  var mx = (e[0] && e[0][1]) || 1;
+  el.innerHTML = e.length
+    ? e.map(function(item){ return '<div class="cbr"><div class="cbl" title="' + item[0] + '">' + item[0].substring(0,22) + '</div><div class="cbt"><div class="cbf" style="width:' + Math.round(item[1]/mx*100) + '%"></div></div><div class="cbc">' + item[1] + '</div></div>'; }).join('')
+    : '<div style="color:var(--tm);font-size:12px">Sin datos</div>';
+}
+
+// ============================================================
+// PESTAÑA: EVIDENCIAS
+// ============================================================
+function hFile(input, type) {
+  var file = input.files[0]; if (!file) return;
+  var labelId = type === 'find' ? 'evFindN' : 'evLeaveN';
+  var previewId = type === 'find' ? 'evFindPreview' : 'evLeavePreview';
+  var zoneId = type === 'find' ? 'evFindZone' : 'evLeaveZone';
+  document.getElementById(labelId).textContent = file.name + ' (' + Math.round(file.size/1024) + 'KB)';
+  var prev = document.getElementById(previewId); prev.style.display = 'block';
+  if (file.type.startsWith('image/')) {
+    var r = new FileReader();
+    r.onload = function(ev){ prev.innerHTML = '<img src="' + ev.target.result + '" style="max-width:100%;max-height:180px;border-radius:10px;border:2px solid var(--go);object-fit:cover">'; };
+    r.readAsDataURL(file);
+  } else if (file.type.startsWith('video/')) {
+    var url = URL.createObjectURL(file);
+    prev.innerHTML = '<video src="' + url + '" controls style="max-width:100%;max-height:180px;border-radius:10px;border:2px solid var(--go)"></video>';
+  } else {
+    prev.innerHTML = '<div style="padding:10px;background:var(--gbg);border-radius:8px;font-size:12px;color:var(--gd)">📎 ' + file.name + '</div>';
+  }
+  var zone = document.getElementById(zoneId); if(zone) zone.style.borderColor = 'var(--go)';
+  if (type === 'find') window._evFindFile = file; else window._evLeaveFile = file;
+  notify('✅ Archivo listo: ' + file.name);
+}
+function evOpenCamera(type) {
+  var el = document.getElementById(type === 'find' ? 'evFindF' : 'evLeaveF');
+  if (el) { el.removeAttribute('capture'); el.setAttribute('capture','environment'); el.click(); }
+}
+function evOpenGallery(type) {
+  var el = document.getElementById(type === 'find' ? 'evFindF' : 'evLeaveF');
+  if (el) { el.removeAttribute('capture'); el.click(); }
+}
+
+function saveEv(tipo) {
+  var pre = tipo === 'encuentro' ? 'F' : 'L';
+  var salon = document.getElementById('ev' + pre + 'S').value;
+  var obs = document.getElementById('ev' + pre + 'O').value;
+  var file = tipo === 'encuentro' ? window._evFindFile : window._evLeaveFile;
+  var now = new Date();
+  var ts = now.toLocaleDateString('es-CO').replace(/\//g,'-') + '_' + now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}).replace(/:/g,'-');
+  var ext = file ? file.name.split('.').pop() : '';
+  var fileName = file ? (CU.name + '_' + CU.surname + '_' + (salon||'SinSalon') + '_' + tipo + '_' + ts + '.' + ext).replace(/\s/g,'_') : '';
+  var rec = { id: Date.now(), user: CU.name + ' ' + CU.surname, uid: CU.id, tipo: tipo,
+              salon: salon, obs: obs, fileName: fileName, fileData: null,
+              date: now.toLocaleDateString('es-CO'), time: now.toLocaleTimeString('es-CO'), uploadStatus: 'pending' };
+  if (file) {
+    notify('☁️ Guardando evidencia...');
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      rec.fileData = ev.target.result;
+      var base64 = ev.target.result.split(',')[1];
+      var mime = file.type || 'application/octet-stream';
+      evids.push(rec);
+      localStorage.setItem('mu_ev', JSON.stringify(evids));
+      // Enviar a Sheets (sin archivo — solo metadatos, ya que GET tiene límite de URL)
+      gsEnviar({
+        action: 'guardar_evidencia', fecha: rec.date, hora: rec.time,
+        tipo: tipo, salon: salon, obs: obs, profesor: rec.user, fileName: fileName
+      }, function(ok){
+        rec.uploadStatus = ok ? 'ok' : 'local';
+        localStorage.setItem('mu_ev', JSON.stringify(evids));
+        renderEvids();
+        notify(ok ? '✅ Evidencia guardada en Sheets' : '⚠️ Guardado localmente (sin conexión)');
       });
     };
     reader.readAsDataURL(file);
   } else {
-    rec.uploadStatus='no-file';
+    rec.uploadStatus = 'no-file';
     evids.push(rec);
-    localStorage.setItem('mu_ev',JSON.stringify(evids));
-    sendEvToSheets(rec);
-    resetEvForm(pre,tipo);
+    localStorage.setItem('mu_ev', JSON.stringify(evids));
+    gsEnviar({ action: 'guardar_evidencia', fecha: rec.date, hora: rec.time,
+               tipo: tipo, salon: salon, obs: obs, profesor: rec.user, fileName: '' }, null);
+    resetEvForm(pre, tipo);
     renderEvids();
-    notify('\u2705 Evidencia guardada (sin archivo)');
+    notify('✅ Evidencia guardada (sin archivo)');
   }
 }
 
-// ── Upload file directly to OneDrive shared folder via Microsoft Graph API ──
-var OD_SHARE_ID='u!aHR0cHM6Ly9tYWlsdWlzLW15LnNoYXJlcG9pbnQuY29tLzpmOi9nL3BlcnNvbmFsL2N1cnNvc211c2ljYV91aXNfZWR1X2NvL0lnRGJlVVVSdllvSlNyS2J2aXJBdUw3MkFjNUJLaE95QzN1N01OTVRIbzZLTmF3P2U9SzVRRm9m';
-function uploadFileToOneDrive(file, fileName, extraData, callback){
-  if(typeof extraData==='function'){callback=extraData;extraData={};}
-  var url=gsUrl();
-  if(!url){
-    notify('\u26a0\ufe0f Configura el Apps Script en Configuraci\u00f3n');
-    if(callback)callback(false,'');
-    return;
-  }
-  var prog=document.getElementById('uploadProgress')||document.createElement('div');
-  prog.id='uploadProgress';
-  prog.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--gd);color:#fff;padding:12px 22px;border-radius:12px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.35);white-space:nowrap';
-  prog.innerHTML='\u2601\ufe0f Subiendo a Google Drive...';
-  if(!prog.parentNode)document.body.appendChild(prog);
+function resetEvForm(pre, tipo) {
+  document.getElementById('ev'+pre+'S').value = '';
+  document.getElementById('ev'+pre+'O').value = '';
+  var labelId = tipo === 'encuentro' ? 'evFindN' : 'evLeaveN';
+  var previewId = tipo === 'encuentro' ? 'evFindPreview' : 'evLeavePreview';
+  var zoneId = tipo === 'encuentro' ? 'evFindZone' : 'evLeaveZone';
+  var fileId = tipo === 'encuentro' ? 'evFindF' : 'evLeaveF';
+  document.getElementById(labelId).textContent = '';
+  var prev = document.getElementById(previewId); if(prev){ prev.style.display='none'; prev.innerHTML=''; }
+  var zone = document.getElementById(zoneId); if(zone) zone.style.borderColor = '';
+  document.getElementById(fileId).value = '';
+  if (tipo === 'encuentro') window._evFindFile = null; else window._evLeaveFile = null;
+}
 
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var base64=e.target.result.split(',')[1];
-    var mime=file.type||'application/octet-stream';
-    var now=new Date();
-    var payload=JSON.stringify({
-      action:'guardar_evidencia',
-      fecha:extraData.fecha||now.toLocaleDateString('es-CO'),
-      hora:extraData.hora||now.toLocaleTimeString('es-CO'),
-      profesor:CU.name+' '+CU.surname,
-      tipo:extraData.tipo||'archivo',
-      salon:extraData.salon||'',
-      obs:extraData.obs||'',
-      fileName:fileName,
-      fileBase64:base64,
-      fileMime:mime
-    });
-    // Try via corsproxy first (gets Drive URL back)
-    var proxy='https://corsproxy.io/?'+encodeURIComponent(url);
-    fetch(proxy,{method:'POST',headers:{'Content-Type':'text/plain'},body:payload})
-    .then(function(r){return r.json();})
-    .then(function(data){
-      var el=document.getElementById('uploadProgress');if(el)el.remove();
-      if(data&&data.ok){
-        if(callback)callback(true, data.driveUrl||'');
-      } else {
-        // fallback no-cors
-        _uploadNoCors(url,payload,callback);
-      }
-    })
-    .catch(function(){
-      var el=document.getElementById('uploadProgress');if(el)el.remove();
-      // fallback no-cors (data goes in, no Drive URL back)
-      _uploadNoCors(url,payload,callback);
-    });
-  };
-  reader.onerror=function(){
-    var el=document.getElementById('uploadProgress');if(el)el.remove();
-    if(callback)callback(false,'');
-  };
-  reader.readAsDataURL(file);
-}
-function _uploadNoCors(url,payload,callback){
-  fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:payload})
-  .then(function(){if(callback)callback(true,'');})
-  .catch(function(){if(callback)callback(false,'');});
-}
-function sendEvToSheets(rec){
-  if(!rec.fileName){
-    // No file — send metadata only
-    gsPost({action:'guardar_evidencia',
-            fecha:rec.date,hora:rec.time,tipo:rec.tipo,
-            salon:rec.salon,obs:rec.obs,
-            archivo:rec.fileName||'',
-            profesor:rec.user},null);
-  }
-  // If file exists, it's sent via uploadFileToOneDrive which handles Sheets too
-}
-function resetEvForm(pre,tipo){
-  document.getElementById('ev'+pre+'S').value='';
-  document.getElementById('ev'+pre+'O').value='';
-  var labelId=tipo==='encuentro'?'evFindN':'evLeaveN';
-  var previewId=tipo==='encuentro'?'evFindPreview':'evLeavePreview';
-  var zoneId=tipo==='encuentro'?'evFindZone':'evLeaveZone';
-  var fileId=tipo==='encuentro'?'evFindF':'evLeaveF';
-  document.getElementById(labelId).textContent='';
-  var prevEl=document.getElementById(previewId);if(prevEl){prevEl.style.display='none';prevEl.innerHTML='';}
-  var zone=document.getElementById(zoneId);if(zone)zone.style.borderColor='';
-  document.getElementById(fileId).value='';
-  if(tipo==='encuentro')window._evFindFile=null;else window._evLeaveFile=null;
-}
-function renderEvids(){
-  var e=CU.role==='coordinadora'?evids:evids.filter(function(x){return x.uid===CU.id;});
-  var el=document.getElementById('evidList');
-  if(!el)return;
-  if(!e.length){
-    el.innerHTML='<div style="text-align:center;padding:18px;color:var(--tm)">Sin evidencias registradas</div>';
-    return;
-  }
-  el.innerHTML=e.slice().reverse().map(function(x){
-    // Thumbnail
-    var thumb='';
-    if(x.fileData&&x.fileData.startsWith('data:image')){
-      thumb='<img src="'+x.fileData+'" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid var(--go);cursor:pointer" onclick="viewEvidImg(this.src)">';
-    } else if(x.fileData&&x.fileData.startsWith('data:video')){
-      thumb='<video src="'+x.fileData+'" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid var(--go)" muted playsinline></video>';
-    } else if(x.fileName){
-      thumb='<div style="width:64px;height:64px;border-radius:8px;background:var(--gbg);border:1px solid var(--br);display:flex;align-items:center;justify-content:center;font-size:22px">📎</div>';
+function renderEvids() {
+  var e = CU.role === 'coordinadora' ? evids : evids.filter(function(x){ return x.uid === CU.id; });
+  var el = document.getElementById('evidList'); if (!el) return;
+  if (!e.length) { el.innerHTML = '<div style="text-align:center;padding:18px;color:var(--tm)">Sin evidencias registradas</div>'; return; }
+  el.innerHTML = e.slice().reverse().map(function(x){
+    var thumb = '';
+    if (x.fileData && x.fileData.startsWith('data:image')) {
+      thumb = '<img src="' + x.fileData + '" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid var(--go);cursor:pointer" onclick="viewEvidImg(this.src)">';
+    } else if (x.fileData && x.fileData.startsWith('data:video')) {
+      thumb = '<video src="' + x.fileData + '" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid var(--go)" muted playsinline></video>';
+    } else if (x.fileName) {
+      thumb = '<div style="width:64px;height:64px;border-radius:8px;background:var(--gbg);border:1px solid var(--br);display:flex;align-items:center;justify-content:center;font-size:22px">📎</div>';
     }
-
-    // Upload status badge
-    var statusBadge='';
-    if(x.uploadStatus==='ok'){
-      statusBadge='<span style="font-size:9px;background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:9px;font-weight:600">\u2601\ufe0f OneDrive</span>';
-    } else if(x.uploadStatus==='local'||x.uploadStatus==='pending'){
-      statusBadge='<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:2px 6px;border-radius:9px;font-weight:600;cursor:pointer" onclick="retryCfg('+x.id+')">\u26a0\ufe0f Local</span>';
-    }
-
-    var dlBtn=x.fileData?('<button onclick="dlEvid(\''+x.id+'\')" class="btn btn-g" style="font-size:10px;padding:3px 7px;margin-top:4px">⬇ Descargar</button>'):'';
-    var retryBtn=(x.uploadStatus==='local'||x.uploadStatus==='pending')&&x.fileData
-      ?('<button onclick="retryUpload('+x.id+')" class="btn btn-o" style="font-size:10px;padding:3px 7px;margin-top:4px">\u2601\ufe0f Reintentar</button>')
-      :'';
-
+    var statusBadge = x.uploadStatus === 'ok'
+      ? '<span style="font-size:9px;background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:9px;font-weight:600">☁️ Sheets</span>'
+      : (x.uploadStatus === 'local' || x.uploadStatus === 'pending')
+        ? '<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:2px 6px;border-radius:9px;font-weight:600">⚠️ Local</span>'
+        : '';
+    var dlBtn = x.fileData ? '<button onclick="dlEvid(\'' + x.id + '\')" class="btn btn-g" style="font-size:10px;padding:3px 7px;margin-top:4px">⬇ Descargar</button>' : '';
     return '<div style="display:grid;grid-template-columns:auto 1fr;gap:12px;padding:12px;border-bottom:1px solid var(--br);align-items:start">'
-      +'<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px">'+thumb+dlBtn+retryBtn+'</div>'
-      +'<div>'
-      +'<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:5px">'
-      +'<span class="badge '+(x.tipo==='encuentro'?'bg':'bo')+'">'+(x.tipo==='encuentro'?'🔍 Encuentro':'✅ Dejo')+'</span>'
-      +statusBadge
-      +'<span style="font-size:10px;color:var(--tm)">'+x.date+' '+x.time+'</span>'
-      +'</div>'
-      +(x.salon?'<div style="font-size:12px;color:var(--gd);font-weight:600">🏫 '+x.salon+'</div>':'')
-      +(x.obs?'<div style="font-size:11px;color:var(--tm);margin-top:3px">'+x.obs+'</div>':'')
-      +(CU.role==='coordinadora'?'<div style="font-size:10px;color:var(--go);margin-top:2px">👤 '+x.user+'</div>':'')
-      +'</div>'
-      +'</div>';
+      + '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px">' + thumb + dlBtn + '</div>'
+      + '<div>'
+      + '<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:5px">'
+      + '<span class="badge ' + (x.tipo==='encuentro'?'bg':'bo') + '">' + (x.tipo==='encuentro'?'🔍 Encuentro':'✅ Dejo') + '</span>'
+      + statusBadge
+      + '<span style="font-size:10px;color:var(--tm)">' + x.date + ' ' + x.time + '</span>'
+      + '</div>'
+      + (x.salon ? '<div style="font-size:12px;color:var(--gd);font-weight:600">🏫 ' + x.salon + '</div>' : '')
+      + (x.obs ? '<div style="font-size:11px;color:var(--tm);margin-top:3px">' + x.obs + '</div>' : '')
+      + (CU.role==='coordinadora' ? '<div style="font-size:10px;color:var(--go);margin-top:2px">👤 ' + x.user + '</div>' : '')
+      + '</div></div>';
   }).join('');
-}
-function viewEvidImg(src){
-  var m=document.createElement('div');
-  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;cursor:pointer';
-  m.innerHTML='<img src="'+src+'" style="max-width:100%;max-height:90vh;border-radius:10px;object-fit:contain">';
-  m.onclick=function(){m.remove();};
-  document.body.appendChild(m);
-}
-function dlEvid(id){
-  var rec=evids.find(function(x){return x.id==id;});
-  if(!rec||!rec.fileData)return;
-  var a=document.createElement('a');a.href=rec.fileData;a.download=rec.fileName||('evidencia_'+id);a.click();
-}
-function retryUpload(id){
-  var rec=evids.find(function(x){return x.id==id;});
-  if(!rec||!rec.fileData){notify('\u26a0\ufe0f No hay archivo guardado');return;}
-  notify('\u2601\ufe0f Reintentando subida...');
-  // Reconstruct file from data URI
-  var arr=rec.fileData.split(',');
-  var mime=arr[0].match(/:(.*?);/)[1];
-  var bstr=atob(arr[1]);var n=bstr.length;var u8=new Uint8Array(n);
-  while(n--)u8[n]=bstr.charCodeAt(n);
-  var blob=new Blob([u8],{type:mime});
-  var fakeFile=new File([blob],rec.fileName,{type:mime});
-  uploadFileToOneDrive(fakeFile,rec.fileName,function(ok,url){
-    if(ok){
-      rec.uploadStatus='ok';rec.oneDriveUrl=url;
-      localStorage.setItem('mu_ev',JSON.stringify(evids));
-      renderEvids();
-      notify('\u2705 Subido a OneDrive correctamente');
-    } else {
-      notify('\u26a0\ufe0f No se pudo subir. Verifica la conexi\u00f3n.');
-    }
-  });
-}
-function viewEvidImg(src){
-  var m=document.createElement('div');
-  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;cursor:pointer';
-  m.innerHTML='<img src="'+src+'" style="max-width:100%;max-height:100%;border-radius:10px;object-fit:contain">';
-  m.onclick=function(){m.remove();};
-  document.body.appendChild(m);
-}
-function dlEvid(id){
-  var rec=evids.find(function(x){return x.id==id;});
-  if(!rec||!rec.fileData)return;
-  var a=document.createElement('a');
-  a.href=rec.fileData;
-  a.download=rec.fileName||('evidencia_'+id);
-  a.click();
 }
 
-function saveLog(){const c=document.getElementById('logClase').value;const it=document.getElementById('logItems').value.trim();if(!it){notify('⚠️ Describe los elementos');return;}const idx=logs.findIndex(r=>r.uid===CU.id&&r.clase===c);const req={id:idx>=0?logs[idx].id:Date.now(),uid:CU.id,user:`${CU.name} ${CU.surname}`,clase:c,items:it,date:new Date().toLocaleDateString('es-CO'),time:new Date().toLocaleTimeString('es-CO')};if(idx>=0){logs[idx]=req;notify('✅ Solicitud actualizada');}else{logs.push(req);notify('✅ Solicitud enviada');}localStorage.setItem('mu_log',JSON.stringify(logs));document.getElementById('logItems').value='';renderLog();}
-function renderLog(){
-  var ia=CU.role==='coordinadora'||CU.role==='logistico';
-  var r=ia?logs:logs.filter(function(x){return x.uid===CU.id;});
-  var el=document.getElementById('logList');
-  if(!el)return;
-  if(!r.length){el.innerHTML='<div style="text-align:center;padding:18px;color:var(--tm)">Sin solicitudes</div>';return;}
-  el.innerHTML=r.map(function(x){
+function viewEvidImg(src) {
+  var m = document.createElement('div');
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;cursor:pointer';
+  m.innerHTML = '<img src="' + src + '" style="max-width:100%;max-height:100%;border-radius:10px;object-fit:contain">';
+  m.onclick = function(){ m.remove(); };
+  document.body.appendChild(m);
+}
+function dlEvid(id) {
+  var rec = evids.find(function(x){ return x.id == id; });
+  if (!rec || !rec.fileData) return;
+  var a = document.createElement('a'); a.href = rec.fileData; a.download = rec.fileName || ('evidencia_' + id); a.click();
+}
+
+// ============================================================
+// PESTAÑA: LOGÍSTICA
+// ============================================================
+function saveLog() {
+  var c = document.getElementById('logClase').value;
+  var it = document.getElementById('logItems').value.trim();
+  if (!it) { notify('⚠️ Describe los elementos'); return; }
+  var idx = logs.findIndex(function(r){ return r.uid === CU.id && r.clase === c; });
+  var req = {
+    id: idx >= 0 ? logs[idx].id : Date.now(),
+    uid: CU.id, user: CU.name + ' ' + CU.surname,
+    clase: c, items: it,
+    date: new Date().toLocaleDateString('es-CO'),
+    time: new Date().toLocaleTimeString('es-CO')
+  };
+  if (idx >= 0) { logs[idx] = req; notify('✅ Solicitud actualizada'); }
+  else { logs.push(req); notify('✅ Solicitud enviada'); }
+  localStorage.setItem('mu_log', JSON.stringify(logs));
+  document.getElementById('logItems').value = '';
+  // Enviar a Sheets
+  gsEnviar({ action: 'guardar_logistica', clase: req.clase, items: req.items, profesor: req.user }, null);
+  renderLog();
+}
+
+function renderLog() {
+  var ia = CU.role === 'coordinadora' || CU.role === 'logistico';
+  var r = ia ? logs : logs.filter(function(x){ return x.uid === CU.id; });
+  var el = document.getElementById('logList'); if (!el) return;
+  if (!r.length) { el.innerHTML = '<div style="text-align:center;padding:18px;color:var(--tm)">Sin solicitudes</div>'; return; }
+  el.innerHTML = r.map(function(x){
     return '<div class="ri">'
-      +'<div style="flex:1">'
-      +(ia?'<div style="font-size:10px;color:var(--tm)">'+x.user+'</div>':'')
-      +'<div style="font-weight:700;font-size:12px;color:var(--gd)">'+x.clase+'</div>'
-      +'<div style="font-size:12px;margin-top:3px">'+x.items+'</div>'
-      +'</div>'
-      +'<div style="text-align:right;flex-shrink:0;margin-left:9px">'
-      +'<div style="font-size:10px;color:var(--tm)">'+x.date+'</div>'
-      +(!ia?'<button class="btn btn-g" style="font-size:10px;padding:3px 8px;margin-top:4px" onclick="editLog(\''+x.id+'\')">Editar</button>':'')
-      +'</div>'
-      +'</div>';
+      + '<div style="flex:1">'
+      + (ia ? '<div style="font-size:10px;color:var(--tm)">' + x.user + '</div>' : '')
+      + '<div style="font-weight:700;font-size:12px;color:var(--gd)">' + x.clase + '</div>'
+      + '<div style="font-size:12px;margin-top:3px">' + x.items + '</div>'
+      + '</div>'
+      + '<div style="text-align:right;flex-shrink:0;margin-left:9px">'
+      + '<div style="font-size:10px;color:var(--tm)">' + x.date + '</div>'
+      + (!ia ? '<button class="btn btn-g" style="font-size:10px;padding:3px 8px;margin-top:4px" onclick="editLog(\'' + x.id + '\')">Editar</button>' : '')
+      + '</div></div>';
   }).join('');
 }
-function editLog(id){
-  var r=logs.find(function(x){return x.id==id;});
-  if(!r)return;
-  var el=document.getElementById('logItems');if(el)el.value=r.items;
-  var cl=document.getElementById('logClase');if(cl)cl.value=r.clase;
+
+function editLog(id) {
+  var r = logs.find(function(x){ return x.id == id; }); if (!r) return;
+  var el = document.getElementById('logItems'); if(el) el.value = r.items;
+  var cl = document.getElementById('logClase'); if(cl) cl.value = r.clase;
   notify('Edita y pulsa Enviar');
 }
 
-const MO=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const DA=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-function renderCal(){document.getElementById('calTitle').textContent=`${MO[calM]} ${calY}`;const g=document.getElementById('calGrid');g.innerHTML=DA.map(d=>`<div class="ch">${d}</div>`).join('');const fd=new Date(calY,calM,1).getDay();const dim=new Date(calY,calM+1,0).getDate();const td=new Date();for(let i=0;i<fd;i++)g.innerHTML+=`<div class="cd om"></div>`;for(let d=1;d<=dim;d++){const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const ev=CAL_EV[ds]||[];const it=td.getFullYear()===calY&&td.getMonth()===calM&&td.getDate()===d;g.innerHTML+=`<div class="cd${it?' td':''}"><div class="dn">${d}</div>${ev.map(e=>`<div class="ce">${e}</div>`).join('')}</div>`;}}
-function calPrev(){calM--;if(calM<0){calM=11;calY--;}renderCal();}
-function calNext(){calM++;if(calM>11){calM=0;calY++;}renderCal();}
-
-function renderCom(){
-  var sr=(document.getElementById('comSearch')||{value:''}).value.toLowerCase();
-  var s=myStudents().filter(function(x){return x.correo1&&x.correo1!=='PENDIENTE';});
-  if(sr)s=s.filter(function(x){return x.nombre.toLowerCase().indexOf(sr)>=0||(x.correo1&&x.correo1.toLowerCase().indexOf(sr)>=0);});
-  document.getElementById('comGrid').innerHTML=s.length
-    ?s.map(function(x){
-      return '<div class="cc">'
-        +'<div style="font-weight:700;font-size:13px;color:var(--gd)">'+x.nombre+'</div>'
-        +'<div style="font-size:10px;color:var(--tm);margin:2px 0 7px">'+(x.programas?x.programas.join(', '):'')+'</div>'
-        +'<div style="font-size:11px;color:var(--tm);font-family:DM Mono,monospace">'+x.correo1+'</div>'
-        +(x.correo2?'<div style="font-size:11px;color:var(--tm);font-family:DM Mono,monospace">'+x.correo2+'</div>':'')
-        +'<div style="display:flex;gap:5px;margin-top:9px">'
-        +'<button class="btn btn-g" style="font-size:10px;padding:4px 9px;flex:1" onclick="copyEmail(\''+x.correo1+'\')">📋 Copiar</button>'
-        +'<a href="mailto:'+x.correo1+'" class="btn btn-p" style="font-size:10px;padding:4px 9px;flex:1;text-decoration:none">✉️ Enviar</a>'
-        +'</div></div>';
-    }).join('')
-    :'<div style="text-align:center;padding:20px;color:var(--tm)">Sin correos registrados</div>';
+// ============================================================
+// PESTAÑA: CALENDARIO
+// ============================================================
+var MO = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var DA = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+function renderCal() {
+  document.getElementById('calTitle').textContent = MO[calM] + ' ' + calY;
+  var g = document.getElementById('calGrid');
+  g.innerHTML = DA.map(function(d){ return '<div class="ch">' + d + '</div>'; }).join('');
+  var fd = new Date(calY, calM, 1).getDay();
+  var dim = new Date(calY, calM+1, 0).getDate();
+  var td = new Date();
+  for (var i = 0; i < fd; i++) g.innerHTML += '<div class="cd om"></div>';
+  for (var d = 1; d <= dim; d++) {
+    var ds = calY + '-' + String(calM+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    var ev = CAL_EV[ds] || [];
+    var it = td.getFullYear()===calY && td.getMonth()===calM && td.getDate()===d;
+    g.innerHTML += '<div class="cd' + (it?' td':'') + '"><div class="dn">' + d + '</div>'
+      + ev.map(function(e){ return '<div class="ce">' + e + '</div>'; }).join('') + '</div>';
+  }
 }
-function copyEmail(e){navigator.clipboard?.writeText(e).then(()=>notify(`📋 Copiado: ${e}`)).catch(()=>notify(`📋 ${e}`));}
-function copyAll(){const e=EST.filter(s=>s.correo1&&s.correo1!=='PENDIENTE').map(s=>s.correo1).join(', ');navigator.clipboard?.writeText(e).then(()=>notify('📋 Todos los correos copiados')).catch(()=>notify('📋 No se pudo copiar'));}
+function calPrev() { calM--; if(calM<0){ calM=11; calY--; } renderCal(); }
+function calNext() { calM++; if(calM>11){ calM=0; calY++; } renderCal(); }
 
-function renderCfg(){document.getElementById('cfgUsers').innerHTML=USERS.map(u=>`<div class="ci2"><div><div class="cil">${u.name} ${u.surname}</div><div class="cis">${u.carnet}</div></div><span class="badge ${u.role==='coordinadora'?'br2':u.role==='logistico'?'bpu':'bo'}">${u.role}</span></div>`).join('');document.getElementById('cfgPins').innerHTML=USERS.map(u=>`<div class="ci2"><div><div class="cil">${u.name} ${u.surname}</div><div class="cis">PIN: ${'•'.repeat(u.pin.length)}</div></div><button class="btn btn-g" style="font-size:11px;padding:5px 11px" onclick="changePin('${u.id}')">Cambiar</button></div>`).join('');}
-function changePin(uid){const p=prompt('Nuevo PIN (4 dígitos):');if(p&&/^\d{4}$/.test(p)){USERS.find(u=>u.id===uid).pin=p;notify('✅ PIN actualizado');renderCfg();}else if(p)notify('⚠️ El PIN debe tener 4 dígitos');}
-
-function syncNow(){
-  notify('☁️ Sincronizando...');
-  loadAllDataFromSheets(function(){
-    notify('✅ Todo actualizado');
-    // Refresh current tab
-    var active=document.querySelector('.tab-page.active');
-    if(active){
-      var id=active.id.replace('page-','');
-      if(id==='asistencia')renderAttLog();
-      else if(id==='faltas')renderFaltas();
-      else if(id==='evidencias')renderEvids();
-      else if(id==='logistica')renderLog();
-      else if(id==='reportes')renderRep();
-    }
-  });
+// ============================================================
+// PESTAÑA: COMUNICACIÓN
+// ============================================================
+function renderCom() {
+  var sr = (document.getElementById('comSearch') || {value:''}).value.toLowerCase();
+  var s = myStudents().filter(function(x){ return x.correo1 && x.correo1 !== 'PENDIENTE'; });
+  if (sr) s = s.filter(function(x){ return x.nombre.toLowerCase().indexOf(sr) >= 0 || (x.correo1 && x.correo1.toLowerCase().indexOf(sr) >= 0); });
+  document.getElementById('comGrid').innerHTML = s.length
+    ? s.map(function(x){
+        return '<div class="cc">'
+          + '<div style="font-weight:700;font-size:13px;color:var(--gd)">' + x.nombre + '</div>'
+          + '<div style="font-size:10px;color:var(--tm);margin:2px 0 7px">' + (x.programas ? x.programas.join(', ') : '') + '</div>'
+          + '<div style="font-size:11px;color:var(--tm);font-family:\'DM Mono\',monospace">' + x.correo1 + '</div>'
+          + (x.correo2 ? '<div style="font-size:11px;color:var(--tm);font-family:\'DM Mono\',monospace">' + x.correo2 + '</div>' : '')
+          + '<div style="display:flex;gap:5px;margin-top:9px">'
+          + '<button class="btn btn-g" style="font-size:10px;padding:4px 9px;flex:1" onclick="copyEmail(\'' + x.correo1 + '\')">📋 Copiar</button>'
+          + '<a href="mailto:' + x.correo1 + '" class="btn btn-p" style="font-size:10px;padding:4px 9px;flex:1;text-decoration:none">✉️ Enviar</a>'
+          + '</div></div>';
+      }).join('')
+    : '<div style="text-align:center;padding:20px;color:var(--tm)">Sin correos registrados</div>';
 }
-function abrirScript(){var url=localStorage.getItem('cfg_gsheets')||'';if(!url){notify('Guarda la URL primero');return;}window.open(url+'?action=ping','_blank');notify('Se abrio la URL en nueva pestana. Debe mostrar {"ok":true}');}
-function notify(msg){const el=document.getElementById('notif');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3500);}
-
-// ---- PHOTO STORE ----
-var builtinPhotos={};
-Object.keys(PHOTO_DATA).forEach(function(uid){builtinPhotos['photo_'+uid]=PHOTO_DATA[uid];});
-var savedPhotos=JSON.parse(localStorage.getItem('mu_photos')||'{}');
-var photoStore=Object.assign({},builtinPhotos,savedPhotos);
-function buildCarnetPhoto(u){
-  var photo=photoStore['photo_'+u.id]||'';
-  var isSilvia=CU&&CU.role==='coordinadora';
-  var inner=photo
-    ?('<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">')
-    :('<span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-family:Playfair Display,serif;font-size:40px;font-weight:700;color:var(--go)">'+u.av+'</span>');
-  var cam=isSilvia?'<div style="position:absolute;bottom:0;right:0;background:var(--go);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer">📷</div>':'';
-  return '<div class="c-photo" id="cph-'+u.id+'" style="position:relative;overflow:visible;cursor:'+(isSilvia?'pointer':'default')+'" '+(isSilvia?'onclick="pickPhoto(\''+u.id+'\')"':'')+'>'+inner+cam+'</div>'
-    +'<input type="file" id="cph-file-'+u.id+'" accept="image/*" style="display:none" onchange="savePhoto(\''+u.id+'\',this)">';
+function copyEmail(e) { navigator.clipboard && navigator.clipboard.writeText(e).then(function(){ notify('📋 Copiado: ' + e); }).catch(function(){ notify('📋 ' + e); }); }
+function copyAll() {
+  var e = EST_AM.filter(function(s){ return s.correo1 && s.correo1 !== 'PENDIENTE'; }).map(function(s){ return s.correo1; }).join(', ');
+  navigator.clipboard && navigator.clipboard.writeText(e).then(function(){ notify('📋 Todos los correos copiados'); }).catch(function(){ notify('📋 No se pudo copiar'); });
 }
-function pickPhoto(uid){if(!CU||CU.role!=='coordinadora')return;var f=document.getElementById('cph-file-'+uid);if(f)f.click();}
-function savePhoto(uid,input){
-  var file=input.files[0];if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    photoStore['photo_'+uid]=e.target.result;
-    localStorage.setItem('mu_photos',JSON.stringify(photoStore));
-    var el=document.getElementById('cph-'+uid);
-    var u=USERS.find(function(x){return x.id===uid;});
-    if(el&&u){
-      var newEl=document.createElement('div');
-      newEl.innerHTML=buildCarnetPhoto(u);
-      el.replaceWith(newEl.firstChild);
-    }
+
+// ============================================================
+// PESTAÑA: CARNETS Y MUSIC PASS
+// ============================================================
+var builtinPhotos = {};
+Object.keys(PHOTO_DATA).forEach(function(uid){ builtinPhotos['photo_' + uid] = PHOTO_DATA[uid]; });
+var savedPhotos = JSON.parse(localStorage.getItem('mu_photos') || '{}');
+var photoStore = Object.assign({}, builtinPhotos, savedPhotos);
+
+function buildCarnetPhoto(u) {
+  var photo = photoStore['photo_' + u.id] || '';
+  var isCoor = CU && CU.role === 'coordinadora';
+  var inner = photo
+    ? '<img src="' + photo + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+    : '<span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-family:\'Playfair Display\',serif;font-size:40px;font-weight:700;color:var(--go)">' + u.av + '</span>';
+  var cam = isCoor ? '<div style="position:absolute;bottom:0;right:0;background:var(--go);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer">📷</div>' : '';
+  return '<div class="c-photo" id="cph-' + u.id + '" style="position:relative;overflow:visible;cursor:' + (isCoor?'pointer':'default') + '" '
+    + (isCoor ? 'onclick="pickPhoto(\'' + u.id + '\')"' : '') + '>' + inner + cam + '</div>'
+    + '<input type="file" id="cph-file-' + u.id + '" accept="image/*" style="display:none" onchange="savePhoto(\'' + u.id + '\',this)">';
+}
+function pickPhoto(uid) { if(!CU||CU.role!=='coordinadora') return; var f = document.getElementById('cph-file-' + uid); if(f) f.click(); }
+function savePhoto(uid, input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    photoStore['photo_' + uid] = ev.target.result;
+    localStorage.setItem('mu_photos', JSON.stringify(photoStore));
+    var el = document.getElementById('cph-' + uid);
+    var u = USERS.find(function(x){ return x.id === uid; });
+    if (el && u) { var d = document.createElement('div'); d.innerHTML = buildCarnetPhoto(u); el.replaceWith(d.firstChild); }
     notify('Foto guardada');
   };
   reader.readAsDataURL(file);
 }
-function roleLabel(r){return r==='coordinadora'?'COORDINADORA':r==='logistico'?'LOGÍSTICA':'PROFESOR · CURSOS DE MÚSICA';}
-
-// ---- CARNET HTML ----
-function carnetHTML(u){
-  var fn=u.name+' '+u.surname;
+function roleLabel(r) {
+  return r === 'coordinadora' ? 'COORDINADORA' : r === 'logistico' ? 'LOGÍSTICA' : 'PROFESOR · CURSOS DE MÚSICA';
+}
+function carnetHTML(u) {
+  var fn = u.name + ' ' + u.surname;
   return '<div class="carnet">'
-    +'<div class="c-hdr"><span class="c-hdr-t">UNIVERSIDAD INDUSTRIAL DE SANTANDER</span></div>'
-    +'<div class="c-bdy">'
-    +buildCarnetPhoto(u)
-    +'<div class="c-name">'+fn+'</div>'
-    +'<div style="display:flex;justify-content:center;margin-bottom:8px"><span class="c-role-chip">🎵 '+roleLabel(u.role)+'</span></div>'
-    +'<div class="c-chips"><span class="c-chip">2026-1</span><span class="c-chip c-chip-pu">UIS Extensión</span></div>'
-    +'<div class="c-info">'
-    +'<div class="cf"><div class="cf-l">INSTITUCIÓN</div><div class="cf-v">Universidad Industrial de Santander</div></div>'
-    +'<div class="cf"><div class="cf-l">ÁREA</div><div class="cf-v">Extensión — Cursos de Música</div></div>'
-    +'<div class="cf c-vig"><div><div class="cf-l">VIGENCIA</div><div class="cf-v">Válido hasta 13 jun 2026</div></div><span class="badge bpu" style="font-size:11px;padding:4px 11px">VIGENTE</span></div>'
-    +'</div></div>'
-    +'<div class="c-ftr"><span class="c-ftr-b">Cursos de Música UIS · 2026-1</span><span style="color:var(--go);font-size:15px">🎵</span></div>'
-    +'<div class="c-print" onclick="window.print()"><span>🖨️ Imprimir Carnet</span></div>'
-    +'</div>';
+    + '<div class="c-hdr"><span class="c-hdr-t">UNIVERSIDAD INDUSTRIAL DE SANTANDER</span></div>'
+    + '<div class="c-bdy">'
+    + buildCarnetPhoto(u)
+    + '<div class="c-name">' + fn + '</div>'
+    + '<div style="display:flex;justify-content:center;margin-bottom:8px"><span class="c-role-chip">🎵 ' + roleLabel(u.role) + '</span></div>'
+    + '<div class="c-chips"><span class="c-chip">2026-1</span><span class="c-chip c-chip-pu">UIS Extensión</span></div>'
+    + '<div class="c-info">'
+    + '<div class="cf"><div class="cf-l">INSTITUCIÓN</div><div class="cf-v">Universidad Industrial de Santander</div></div>'
+    + '<div class="cf"><div class="cf-l">ÁREA</div><div class="cf-v">Extensión — Cursos de Música</div></div>'
+    + '<div class="cf c-vig"><div><div class="cf-l">VIGENCIA</div><div class="cf-v">Válido hasta 13 jun 2026</div></div><span class="badge bpu" style="font-size:11px;padding:4px 11px">VIGENTE</span></div>'
+    + '</div></div>'
+    + '<div class="c-ftr"><span class="c-ftr-b">Cursos de Música UIS · 2026-1</span><span style="color:var(--go);font-size:15px">🎵</span></div>'
+    + '<div class="c-print" onclick="window.print()"><span>🖨️ Imprimir Carnet</span></div>'
+    + '</div>';
 }
-
-// ---- SHOW CARNETS ----
-function showCarnets(){
-  if(!CU||CU.role!=='coordinadora'){miCarnet();return;}
-  document.getElementById('carnetsContainer').innerHTML='<div style="display:flex;flex-wrap:wrap;gap:22px;padding:4px">'+USERS.map(function(u){return carnetHTML(u);}).join('')+'</div>';
+function showCarnets() {
+  if (!CU || CU.role !== 'coordinadora') { miCarnet(); return; }
+  document.getElementById('carnetsContainer').innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:22px;padding:4px">' + USERS.map(function(u){ return carnetHTML(u); }).join('') + '</div>';
 }
-function miCarnet(){
-  document.getElementById('carnetsContainer').innerHTML='<div style="display:flex;flex-wrap:wrap;gap:22px;padding:4px">'+carnetHTML(CU)+'</div>';
+function miCarnet() {
+  document.getElementById('carnetsContainer').innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:22px;padding:4px">' + carnetHTML(CU) + '</div>';
 }
-function showMisEstMP(){
-  var mine=myStudents();
-  if(!mine.length){notify('Sin estudiantes asignados');return;}
-  document.getElementById('carnetsContainer').innerHTML='<div style="display:flex;flex-wrap:wrap;gap:16px;padding:4px">'+mine.map(function(s){return mpHTML(s.id,s.nombre,s.programa,s.instrumento||'');}).join('')+'</div>';
+function showMisEstMP() {
+  var mine = myStudents();
+  if (!mine.length) { notify('Sin estudiantes asignados'); return; }
+  document.getElementById('carnetsContainer').innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:16px;padding:4px">' + mine.map(function(s){ return mpHTML(s.id, s.nombre, s.programas[0]||'', ''); }).join('') + '</div>';
   notify('Generando QR...');
-  mine.forEach(function(s){genQR(s.id,s.nombre);});
+  mine.forEach(function(s){ genQR(s.id, s.nombre); });
 }
-function initCarnetsButtons(){
-  var cont=document.getElementById('carnetsButtons');
-  if(!cont)return;
-  var btns='';
-  if(CU&&CU.role==='coordinadora'){
-    btns+='<button class="btn btn-p" onclick="showCarnets()">🪪 Carnets Profesores</button>';
-    btns+='<button class="btn btn-o" onclick="showAllMP()">🎵 Music Pass — Todos</button>';
+function initCarnetsButtons() {
+  var cont = document.getElementById('carnetsButtons'); if (!cont) return;
+  var btns = '';
+  if (CU && CU.role === 'coordinadora') {
+    btns += '<button class="btn btn-p" onclick="showCarnets()">🪪 Carnets Profesores</button>';
+    btns += '<button class="btn btn-o" onclick="showAllMP()">🎵 Music Pass — Todos</button>';
   }
-  btns+='<button class="btn btn-g" onclick="miCarnet()">👤 Mi Carnet</button>';
-  btns+='<button class="btn btn-g" onclick="showMisEstMP()">🎵 Music Pass Mis Estudiantes</button>';
-  cont.innerHTML=btns;
+  btns += '<button class="btn btn-g" onclick="miCarnet()">👤 Mi Carnet</button>';
+  btns += '<button class="btn btn-g" onclick="showMisEstMP()">🎵 Music Pass Mis Estudiantes</button>';
+  cont.innerHTML = btns;
 }
 
-// ---- STUDENT HELPERS ----
-function myStudents(){
-  if(!CU||CU.role==='coordinadora')return EST_AM;
-  var fn=CU.name+' '+CU.surname;
-  // Collect all student names from this prof's classes in CLASES_AM
-  var names={};
-  CLASES_AM.filter(function(c){return c.profesor===fn;}).forEach(function(c){
-    c.estudiantes.forEach(function(e){names[e.toLowerCase()]=true;});
-  });
-  if(Object.keys(names).length===0)return [];
-  return EST_AM.filter(function(s){return names[s.nombre.toLowerCase()];});
-}
-function onProgChange(){
-  var p=document.getElementById('est-prog');
-  var jw=document.getElementById('estJorWrap');
-  var val=p?p.value:'';
-  if(jw)jw.style.display=(val===''||val==='Instrumental AM'||val==='Instrumental PM')?'block':'none';
-  renderEst();
-}
-
-// ---- RENDER ESTUDIANTES ----
-function renderEst(){
-  var sr=(document.getElementById('est-search')||{value:''}).value.toLowerCase();
-  var j=(document.getElementById('est-jornada')||{value:''}).value;
-  var p=(document.getElementById('est-prog')||{value:''}).value;
-  var s=myStudents();
-  if(sr)s=s.filter(function(x){return x.nombre.toLowerCase().indexOf(sr)>=0;});
-  if(p){
-    if(p==='Instrumental AM')s=s.filter(function(x){return x.programas.indexOf('Instrumental AM')>=0;});
-    else if(p==='Instrumental PM')s=s.filter(function(x){return x.programas.indexOf('Instrumental PM')>=0;});
-    else s=s.filter(function(x){return x.programas.indexOf(p)>=0;});
-  }
-  if(j)s=s.filter(function(x){return x.jornada===j;});
-
-  // Group by first programa
-  var groups={};
-  s.forEach(function(x){
-    var prog=x.programas[0]||'Sin programa';
-    if(!groups[prog])groups[prog]=[];
-    groups[prog].push(x);
-  });
-
-  var isSilvia=CU&&CU.role==='coordinadora';
-  var out='';
-  Object.keys(groups).sort().forEach(function(prog){
-    out+='<div style="margin-bottom:20px">';
-    out+='<h3 style="font-family:Playfair Display,serif;font-size:15px;color:var(--gd);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--br)">'+prog+' <span class="badge bo" style="font-size:10px">'+groups[prog].length+'</span></h3>';
-    out+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(275px,100%),1fr));gap:11px">';
-    groups[prog].forEach(function(x){
-      // Derive instrument from clases array
-      var instrumento='';
-      if(x.clases&&x.clases.length){
-        for(var ci=0;ci<x.clases.length;ci++){
-          if(x.clases[ci].clase&&x.clases[ci].clase.indexOf('Instrumento')>=0){
-            instrumento=x.clases[ci].clase;break;
-          }
-        }
-        if(!instrumento)instrumento=x.clases[0].clase||'';
-      }
-      var profDisplay=x.profesores?x.profesores.join(' / '):'';
-      // Build class summary
-      var claseSummary=x.clases?x.clases.map(function(c){return c.clase+' ('+c.hora+')';}).join(', '):'';
-
-      // Safe versions for onclick
-      var sn=x.nombre.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      var sp=(x.programas[0]||'').replace(/'/g,"\\'");
-      var si=instrumento.replace(/'/g,"\\'");
-      var qrBtns=isSilvia
-        ?('<div style="display:flex;gap:5px;margin-top:8px">'
-          +'<button class="btn btn-g" style="font-size:10px;padding:3px 8px;flex:1" onclick="showMP('+x.id+',\''+sn+'\',\''+sp+'\',\''+si+'\')">🎵 Pass</button>'
-          +'<button class="btn btn-p" style="font-size:10px;padding:3px 8px" onclick="printMP('+x.id+',\''+sn+'\',\''+sp+'\',\''+si+'\')">🖨️</button>'
-          +'</div>')
-        :'';
-
-      out+='<div class="card" style="padding:13px">'
-        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px">'
-        +'<div style="flex:1;min-width:0">'
-        +'<div style="font-weight:700;font-size:12px;color:var(--gd);line-height:1.3">'+x.nombre+'</div>'
-        +'<div style="font-size:10px;color:var(--go);margin-top:1px">'+profDisplay+'</div>'
-        +'</div>'
-        +'<span class="badge '+(x.jornada==='AM'?'bo':'bpu')+'" style="flex-shrink:0;margin-left:5px">'+x.jornada+'</span>'
-        +'</div>'
-        +'<div style="font-size:10px;color:var(--tm);display:grid;gap:2px">'
-        +'<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📚 '+claseSummary+'</div>'
-        +'</div>'
-        +qrBtns
-        +'</div>';
-    });
-    out+='</div></div>';
-  });
-  document.getElementById('estGrid').innerHTML=out||'<div style="text-align:center;padding:24px;color:var(--tm)">Sin estudiantes asignados</div>';
-}
-
-// ---- QR GENERATION ----
-function drawQR(el,text){
-  el.innerHTML='';
-  try{
-    var qr=qrcode(7,'M');
-    qr.addData(text);
-    qr.make();
-    var mods=qr.getModuleCount();
-    var sz=Math.max(2,Math.floor(Math.min(180,window.innerWidth*0.7)/mods));
-    var canvas=document.createElement('canvas');
-    canvas.width=sz*mods;canvas.height=sz*mods;
-    var ctx=canvas.getContext('2d');
-    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle='#31511E';
-    for(var r=0;r<mods;r++){for(var c=0;c<mods;c++){if(qr.isDark(r,c))ctx.fillRect(c*sz,r*sz,sz,sz);}}
+// ── QR generation ──
+function drawQR(el, text) {
+  el.innerHTML = '';
+  try {
+    var qr = qrcode(7, 'M'); qr.addData(text); qr.make();
+    var mods = qr.getModuleCount();
+    var sz = Math.max(2, Math.floor(Math.min(180, window.innerWidth * 0.7) / mods));
+    var canvas = document.createElement('canvas');
+    canvas.width = sz * mods; canvas.height = sz * mods;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#31511E';
+    for (var r = 0; r < mods; r++) for (var c = 0; c < mods; c++) if (qr.isDark(r,c)) ctx.fillRect(c*sz,r*sz,sz,sz);
     el.appendChild(canvas);
-  }catch(e){el.innerHTML='<div style="font-size:9px;color:#888;padding:8px">ID-'+text.split('-')[1]+'</div>';}
+  } catch(e) { el.innerHTML = '<div style="font-size:9px;color:#888;padding:8px">ID-' + text.split('|')[1] + '</div>'; }
 }
-function genQR(id,nombre){
-  setTimeout(function(){
-    var el=document.getElementById('mp-qr-'+id);
-    if(el)drawQR(el,'MUSICUIS|'+id+'|'+nombre);
-  },400);
-}
+function genQR(id, nombre) { setTimeout(function(){ var el = document.getElementById('mp-qr-' + id); if(el) drawQR(el, 'MUSICUIS|' + id + '|' + nombre); }, 400); }
 
-// ---- MUSIC PASS ----
-function mpHTML(id,nombre,programa,instrumento){
+function mpHTML(id, nombre, programa, instrumento) {
   return '<div class="mp">'
-    // ── Header ──
-    +'<div style="background:var(--gd);padding:12px 16px 10px">'
-    +'<div style="font-size:18px;font-weight:900;color:#fff;letter-spacing:0.5px;line-height:1;margin-bottom:6px">MUSIC PASS</div>'
-    +'<div style="display:flex;align-items:center;justify-content:space-between">'
-    +'<div style="font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--gl);text-transform:uppercase">\u266a Cursos de M\u00fasica UIS</div>'
-    +'<span style="background:rgba(133,159,61,.35);color:var(--gl);font-size:10px;font-weight:700;padding:2px 8px;border-radius:9px;border:1px solid rgba(133,159,61,.5)">2026-1</span>'
-    +'</div>'
-    +'</div>'
-    // ── Body ──
-    +'<div class="mp-bdy">'
-    +'<div class="mp-name">'+nombre+'</div>'
-    +'<div class="mp-prog">'+programa+(instrumento?' \u00b7 '+instrumento:'')+'</div>'
-    +'<div class="mp-chips">'
-    +'<span class="mp-cg">2026-1</span>'
-    +'<span class="mp-cpu">UIS Extensi\u00f3n</span>'
-    +'</div>'
-    // ── QR ──
-    +'<div class="mp-qz">'
-    +'<div id="mp-qr-'+id+'" style="display:flex;justify-content:center;align-items:center"></div>'
-    +'<div class="mp-ql">ID-'+String(id).padStart(4,'0')+'</div>'
-    +'</div>'
-    // ── Info ──
-    +'<div class="mp-info">'
-    +'<div class="mp-f"><span class="mp-fl">Instituci\u00f3n</span><span class="mp-fv">UIS</span></div>'
-    +'<div class="mp-f"><span class="mp-fl">\u00c1rea</span><span class="mp-fv">Extensi\u00f3n \u2013 M\u00fasica</span></div>'
-    +'<div class="mp-f"><span class="mp-fl">Vigencia</span><span style="display:flex;align-items:center;gap:5px"><span class="mp-fv">V\u00e1lido hasta 13 jun 2026</span><span class="badge bpu" style="font-size:9px;padding:2px 6px">VIGENTE</span></span></div>'
-    +'</div>'
-    +'</div>'
-    // ── Footer ──
-    +'<div class="mp-ftr">'
-    +'<span class="mp-fb">Universidad Industrial de Santander</span>'
-    +'<span style="color:var(--go);font-size:14px">\u266a</span>'
-    +'</div>'
-    +'</div>';
+    + '<div style="background:var(--gd);padding:12px 16px 10px">'
+    + '<div style="font-size:18px;font-weight:900;color:#fff;letter-spacing:0.5px;line-height:1;margin-bottom:6px">MUSIC PASS</div>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between">'
+    + '<div style="font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--gl);text-transform:uppercase">♪ Cursos de Música UIS</div>'
+    + '<span style="background:rgba(133,159,61,.35);color:var(--gl);font-size:10px;font-weight:700;padding:2px 8px;border-radius:9px;border:1px solid rgba(133,159,61,.5)">2026-1</span>'
+    + '</div></div>'
+    + '<div class="mp-bdy">'
+    + '<div class="mp-name">' + nombre + '</div>'
+    + '<div class="mp-prog">' + programa + (instrumento ? ' · ' + instrumento : '') + '</div>'
+    + '<div class="mp-chips"><span class="mp-cg">2026-1</span><span class="mp-cpu">UIS Extensión</span></div>'
+    + '<div class="mp-qz"><div id="mp-qr-' + id + '" style="display:flex;justify-content:center;align-items:center"></div>'
+    + '<div class="mp-ql">ID-' + String(id).padStart(4,'0') + '</div></div>'
+    + '<div class="mp-info">'
+    + '<div class="mp-f"><span class="mp-fl">Institución</span><span class="mp-fv">UIS</span></div>'
+    + '<div class="mp-f"><span class="mp-fl">Área</span><span class="mp-fv">Extensión – Música</span></div>'
+    + '<div class="mp-f"><span class="mp-fl">Vigencia</span><span style="display:flex;align-items:center;gap:5px"><span class="mp-fv">Válido hasta 13 jun 2026</span><span class="badge bpu" style="font-size:9px;padding:2px 6px">VIGENTE</span></span></div>'
+    + '</div></div>'
+    + '<div class="mp-ftr"><span class="mp-fb">Universidad Industrial de Santander</span><span style="color:var(--go);font-size:14px">♪</span></div>'
+    + '</div>';
 }
-function showMP(id,nombre,programa,instrumento){
-  var m=document.createElement('div');
-  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:3000;display:flex;align-items:center;justify-content:center;padding:14px;overflow-y:auto';
-  var inner=document.createElement('div');inner.style.position='relative';
-  inner.innerHTML=mpHTML(id,nombre,programa,instrumento)
-    +'<button onclick="this.closest(\'[style*=fixed]\').remove()" style="position:absolute;top:-8px;right:-8px;width:29px;height:29px;border-radius:50%;background:var(--gd);color:#fff;border:none;cursor:pointer;font-size:12px">✕</button>';
-  m.appendChild(inner);document.body.appendChild(m);
-  setTimeout(function(){var el=document.getElementById('mp-qr-'+id);if(el)drawQR(el,'MUSICUIS|'+id+'|'+nombre);},300);
-  m.addEventListener('click',function(e){if(e.target===m)m.remove();});
+function showMP(id, nombre, programa, instrumento) {
+  var m = document.createElement('div');
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:3000;display:flex;align-items:center;justify-content:center;padding:14px;overflow-y:auto';
+  var inner = document.createElement('div'); inner.style.position = 'relative';
+  inner.innerHTML = mpHTML(id, nombre, programa, instrumento)
+    + '<button onclick="this.closest(\'[style*=fixed]\').remove()" style="position:absolute;top:-8px;right:-8px;width:29px;height:29px;border-radius:50%;background:var(--gd);color:#fff;border:none;cursor:pointer;font-size:12px">✕</button>';
+  m.appendChild(inner); document.body.appendChild(m);
+  setTimeout(function(){ var el = document.getElementById('mp-qr-' + id); if(el) drawQR(el, 'MUSICUIS|' + id + '|' + nombre); }, 300);
+  m.addEventListener('click', function(e){ if(e.target===m) m.remove(); });
 }
-function printMP(id,nombre,programa,instrumento){showMP(id,nombre,programa,instrumento);setTimeout(function(){notify('🖨️ Usa Ctrl+P para imprimir');},500);}
-function goAllMP(){
-  document.getElementById('carnetsContainer').innerHTML='<div style="display:flex;flex-wrap:wrap;gap:16px;padding:4px">'+EST.map(function(s){return mpHTML(s.id,s.nombre,s.programa,s.instrumento||'');}).join('')+'</div>';
+function printMP(id, nombre, programa, instrumento) { showMP(id, nombre, programa, instrumento); setTimeout(function(){ notify('🖨️ Usa Ctrl+P para imprimir'); }, 500); }
+function goAllMP() {
+  document.getElementById('carnetsContainer').innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:16px;padding:4px">'
+    + EST_AM.map(function(s){ return mpHTML(s.id, s.nombre, s.programas[0]||'', ''); }).join('') + '</div>';
   showTab('carnets');
-  EST.forEach(function(s){genQR(s.id,s.nombre);});
+  EST_AM.forEach(function(s){ genQR(s.id, s.nombre); });
   notify('Music Pass generados');
 }
-function showAllMP(){goAllMP();}
+function showAllMP() { goAllMP(); }
 
-// ---- CONFIG / VINCULAR ----
-function copiarScript(){
-  var el=document.getElementById('scriptCode');
-  if(!el)return;
-  navigator.clipboard.writeText(el.textContent).then(function(){
-    notify('✅ Script copiado al portapapeles');
-  }).catch(function(){
-    notify('⚠️ Selecciona el código manualmente y copia con Ctrl+C');
+// ============================================================
+// PESTAÑA: CONFIGURACIÓN
+// ============================================================
+function renderCfg() {
+  var cu = document.getElementById('cfgUsers');
+  var cp = document.getElementById('cfgPins');
+  if (cu) cu.innerHTML = USERS.map(function(u){
+    return '<div class="ci2"><div><div class="cil">' + u.name + ' ' + u.surname + '</div><div class="cis">' + u.carnet + '</div></div>'
+      + '<span class="badge ' + (u.role==='coordinadora'?'br2':u.role==='logistico'?'bpu':'bo') + '">' + u.role + '</span></div>';
+  }).join('');
+  if (cp) cp.innerHTML = USERS.map(function(u){
+    return '<div class="ci2"><div><div class="cil">' + u.name + ' ' + u.surname + '</div><div class="cis">PIN: ' + '•'.repeat(u.pin.length) + '</div></div>'
+      + '<button class="btn btn-g" style="font-size:11px;padding:5px 11px" onclick="changePin(\'' + u.id + '\')">Cambiar</button></div>';
+  }).join('');
+}
+function changePin(uid) {
+  var p = prompt('Nuevo PIN (4 dígitos):');
+  if (p && /^\d{4}$/.test(p)) { USERS.find(function(u){ return u.id === uid; }).pin = p; notify('✅ PIN actualizado'); renderCfg(); }
+  else if (p) notify('⚠️ El PIN debe tener 4 dígitos');
+}
+
+function cargarValoresCfg() {
+  ['gsheets','sheetid'].forEach(function(k){
+    var el = document.getElementById('cfg-' + k);
+    if (el) el.value = localStorage.getItem('cfg_' + k) || '';
   });
 }
-function testSheetId(){
-  var id=localStorage.getItem('cfg_sheetid')||'';
-  var st=document.getElementById('cfg-sheetid-status');
-  if(!id){if(st)st.innerHTML='<span style="color:#c0392b">Pega el ID del spreadsheet</span>';return;}
-  if(st)st.innerHTML='<span style="color:var(--go)">Verificando...</span>';
-  // Use gviz API — publicly readable, no CORS, no auth
-  var url='https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?tqx=out:json&tq='+encodeURIComponent('SELECT 1 LIMIT 1');
-  var cbName='_sv_'+Date.now();
-  window[cbName]=function(data){
-    delete window[cbName];if(s&&s.parentNode)s.parentNode.removeChild(s);
-    if(st)st.innerHTML='<span style="color:var(--go)">\u2705 Hoja de c\u00e1lculo encontrada y accesible</span>';
-  };
-  var s=document.createElement('script');
-  s.src=url+'&callback='+cbName;
-  s.onerror=function(){
-    delete window[cbName];if(s.parentNode)s.parentNode.removeChild(s);
-    if(st)st.innerHTML='<span style="color:#c0392b">\u274c No se pudo acceder. Verifica: 1) ID correcto 2) La hoja est\u00e9 compartida como "Cualquiera con el enlace puede ver"</span>';
-  };
-  setTimeout(function(){if(window[cbName]){delete window[cbName];if(s&&s.parentNode)s.parentNode.removeChild(s);if(st)st.innerHTML='<span style="color:#856404">\u23f1 Tiempo agotado</span>';}},8000);
-  document.head.appendChild(s);
-}
-function saveCfg(key){
-  var val=(document.getElementById('cfg-'+key)||{value:''}).value;
-  localStorage.setItem('cfg_'+key,val);
-  var st=document.getElementById('cfg-'+key+'-status');
-  if(st)st.innerHTML='<span style="color:var(--go)">✅ Guardado</span>';
+
+function saveCfg(key) {
+  var val = (document.getElementById('cfg-' + key) || {value:''}).value.trim();
+  localStorage.setItem('cfg_' + key, val);
+  var st = document.getElementById('cfg-' + key + '-status');
+  if (st) st.innerHTML = '<span style="color:var(--go)">✅ Guardado</span>';
   updateSvcStatus();
   notify('Configuración guardada');
 }
-function testCfg(key){
-  var val=localStorage.getItem('cfg_'+key)||'';
-  var st=document.getElementById('cfg-'+key+'-status');
-  if(!val){
-    if(st)st.innerHTML='<span style="color:#c0392b">\u26a0\ufe0f Guarda la URL primero</span>';
-    return;
-  }
-  if(st)st.innerHTML='<span style="color:var(--go)">Probando conexi\u00f3n...</span>';
-  var target=val+'?action=ping';
-  var proxy='https://corsproxy.io/?'+encodeURIComponent(target);
-  fetch(proxy)
-    .then(function(r){return r.json();})
+
+function updateSvcStatus() {
+  var gs = localStorage.getItem('cfg_gsheets') || '';
+  var sid = localStorage.getItem('cfg_sheetid') || '';
+  var el = document.getElementById('svc-gsheets-badge');
+  if (el) el.textContent = (sid && gs) ? '✅ Conectado' : (sid || gs) ? '⚠️ Parcial' : '⏳ Pendiente';
+  var ed = document.getElementById('svc-gsheets-detail');
+  if (ed) ed.textContent = 'Asistencia y Faltas — ' + (sid ? 'ID: ' + sid.substring(0,20) + '...' : 'Sin configurar');
+}
+
+// Probar conexión GET al Apps Script
+function testCfg(key) {
+  var val = localStorage.getItem('cfg_' + key) || '';
+  var st = document.getElementById('cfg-' + key + '-status');
+  if (!val) { if(st) st.innerHTML = '<span style="color:#c0392b">⚠️ Guarda la URL primero</span>'; return; }
+  if (st) st.innerHTML = '<span style="color:var(--go)">Probando conexión...</span>';
+  fetch(val + '?action=ping')
+    .then(function(r){ return r.json(); })
     .then(function(d){
-      if(d&&d.ok){
-        if(st)st.innerHTML='<span style="color:var(--go)">\u2705 Conectado correctamente: '+d.msg+'</span>';
+      if (d && d.ok) {
+        if (st) st.innerHTML = '<span style="color:var(--go)">✅ Conectado: ' + d.msg + '</span>';
       } else {
-        if(st)st.innerHTML='<span style="color:#856404">\u26a0\ufe0f Respuesta inesperada: '+JSON.stringify(d)+'</span>';
+        if (st) st.innerHTML = '<span style="color:#856404">⚠️ Respuesta inesperada: ' + JSON.stringify(d) + '</span>';
       }
     })
-    .catch(function(e){
-      // Try direct as fallback
-      fetch(target)
-        .then(function(r){return r.json();})
-        .then(function(d){
-          if(d&&d.ok){
-            if(st)st.innerHTML='<span style="color:var(--go)">\u2705 Conectado: '+d.msg+'</span>';
-          }
-        })
-        .catch(function(){
-          if(st)st.innerHTML='<span style="color:#c0392b">\u274c No se puede conectar desde GitHub Pages. Ve a la URL del script directamente en el navegador y verifica que muestre {"ok":true}.</span>';
-        });
+    .catch(function(){
+      if (st) st.innerHTML = '<span style="color:#c0392b">❌ No se puede conectar. Verifica la URL y que esté desplegado como "Cualquier persona".</span>';
     });
 }
-function updateSvcStatus(){
-  var gs=localStorage.getItem('cfg_gsheets')||'';
-  var od=localStorage.getItem('cfg_onedrive')||'';
-  var gc=localStorage.getItem('cfg_gcal')||'';
-  var el;
-  el=document.getElementById('svc-gsheets-badge');
-  if(el)el.textContent=gs?'✅ Configurado':'⏳ Pendiente';
-  var sid=localStorage.getItem('cfg_sheetid')||'';
-  el=document.getElementById('svc-gsheets-badge');
-  if(el)el.textContent=(sid&&gs)?'✅ Conectado':(sid||gs)?'⚠️ Parcial':'⏳ Pendiente';
-  el=document.getElementById('svc-gsheets-detail');
-  if(el)el.textContent='Asistencia y Faltas — '+(sid?'ID: '+sid.substring(0,20)+'...' : 'Sin configurar');
-  el=document.getElementById('svc-onedrive-badge');
-  if(el)el.textContent=gs?'✅ Vía Apps Script':'⏳ Pendiente';
-  el=document.getElementById('svc-gcal-badge');
-  if(el)el.textContent=gc?'✅ Configurado':'⏳ Pendiente';
+
+// Probar Sheet ID via gviz
+function testSheetId() {
+  var id = localStorage.getItem('cfg_sheetid') || '';
+  var st = document.getElementById('cfg-sheetid-status');
+  if (!id) { if(st) st.innerHTML = '<span style="color:#c0392b">Pega el ID del spreadsheet</span>'; return; }
+  if (st) st.innerHTML = '<span style="color:var(--go)">Verificando...</span>';
+  var cbName = '_sv_' + Date.now();
+  var url = 'https://docs.google.com/spreadsheets/d/' + id + '/gviz/tq?tqx=out:json&tq=' + encodeURIComponent('SELECT 1 LIMIT 1') + '&callback=' + cbName;
+  window[cbName] = function(){ delete window[cbName]; if(s&&s.parentNode)s.parentNode.removeChild(s); if(st) st.innerHTML='<span style="color:var(--go)">✅ Hoja de cálculo accesible</span>'; };
+  var s = document.createElement('script');
+  s.src = url;
+  s.onerror = function(){ delete window[cbName]; if(s.parentNode)s.parentNode.removeChild(s); if(st) st.innerHTML='<span style="color:#c0392b">❌ No accesible. Verifica: 1) ID correcto 2) Compartida como "Cualquiera con el enlace puede ver"</span>'; };
+  setTimeout(function(){ if(window[cbName]){ delete window[cbName]; if(s&&s.parentNode)s.parentNode.removeChild(s); if(st) st.innerHTML='<span style="color:#856404">⏱ Tiempo agotado</span>'; } }, 8000);
+  document.head.appendChild(s);
 }
 
-if(!localStorage.getItem('cfg_gsheets'))localStorage.setItem('cfg_gsheets','https://script.google.com/macros/s/AKfycbyUKOD3y9GmChK12XE2RbaAy1lrNL4L4BrxNJp_FykQ6B4LG-fDHakbq1T3UWOH7Obf/exec');
-if(!localStorage.getItem('cfg_onedrive'))localStorage.setItem('cfg_onedrive','https://mailuis-my.sharepoint.com/:f:/g/personal/cursosmusica_uis_edu_co/IgDbeUURvYoJSrKbvirAuL72Ac5BKhOyC3u7MNMTHo6KNaw?e=K5QFof');
-if(!localStorage.getItem('cfg_sheetid'))localStorage.setItem('cfg_sheetid','1yYHcNGFutt5dcIhE6K7U7RUdCQLZG2JmtgrZZ5Bb7jk');
-
-// ── Google Apps Script communication ──
-// NOTA TÉCNICA: Google Apps Script con "Cualquiera puede acceder" responde a GET
-// sin restricciones CORS. Enviamos todos los datos como parámetros de URL (GET)
-// para evitar el problema de CORS que afecta a los POST desde GitHub Pages.
-function gsUrl(){return localStorage.getItem('cfg_gsheets')||'';}
-
-function gsGet(params,cb){
-  var url=gsUrl();
-  if(!url){if(cb)cb(null);return;}
-  var qs=Object.keys(params).map(function(k){
-    return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);
-  }).join('&');
-  var target=url+'?'+qs;
-  fetch(target)
-    .then(function(r){return r.json();})
-    .then(function(d){if(cb)cb(d);})
-    .catch(function(){if(cb)cb(null);});
+function abrirScript() {
+  var url = localStorage.getItem('cfg_gsheets') || '';
+  if (!url) { notify('Guarda la URL primero'); return; }
+  window.open(url + '?action=ping', '_blank');
+  notify('Se abrió la URL en nueva pestaña. Debe mostrar {"ok":true}');
 }
 
-// gsPost: enviamos como GET con todos los campos como parámetros de URL.
-// Esto evita el problema de CORS/redirección que afecta a fetch POST desde GitHub Pages.
-function gsPost(payload,cb){
-  var url=gsUrl();
-  if(!url){if(cb)cb(null);return;}
-  var qs=Object.keys(payload).map(function(k){
-    return encodeURIComponent(k)+'='+encodeURIComponent(payload[k]||'');
-  }).join('&');
-  var target=url+'?'+qs;
-  fetch(target)
-    .then(function(r){return r.json();})
-    .then(function(d){if(cb)cb(d);})
-    .catch(function(){if(cb)cb(null);});
+function copiarScript() {
+  var el = document.getElementById('scriptCode'); if (!el) return;
+  navigator.clipboard && navigator.clipboard.writeText(el.textContent)
+    .then(function(){ notify('✅ Script copiado al portapapeles'); })
+    .catch(function(){ notify('⚠️ Selecciona el código manualmente y copia con Ctrl+C'); });
 }
 
+// ── Arrancar ──
 init();
 </script>
 </body>
