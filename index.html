@@ -946,21 +946,20 @@ let _lastSyncTime=0;
 // Comunicación con Google Sheets via GET (sin CORS).
 // ============================================================
 
-// ── Defaults de configuración ──
-(function(){
-  var defs = {
-    'cfg_sheetid': '1yYHcNGFutt5dcIhE6K7U7RUdCQLZG2JmtgrZZ5Bb7jk',
-    'cfg_gsheets': 'https://script.google.com/macros/s/AKfycbyUKOD3y9GmChK12XE2RbaAy1lrNL4L4BrxNJp_FykQ6B4LG-fDHakbq1T3UWOH7Obf/exec'
-  };
-  Object.keys(defs).forEach(function(k){
-    if(!localStorage.getItem(k)) localStorage.setItem(k, defs[k]);
-  });
-})();
+// ── Configuración centralizada — igual en TODOS los dispositivos ──
+// Cambiar aquí actualiza automáticamente para todos sin tocar nada más.
+var GS_SHEET_ID   = '1fm6LqodGvOR2SamCuxhJLIPrOag1QVWqMEoT8i_VI-w';
+var GS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx9lnsVYJy3Z0c3Mbp8R5hnK8Du-GYx2SqHsYaiObIIV29xKJotHLA2syLJvqvMmkwU/exec';
+
+// Sincronizar localStorage con los valores del código
+// (si el localStorage tiene algo diferente, el código gana)
+localStorage.setItem('cfg_sheetid', GS_SHEET_ID);
+localStorage.setItem('cfg_gsheets', GS_SCRIPT_URL);
 
 // ============================================================
 // GOOGLE SHEETS — Todas las escrituras van por GET para evitar CORS
 // ============================================================
-function gsUrl(){ return localStorage.getItem('cfg_gsheets') || ''; }
+function gsUrl(){ return GS_SCRIPT_URL; }
 
 // Envía datos a Google Sheets via GET (sin CORS, sin proxy)
 function gsEnviar(params, cb) {
@@ -999,7 +998,7 @@ function gsEnviar(params, cb) {
 
 // Lee datos de una hoja via gviz (sin auth, no requiere login Google)
 function gsLeerHoja(nombre, cb) {
-  var sid = localStorage.getItem('cfg_sheetid') || '';
+  var sid = GS_SHEET_ID;
   if (!sid) { cb([]); return; }
   var cbName = '_gv_' + Date.now() + '_' + Math.random().toString(36).slice(2);
   var url = 'https://docs.google.com/spreadsheets/d/' + sid
@@ -2074,15 +2073,18 @@ function changePin(uid) {
 }
 
 function cargarValoresCfg() {
-  ['gsheets','sheetid'].forEach(function(k){
-    var el = document.getElementById('cfg-' + k);
-    if (el) el.value = localStorage.getItem('cfg_' + k) || '';
-  });
+  var elGs = document.getElementById('cfg-gsheets');
+  var elSid = document.getElementById('cfg-sheetid');
+  if (elGs)  elGs.value  = GS_SCRIPT_URL;
+  if (elSid) elSid.value = GS_SHEET_ID;
 }
 
 function saveCfg(key) {
   var val = (document.getElementById('cfg-' + key) || {value:''}).value.trim();
   localStorage.setItem('cfg_' + key, val);
+  // También actualizar la constante en memoria para esta sesión
+  if (key === 'gsheets') GS_SCRIPT_URL = val;
+  if (key === 'sheetid') GS_SHEET_ID   = val;
   var st = document.getElementById('cfg-' + key + '-status');
   if (st) st.innerHTML = '<span style="color:var(--go)">✅ Guardado</span>';
   updateSvcStatus();
@@ -2090,8 +2092,8 @@ function saveCfg(key) {
 }
 
 function updateSvcStatus() {
-  var gs = localStorage.getItem('cfg_gsheets') || '';
-  var sid = localStorage.getItem('cfg_sheetid') || '';
+  var gs = GS_SCRIPT_URL;
+  var sid = GS_SHEET_ID;
   var el = document.getElementById('svc-gsheets-badge');
   if (el) el.textContent = (sid && gs) ? '✅ Conectado' : (sid || gs) ? '⚠️ Parcial' : '⏳ Pendiente';
   var ed = document.getElementById('svc-gsheets-detail');
@@ -2120,7 +2122,7 @@ function testCfg(key) {
 
 // Probar Sheet ID via gviz
 function testSheetId() {
-  var id = localStorage.getItem('cfg_sheetid') || '';
+  var id = GS_SHEET_ID;
   var st = document.getElementById('cfg-sheetid-status');
   if (!id) { if(st) st.innerHTML = '<span style="color:#c0392b">Pega el ID del spreadsheet</span>'; return; }
   if (st) st.innerHTML = '<span style="color:var(--go)">Verificando...</span>';
@@ -2135,8 +2137,8 @@ function testSheetId() {
 }
 
 function abrirScript() {
-  var url = localStorage.getItem('cfg_gsheets') || '';
-  if (!url) { notify('Guarda la URL primero'); return; }
+  var url = GS_SCRIPT_URL;
+  if (!url) { notify('URL no configurada'); return; }
   window.open(url + '?action=ping', '_blank');
   notify('Se abrió la URL en nueva pestaña. Debe mostrar {"ok":true}');
 }
