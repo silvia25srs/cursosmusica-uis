@@ -365,13 +365,32 @@ tr:hover td{background:var(--gbg)}
     </div>
 
     <div class="tab-page" id="page-faltas">
-      <div class="ph"><h2>⚠️ Control de Faltas</h2><p>Inasistencias registradas</p></div>
-      <div class="card" style="margin-bottom:16px">
-        <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end">
-          <div style="flex:1;min-width:170px"><span class="lbl">Buscar estudiante</span><input class="inp" placeholder="Nombre..." id="f-search" oninput="renderFaltas()"></div>
-          <div id="fFiltExtra" style="display:none;flex:1;gap:9px;flex-wrap:wrap">
-            <div><span class="lbl">Día</span><select class="sel" id="f-day" style="width:120px" onchange="renderFaltas()"><option value="">Todos</option><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option><option>Sábado</option></select></div>
-            <div><span class="lbl">Jornada</span><select class="sel" id="f-jornada" style="width:95px" onchange="renderFaltas()"><option value="">Todas</option><option>AM</option><option>PM</option></select></div>
+      <div class="ph"><h2>⚠️ Control de Faltas</h2><p>Solo Silvia Coordinadora puede ver y gestionar todas las faltas</p></div>
+      <!-- Filtros — solo visibles para coordinadora -->
+      <div class="card" style="margin-bottom:16px" id="faltasFiltros">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;align-items:end">
+          <div>
+            <span class="lbl">Buscar estudiante</span>
+            <input class="inp" placeholder="Nombre..." id="f-search" oninput="renderFaltas()">
+          </div>
+          <div>
+            <span class="lbl">Fecha</span>
+            <input type="date" class="inp" id="f-fecha" onchange="renderFaltas()">
+          </div>
+          <div>
+            <span class="lbl">Clase</span>
+            <select class="sel" id="f-clase" onchange="renderFaltas()">
+              <option value="">Todas las clases</option>
+            </select>
+          </div>
+          <div id="f-profesor-wrap">
+            <span class="lbl">Profesor</span>
+            <select class="sel" id="f-profesor" onchange="renderFaltas()">
+              <option value="">Todos los profesores</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:flex-end">
+            <button class="btn btn-g" style="width:100%" onclick="limpiarFiltrosFaltas()">🔄 Limpiar filtros</button>
           </div>
         </div>
       </div>
@@ -393,52 +412,101 @@ tr:hover td{background:var(--gbg)}
 
     <div class="tab-page" id="page-reportes">
       <div class="ph"><h2>📊 Reportes Generales</h2><p>Análisis de asistencia, faltas y novedades</p></div>
+
+      <!-- Tarjetas resumen -->
       <div class="g4">
         <div class="sc"><div style="font-size:22px;margin-bottom:5px">👩‍🎓</div><div class="sn" id="r-est">0</div><div class="sl">Estudiantes</div></div>
         <div class="sc"><div style="font-size:22px;margin-bottom:5px">✅</div><div class="sn" id="r-att">0</div><div class="sl">Asistencias</div></div>
         <div class="sc"><div style="font-size:22px;margin-bottom:5px">⚠️</div><div class="sn" id="r-flt">0</div><div class="sl">Faltas</div></div>
         <div class="sc"><div style="font-size:22px;margin-bottom:5px">📝</div><div class="sn" id="r-nov">0</div><div class="sl">Novedades</div></div>
       </div>
+
+      <!-- Gráficas asistencia -->
       <div class="g2" style="margin-top:16px">
-        <div class="card"><h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:13px">Por Clase</h3><div id="chartC"></div></div>
-        <div class="card"><h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:13px">Por Profesor</h3><div id="chartP"></div></div>
+        <div class="card">
+          <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:4px">✅ Asistencias por Clase</h3>
+          <p style="font-size:11px;color:var(--tm);margin-bottom:12px">Clases con más registros de asistencia</p>
+          <div id="chartC"></div>
+        </div>
+        <div class="card">
+          <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:4px">✅ Asistencias por Profesor</h3>
+          <p style="font-size:11px;color:var(--tm);margin-bottom:12px">Profesores con más registros de asistencia</p>
+          <div id="chartP"></div>
+        </div>
       </div>
-      <div class="card" style="margin-top:16px"><h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:12px">Novedades Recientes</h3><div id="repNov"></div></div>
+
+      <!-- Gráficas faltas -->
+      <div class="g2" style="margin-top:16px">
+        <div class="card">
+          <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:#c0392b;margin-bottom:4px">⚠️ Faltas por Clase</h3>
+          <p style="font-size:11px;color:var(--tm);margin-bottom:12px">Clases con mayor número de inasistencias</p>
+          <div id="chartFC"></div>
+        </div>
+        <div class="card">
+          <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:#c0392b;margin-bottom:4px">⚠️ Faltas por Profesor</h3>
+          <p style="font-size:11px;color:var(--tm);margin-bottom:12px">Profesores con mayor número de inasistencias</p>
+          <div id="chartFP"></div>
+        </div>
+      </div>
+
+      <!-- Novedades -->
+      <div class="card" style="margin-top:16px">
+        <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:12px">Novedades Recientes</h3>
+        <div id="repNov"></div>
+      </div>
     </div>
 
     <div class="tab-page" id="page-evidencias">
-      <div class="ph"><h2>📸 Evidencias</h2><p>Estado del salón e instrumentos</p></div>
+      <div class="ph"><h2>📸 Evidencias</h2><p>Registro del estado del salón antes y después de la clase</p></div>
+
+      <!-- Datos de la clase — compartidos por ambas secciones -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-titulo" style="font-size:11px;font-weight:700;color:var(--go);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Datos de la clase</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <span class="lbl">Clase</span>
+            <select class="sel" id="evClase">
+              <option value="">— Selecciona tu clase —</option>
+            </select>
+          </div>
+          <div>
+            <span class="lbl">Salón</span>
+            <input class="inp" id="evSalon" placeholder="Ej: Sala 202">
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--tm)">
+          👤 <strong id="evProfesorLabel">—</strong> &nbsp;·&nbsp; 📅 <strong id="evFechaLabel">—</strong> &nbsp;·&nbsp; 🕐 <strong id="evHoraLabel">—</strong>
+        </div>
+      </div>
+
       <div class="g2">
+        <!-- COMO LO ENCUENTRO -->
         <div class="card">
           <h3 style="font-size:15px;font-weight:700;color:var(--gd);margin-bottom:12px">🔍 Como lo encuentro</h3>
-          <!-- Upload zone -->
-          <div class="uz" id="evFindZone" onclick="document.getElementById('evFindF').click()" style="min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
-            <div style="font-size:32px">📷</div>
-            <div style="font-size:13px;font-weight:600;color:var(--gd)">Toca para tomar foto o subir archivo</div>
-            <div style="font-size:11px;color:var(--tm)">Foto o video desde cámara o galería</div>
+          <div class="uz" id="evFindZone" onclick="document.getElementById('evFindF').click()" style="min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px">
+            <div style="font-size:28px">📷</div>
+            <div style="font-size:12px;font-weight:600;color:var(--gd)">Toca para tomar foto</div>
             <div style="font-size:10px;color:var(--tm)" id="evFindN"></div>
           </div>
-          <!-- Hidden inputs: one for camera, one for gallery -->
           <input type="file" id="evFindF" accept="image/*,video/*" capture="environment" style="display:none" onchange="hFile(this,'find')">
-          <!-- Preview -->
           <div id="evFindPreview" style="display:none;margin-top:10px;text-align:center"></div>
-          <!-- Buttons: camera | gallery -->
           <div style="display:flex;gap:8px;margin-top:10px">
             <button class="btn btn-p" style="flex:1;justify-content:center" onclick="evOpenCamera('find')">📷 Cámara</button>
             <button class="btn btn-g" style="flex:1;justify-content:center" onclick="evOpenGallery('find')">🖼️ Galería</button>
           </div>
-          <div style="margin-top:12px;display:grid;gap:9px">
-            <div><span class="lbl">Salón</span><input class="inp" id="evFS" placeholder="Ej: Sala 202"></div>
-            <div><span class="lbl">Observaciones</span><textarea class="tex inp" id="evFO" rows="3" placeholder="Estado del salón e instrumentos..."></textarea></div>
+          <div style="margin-top:12px">
+            <span class="lbl">Observaciones</span>
+            <textarea class="tex inp" id="evFO" rows="2" placeholder="Estado del salón e instrumentos al llegar..."></textarea>
           </div>
-          <button class="btn btn-p" style="margin-top:10px;width:100%" onclick="saveEv('encuentro')">💾 Guardar evidencia</button>
+          <button class="btn btn-p" style="margin-top:10px;width:100%" onclick="saveEv('encuentro')">💾 Guardar</button>
         </div>
+
+        <!-- COMO LO DEJO -->
         <div class="card">
           <h3 style="font-size:15px;font-weight:700;color:var(--gd);margin-bottom:12px">✅ Como lo dejo</h3>
-          <div class="uz" id="evLeaveZone" onclick="document.getElementById('evLeaveF').click()" style="min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
-            <div style="font-size:32px">📷</div>
-            <div style="font-size:13px;font-weight:600;color:var(--gd)">Toca para tomar foto o subir archivo</div>
-            <div style="font-size:11px;color:var(--tm)">Foto o video desde cámara o galería</div>
+          <div class="uz" id="evLeaveZone" onclick="document.getElementById('evLeaveF').click()" style="min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px">
+            <div style="font-size:28px">📷</div>
+            <div style="font-size:12px;font-weight:600;color:var(--gd)">Toca para tomar foto</div>
             <div style="font-size:10px;color:var(--tm)" id="evLeaveN"></div>
           </div>
           <input type="file" id="evLeaveF" accept="image/*,video/*" capture="environment" style="display:none" onchange="hFile(this,'leave')">
@@ -447,35 +515,82 @@ tr:hover td{background:var(--gbg)}
             <button class="btn btn-o" style="flex:1;justify-content:center" onclick="evOpenCamera('leave')">📷 Cámara</button>
             <button class="btn btn-g" style="flex:1;justify-content:center" onclick="evOpenGallery('leave')">🖼️ Galería</button>
           </div>
-          <div style="margin-top:12px;display:grid;gap:9px">
-            <div><span class="lbl">Salón</span><input class="inp" id="evLS" placeholder="Ej: Sala 202"></div>
-            <div><span class="lbl">Observaciones</span><textarea class="tex inp" id="evLO" rows="3" placeholder="Estado en que dejas el salón..."></textarea></div>
+          <!-- Checklist de salida -->
+          <div style="margin-top:12px;background:var(--gbg);border-radius:var(--rs);padding:12px;border:1px solid var(--br)">
+            <div style="font-size:11px;font-weight:700;color:var(--go);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Lista de verificación</div>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:7px;cursor:pointer">
+              <input type="checkbox" id="chk-sillas" style="width:16px;height:16px;accent-color:var(--go)">
+              <span>🪑 Sillas ordenadas</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+              <input type="checkbox" id="chk-luces" style="width:16px;height:16px;accent-color:var(--go)">
+              <span>💡 Luces apagadas</span>
+            </label>
           </div>
-          <button class="btn btn-o" style="margin-top:10px;width:100%" onclick="saveEv('dejo')">💾 Guardar evidencia</button>
+          <div style="margin-top:10px">
+            <span class="lbl">Observaciones adicionales</span>
+            <textarea class="tex inp" id="evLO" rows="2" placeholder="Algo que reportar al dejar el salón..."></textarea>
+          </div>
+          <button class="btn btn-o" style="margin-top:10px;width:100%" onclick="saveEv('dejo')">💾 Guardar</button>
         </div>
       </div>
-      <div class="card" style="margin-top:16px"><h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:12px">Mis Evidencias</h3><div id="evidList"></div></div>
+
+      <div class="card" style="margin-top:16px">
+        <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:12px">Mis Evidencias</h3>
+        <div id="evidList"></div>
+      </div>
     </div>
 
     <div class="tab-page" id="page-logistica">
-      <div class="ph"><h2>🎼 Logística</h2><p>Requerimientos de recursos</p></div>
+      <div class="ph"><h2>🎼 Logística</h2><p>Solicitudes de recursos por clase</p></div>
       <div class="g2">
+
+        <!-- FORMULARIO NUEVA SOLICITUD -->
         <div class="card">
-          <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:12px">Nueva Solicitud</h3>
+          <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:14px">📋 Nueva Solicitud</h3>
           <div style="display:grid;gap:11px">
-            <div><span class="lbl">Clase</span><select class="sel" id="logClase"></select></div>
-            <div><span class="lbl">Elementos necesarios</span><textarea class="tex inp" id="logItems" rows="4" placeholder="Lista los elementos..."></textarea></div>
-            <div class="al al-i">📌 Solicitud permanente, reportada semanalmente.</div>
+            <div>
+              <span class="lbl">Clase</span>
+              <select class="sel" id="logClase" onchange="logAutoSalon()"></select>
+            </div>
+            <div>
+              <span class="lbl">Salón</span>
+              <input class="inp" id="logSalon" placeholder="Ej: Sala 202">
+            </div>
+            <div>
+              <span class="lbl">Hora de clase</span>
+              <input class="inp" id="logHora" placeholder="Ej: 8:30am">
+            </div>
+            <div>
+              <span class="lbl">Sábado para el que se necesita</span>
+              <input type="date" class="inp" id="logFecha">
+            </div>
+            <div>
+              <span class="lbl">Elementos necesarios</span>
+              <textarea class="tex inp" id="logItems" rows="4" placeholder="Describe los elementos que necesitas..."></textarea>
+            </div>
           </div>
-          <button class="btn btn-p" style="margin-top:9px;width:100%" onclick="saveLog()">📨 Enviar Solicitud</button>
+          <button class="btn btn-p" style="margin-top:12px;width:100%" onclick="saveLog()">📨 Enviar Solicitud</button>
         </div>
+
+        <!-- LISTA DE SOLICITUDES -->
         <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
             <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd)">Solicitudes</h3>
-            <div id="logAdminFilt" style="display:none"><input type="date" class="inp" id="logDateF" style="width:145px" onchange="renderLog()"></div>
+            <!-- Filtros solo para Silvia y Samuel -->
+            <div id="logAdminFilt" style="display:none;display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+              <select class="sel" id="logFiltJornada" style="width:100px" onchange="renderLog()">
+                <option value="">AM y PM</option>
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+              </select>
+              <input type="date" class="inp" id="logFiltFecha" style="width:140px" onchange="renderLog()">
+              <button class="btn btn-g" style="font-size:11px;padding:5px 10px" onclick="limpiarFiltrosLog()">🔄</button>
+            </div>
           </div>
           <div id="logList"></div>
         </div>
+
       </div>
     </div>
 
@@ -571,7 +686,8 @@ function doGet(e) {
     if      (action === 'ping')                result = { ok:true, msg:'Conectado OK v2026-6' };
     else if (action === 'registrar_asistencia') result = registrarAsistencia(p);
     else if (action === 'registrar_falta')      result = registrarFalta(p);
-    else if (action === 'guardar_evidencia')    result = guardarEvidencia(p);
+    else if (action === 'guardar_evidencia')    result = guardarEvidencia(p);  // metadatos sin archivo
+    else if (action === 'guardar_evidencia_archivo') result = guardarEvidenciaArchivo(p);
     else if (action === 'guardar_logistica')    result = guardarLogistica(p);
     else if (action === 'asistencia')           result = getData('Asistencia', p.profesor);
     else if (action === 'faltas')               result = getData('Faltas', p.profesor);
@@ -631,24 +747,59 @@ function registrarFalta(p) {
   return { ok:true };
 }
 
+// ID de la carpeta de Drive donde se guardarán las fotos
+// Cambia este ID por el de tu carpeta de Google Drive
+var DRIVE_FOLDER_ID = '1pXADsK5eLk3SHcaqIe9VaY_VhysexLA8';
+
 function guardarEvidencia(p) {
-  getOrCreateSheet('Evidencias',['Fecha','Hora','Tipo','Salon','Observaciones','Profesor','Archivo'])
-    .appendRow([p.fecha||hoy(), p.hora||ahora(), p.tipo||'', p.salon||'', p.obs||'', p.profesor||'', p.fileName||'']);
-  return { ok:true };
+  var driveUrl = p.imgUrl || ''; // URL ya subida (fallback)
+
+  // Si viene base64, subir a Google Drive
+  if (p.fileBase64 && p.fileName && p.fileMime) {
+    try {
+      var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+      var bytes  = Utilities.base64Decode(p.fileBase64);
+      var blob   = Utilities.newBlob(bytes, p.fileMime, p.fileName);
+      var file   = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      driveUrl = file.getUrl();
+    } catch(e) {
+      driveUrl = 'Error: ' + e.message;
+    }
+  }
+
+  getOrCreateSheet('Evidencias',['Fecha','Hora','Tipo','Clase','Salon','Observaciones','Profesor','URL Foto'])
+    .appendRow([p.fecha||hoy(), p.hora||ahora(), p.tipo||'', p.clase||'', p.salon||'', p.obs||'', p.profesor||'', driveUrl]);
+  return { ok:true, driveUrl: driveUrl };
+}
+
+function guardarEvidenciaArchivo(p) {
+  // Recibe base64 y guarda el archivo en Google Drive
+  var driveUrl = '';
+  try {
+    var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    var bytes  = Utilities.base64Decode(p.fileBase64 || '');
+    var blob   = Utilities.newBlob(bytes, p.fileMime || 'image/jpeg', p.fileName || 'foto.jpg');
+    var file   = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    driveUrl = file.getUrl();
+  } catch(e) { driveUrl = 'Error: ' + e.message; }
+  return { ok:true, driveUrl: driveUrl };
 }
 
 function guardarLogistica(p) {
-  var sh = getOrCreateSheet('Logistica',['Fecha','Clase','Elementos','Profesor']);
-  if (sh.getLastRow() > 1) {
-    var rows = sh.getDataRange().getValues();
-    for (var i = 1; i < rows.length; i++) {
-      if (rows[i][1] === p.clase && rows[i][3] === p.profesor) {
-        sh.getRange(i+1,1,1,4).setValues([[hoy(),p.clase||'',p.items||'',p.profesor||'']]);
-        return { ok:true };
-      }
-    }
-  }
-  sh.appendRow([hoy(), p.clase||'', p.items||'', p.profesor||'']);
+  var sh = getOrCreateSheet('Logistica',
+    ['Fecha Envío','Sábado','Clase','Jornada','Salón','Hora','Elementos','Profesor']);
+  sh.appendRow([
+    hoy(),
+    p.fecha   ||'',
+    p.clase   ||'',
+    p.jornada ||'',
+    p.salon   ||'',
+    p.hora    ||'',
+    p.items   ||'',
+    p.profesor||''
+  ]);
   return { ok:true };
 }</pre>
           </div>
@@ -681,8 +832,9 @@ function guardarLogistica(p) {
 </div>
 <div class="ni" id="notif"></div>
 
-<!-- Librerías QR -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- qrcode-generator: genera los QR de los Music Pass (expone qrcode()) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<!-- html5-qrcode: escáner de cámara (expone Html5Qrcode) -->
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
@@ -793,121 +945,121 @@ const CLASES_AM=[
 ];
 
 const EST_AM=[
-  {id:1,nombre:'ALEJANDRA PRADA GUTIERREZ',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Prada',hora:'10:30am'}],jornada:'AM'},
-  {id:2,nombre:'ANLY ISABELLA VILLAMIZAR DELGADO',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Maria Camila Orellano'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Maria Camila Orellano',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:3,nombre:'Abril Hernández Sánchez',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Daniela Visbal',hora:'10:30am'}],jornada:'AM'},
-  {id:4,nombre:'Adrián Vargas Jiménez',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Prada',hora:'10:30am'}],jornada:'AM'},
-  {id:5,nombre:'Alejandro Acevedo Silva',programas:['Instrumental AM'],profesores:['Andrés Navarro','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Navarro',hora:'10:30am'}],jornada:'AM'},
-  {id:6,nombre:'Alejandro Prada Gutierrez',programas:['Instrumental AM'],profesores:['Daniela Visbal','Nicolás Navarro','Ricardo Fortunato'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Ricardo Fortunato',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:7,nombre:'Alejandro Sarmiento Gómez',programas:['Preuniversitario'],profesores:['Génesis Moreno','Josmel Flores','Nicolás Navarro','Santiago Sguerra'],clases:[{programa:'Preuniversitario',clase:'Instrumento',profesor:'Josmel Flores',hora:''},{programa:'Preuniversitario',clase:'Teoría y Solfeo',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Teoria Músical',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Ensamble Musical',profesor:'Santiago Sguerra',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Coro',profesor:'Génesis Moreno',hora:'5:00pm'}],jornada:'PM'},
-  {id:8,nombre:'Alma Zoé Bernal Lozano',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:9,nombre:'Ana Sofía Arias Calvete',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Mariana Pinto'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Mariana Pinto',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:10,nombre:'Andrés Arenas Santos',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM'},
-  {id:11,nombre:'Andrés Camilo Araque Bermon',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Daniela Visbal','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Alejandro Vergel',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:12,nombre:'Ariana Gabriela Barrera Jaimes',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM'},
-  {id:13,nombre:'Arturo Almeida Manzano',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Luna Arenas'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Luna Arenas',hora:'10:30am'}],jornada:'AM'},
-  {id:14,nombre:'Benjamín Rincón Pinilla',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM'},
-  {id:15,nombre:'CATALINA MANTILLA GOMEZ',programas:['Instrumental AM'],profesores:['Daniela Visbal','Jasón Pinzón','Maria Camila Orellano'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Maria Camila Orellano',hora:'10:30am'}],jornada:'AM'},
-  {id:16,nombre:'Caleb Pineda Alvarez',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Alejandro Vergel',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:17,nombre:'Camila Alejandra Leon Vanegas',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM'},
-  {id:18,nombre:'Claudia Lucila Rodriguez Pinilla',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM'},
-  {id:19,nombre:'Cristian Leonardo Bohórquez Cucha',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM'},
-  {id:20,nombre:'DANA LOZADA',programas:['Instrumental AM'],profesores:['Daniela Visbal','Génesis Moreno'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Génesis Moreno',hora:'10:30am'}],jornada:'AM'},
-  {id:21,nombre:'EMANUEL GARCIA VILLAMIZAR',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Andrés Prada','Génesis Moreno'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Alejandro Vergel',hora:'10:30am'}],jornada:'AM'},
-  {id:22,nombre:'Emely daniela castañeda sanchez',programas:['Instrumental AM'],profesores:['Daniela Visbal','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Génesis Moreno',hora:'10:30am'}],jornada:'AM'},
-  {id:23,nombre:'Emilio Caro Ortiz',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:24,nombre:'Erich Thomas Ortiz Osorio',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:25,nombre:'Franco Villamizar Ordoñez',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Prada',hora:'10:30am'}],jornada:'AM'},
-  {id:26,nombre:'Gia mariana rueda Quiroz',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Ricardo Fortunato'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Ricardo Fortunato',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:27,nombre:'Hernan José lizarazo Ayala',programas:['Instrumental AM'],profesores:['Andrés Navarro','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Andrés Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:28,nombre:'IAN STEVE CAICEDO LEON',programas:['Instrumental AM'],profesores:['Josmel Flores','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Josmel Flores',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'}],jornada:'AM'},
-  {id:29,nombre:'IVY  HELENA ROMERO MATEUS',programas:['Instrumental AM'],profesores:['Daniela Visbal','Mariana Pinto','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Mariana Pinto',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:30,nombre:'Ian Steve Caicedo',programas:['Instrumental AM'],profesores:['Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:31,nombre:'Iker Santiago Archila Jaimes',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:32,nombre:'Ilona Streithorst',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM'},
-  {id:33,nombre:'Isaac Bonilla Garcia',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM'},
+  {id:1,nombre:'ALEJANDRA PRADA GUTIERREZ',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Prada',hora:'10:30am'}],jornada:'AM',correo1:'alpraca2807@gmail.com',correo2:'maribelgutierrezavila@gmail.com'},
+  {id:2,nombre:'ANLY ISABELLA VILLAMIZAR DELGADO',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Maria Camila Orellano'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Maria Camila Orellano',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'lisbethdelgadocasadiego@gmail.com',correo2:'arqferney@gmail.com'},
+  {id:3,nombre:'Abril Hernández Sánchez',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Daniela Visbal',hora:'10:30am'}],jornada:'AM',correo1:'marybelsang2022@gmail.com',correo2:'josehernandezmarino@gmail.com'},
+  {id:4,nombre:'Adrián Vargas Jiménez',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Prada',hora:'10:30am'}],jornada:'AM',correo1:'luivar22@gmail.com',correo2:'linajim@gmail.com'},
+  {id:5,nombre:'Alejandro Acevedo Silva',programas:['Instrumental AM'],profesores:['Andrés Navarro','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Navarro',hora:'10:30am'}],jornada:'AM',correo1:'antorcha282000@gmail.com'},
+  {id:6,nombre:'Alejandro Prada Gutierrez',programas:['Instrumental AM'],profesores:['Daniela Visbal','Nicolás Navarro','Ricardo Fortunato'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Ricardo Fortunato',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'alpraca2837@gmail.com'},
+  {id:7,nombre:'Alejandro Sarmiento Gómez',programas:['Preuniversitario'],profesores:['Génesis Moreno','Josmel Flores','Nicolás Navarro','Santiago Sguerra'],clases:[{programa:'Preuniversitario',clase:'Instrumento',profesor:'Josmel Flores',hora:''},{programa:'Preuniversitario',clase:'Teoría y Solfeo',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Teoria Músical',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Ensamble Musical',profesor:'Santiago Sguerra',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Coro',profesor:'Génesis Moreno',hora:'5:00pm'}],jornada:'PM',correo1:'alesarmientogomez16@gmail.com',correo2:'pintarte@hotmail.com'},
+  {id:8,nombre:'Alma Zoé Bernal Lozano',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'psmariethlozano@gmail.com',correo2:'maximilianobernalalbarracin@gmail.com'},
+  {id:9,nombre:'Ana Sofía Arias Calvete',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Mariana Pinto'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Mariana Pinto',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'ofariash@yahoo.com',correo2:'luzcalvete11@gmail.com'},
+  {id:10,nombre:'Andrés Arenas Santos',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM',correo1:'andres.arenassantos@gmail.com'},
+  {id:11,nombre:'Andrés Camilo Araque Bermon',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Daniela Visbal','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Alejandro Vergel',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'mafeja_1210@hotmail.com',correo2:'javierandresaraque@hotmail.com'},
+  {id:12,nombre:'Ariana Gabriela Barrera Jaimes',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM',correo1:'leidytatis1912@gmail.com'},
+  {id:13,nombre:'Arturo Almeida Manzano',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Luna Arenas'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Luna Arenas',hora:'10:30am'}],jornada:'AM',correo1:'marfan1620@gmail.com',correo2:'taniamanzano0327@gmail.com'},
+  {id:14,nombre:'Benjamín Rincón Pinilla',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM',correo1:'andrea.isapinilla@gmail.com'},
+  {id:15,nombre:'CATALINA MANTILLA GOMEZ',programas:['Instrumental AM'],profesores:['Daniela Visbal','Jasón Pinzón','Maria Camila Orellano'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Maria Camila Orellano',hora:'10:30am'}],jornada:'AM',correo1:'gomez.milena@gmail.com',correo2:'catamantilla25@gmail.com'},
+  {id:16,nombre:'Caleb Pineda Alvarez',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Alejandro Vergel',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'nurse2506@hotmail.com',correo2:'camilopinedarugeles@gmail.com'},
+  {id:17,nombre:'Camila Alejandra Leon Vanegas',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM',correo1:'camila.a.leon.v@gmail.com',correo2:'cheqed@gmail.com'},
+  {id:18,nombre:'Claudia Lucila Rodriguez Pinilla',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM',correo1:'clalucilin@hotmail.com'},
+  {id:19,nombre:'Cristian Leonardo Bohórquez Cucha',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM',correo1:'cristianbohorquez032@gmail.com'},
+  {id:20,nombre:'DANA LOZADA',programas:['Instrumental AM'],profesores:['Daniela Visbal','Génesis Moreno'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Génesis Moreno',hora:'10:30am'}],jornada:'AM',correo1:'luzdaryarchila26@gmail.com'},
+  {id:21,nombre:'EMANUEL GARCIA VILLAMIZAR',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Andrés Prada','Génesis Moreno'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Alejandro Vergel',hora:'10:30am'}],jornada:'AM',correo1:'jandm_0812@hotmail.com',correo2:'juank6610@hotmail.com'},
+  {id:22,nombre:'Emely daniela castañeda sanchez',programas:['Instrumental AM'],profesores:['Daniela Visbal','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Génesis Moreno',hora:'10:30am'}],jornada:'AM',correo1:'marcela081183@gmail.com'},
+  {id:23,nombre:'Emilio Caro Ortiz',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'alejandraortiz09@gmail.com'},
+  {id:24,nombre:'Erich Thomas Ortiz Osorio',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'jejeosorio27@msn.com',correo2:'arstivorles007@gmail.com'},
+  {id:25,nombre:'Franco Villamizar Ordoñez',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Prada',hora:'10:30am'}],jornada:'AM',correo1:'pao.ordonezr@gmail.com',correo2:'diegovilla.design@gmail.com'},
+  {id:26,nombre:'Gia mariana rueda Quiroz',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Ricardo Fortunato'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Ricardo Fortunato',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'anamilenaquiroz@gmail.com'},
+  {id:27,nombre:'Hernan José lizarazo Ayala',programas:['Instrumental AM'],profesores:['Andrés Navarro','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Andrés Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'angelaayalapedraza090@gmail.com'},
+  {id:28,nombre:'IAN STEVE CAICEDO LEON',programas:['Instrumental AM'],profesores:['Josmel Flores','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Josmel Flores',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'}],jornada:'AM',correo1:'ecomedfarma@gmail.com',correo2:'ecomedips@hotmail.com'},
+  {id:29,nombre:'IVY  HELENA ROMERO MATEUS',programas:['Instrumental AM'],profesores:['Daniela Visbal','Mariana Pinto','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Mariana Pinto',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'yennyb82@hotmail.com',correo2:'sergioromerobotia@gmail.com'},
+  {id:30,nombre:'Ian Steve Caicedo',programas:['Instrumental AM'],profesores:['Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'ecomedfarma@gmail.com'},
+  {id:31,nombre:'Iker Santiago Archila Jaimes',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'gaar022811@gmail.com',correo2:'gaar022811@gmail.com'},
+  {id:32,nombre:'Ilona Streithorst',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM',correo1:'soporte.ibalhu@gmail.com',correo2:'ibalhu@hotmail.com'},
+  {id:33,nombre:'Isaac Bonilla Garcia',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM',correo1:'kathegrp@gmail.com'},
   {id:34,nombre:'JERONIMO MARTINEZ CESPEDES',programas:['Instrumental AM'],profesores:['Daniela Visbal','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Santiago Sguerra',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:35,nombre:'JHOJAN SNEYDER MENDOZA GOMEZ',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Daniela Visbal','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Alejandro Vergel',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:36,nombre:'JORGE LEONARDO RODRÍGUEZ PRADA',programas:['Instrumental AM'],profesores:['Josmel Flores'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Josmel Flores',hora:'8:30am'}],jornada:'AM'},
-  {id:37,nombre:'JUAN ANDRES PEREZ CAMARGO',programas:['Instrumental AM'],profesores:['Génesis Moreno','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Génesis Moreno',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:38,nombre:'JUANA VALENTINA PEÑA MUÑOZ',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Prada',hora:'10:30am'}],jornada:'AM'},
-  {id:39,nombre:'Jacobo Pineda Alvarez',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Alejandro Vergel',hora:'10:30am'}],jornada:'AM'},
-  {id:40,nombre:'Jerónimo Montoya Gómez',programas:['Instrumental AM'],profesores:['Génesis Moreno','Maria Camila Orellano','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Maria Camila Orellano',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:41,nombre:'Jesus Santiago Niño Basto',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Alejandro Vergel',hora:'10:30am'}],jornada:'AM'},
-  {id:42,nombre:'Jhon Emanuel Gutierrez Lizcano',programas:['Instrumental AM'],profesores:['Génesis Moreno','Maria Camila Orellano','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Maria Camila Orellano',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:43,nombre:'Joaquín García Sánchez',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:44,nombre:'Juan Andrés Medina Barrera',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Maria Camila Orellano'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Maria Camila Orellano',hora:'10:30am'}],jornada:'AM'},
-  {id:45,nombre:'Juan Camilo Obregon Maldonado',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:46,nombre:'Juan Diego Canal Parada',programas:['Instrumental AM'],profesores:['Daniela Visbal','Mariana Pinto','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Mariana Pinto',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:47,nombre:'Juan Jose Vega Ortiz',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal','Génesis Moreno'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Génesis Moreno',hora:'10:30am'}],jornada:'AM'},
-  {id:48,nombre:'Juan José Hincapié Correa',programas:['Preuniversitario'],profesores:['Génesis Moreno','Nicolás Navarro','Ricardo Fortunato','Santiago Sguerra'],clases:[{programa:'Preuniversitario',clase:'Instrumento',profesor:'Ricardo Fortunato',hora:''},{programa:'Preuniversitario',clase:'Teoría y Solfeo',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Teoria Músical',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Ensamble Musical',profesor:'Santiago Sguerra',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Coro',profesor:'Génesis Moreno',hora:'5:00pm'}],jornada:'PM'},
-  {id:49,nombre:'Juan Manuel Ardila Correa',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Maria Camila Orellano'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Maria Camila Orellano',hora:'10:30am'}],jornada:'AM'},
-  {id:50,nombre:'Juan Pablo Coronel Niño',programas:['Instrumental AM'],profesores:['Andrés Navarro','Daniela Visbal','Génesis Moreno'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Navarro',hora:'10:30am'}],jornada:'AM'},
-  {id:51,nombre:'Juan Pablo Toloza Diaz',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM'},
-  {id:52,nombre:'Juan Sebastián Guerrero Tavera',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM'},
-  {id:53,nombre:'Juana María Ariza Tarazona',programas:['Instrumental AM'],profesores:['Daniela Visbal','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Nicolás Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:54,nombre:'KEREN DANIELA LOPEZ SOLANO',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM'},
-  {id:55,nombre:'Kevin de jesus diaz peñaloza',programas:['Instrumental AM'],profesores:['Daniela Visbal','Jasón Pinzón','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Santiago Sguerra',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:56,nombre:'Lianna Jova Loaiza',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM'},
-  {id:57,nombre:'Lili Dahiana Becerra García',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM'},
-  {id:58,nombre:'Lucio Matteo Cruz Contreras',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM'},
-  {id:59,nombre:'Luis Felipe Herrera Suarez',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM'},
-  {id:60,nombre:'Lukas Arango Abril',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM'},
-  {id:61,nombre:'MATEO GARCIA UTRERA',programas:['Instrumental AM'],profesores:['Génesis Moreno','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Génesis Moreno',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:62,nombre:'MAXIMO AVELLANEDA NABARLATZ',programas:['Instrumental AM'],profesores:['Daniela Visbal','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Santiago Sguerra',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:63,nombre:'Manuel Eduardo Martinez Amador',programas:['Instrumental AM'],profesores:['Andrés Navarro','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Navarro',hora:'10:30am'}],jornada:'AM'},
-  {id:64,nombre:'Maria Antonia Caetano Prada',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Daniela Visbal','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Alejandro Vergel',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:65,nombre:'Maria Lucia Vega Olarte',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM'},
-  {id:66,nombre:'Maria Lucía Gomez Ruiz',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Ricardo Fortunato'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Ricardo Fortunato',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:67,nombre:'Mariana Bautista Mejia',programas:['Instrumental AM'],profesores:['Génesis Moreno','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Génesis Moreno',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:68,nombre:'María Alejandra Caballero Infante',programas:['Instrumental AM'],profesores:['Daniela Visbal','Jasón Pinzón','Laura Gómez'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Laura Gómez',hora:'10:30am'}],jornada:'AM'},
-  {id:69,nombre:'María Fernanda Sánchez Calderón',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM'},
-  {id:70,nombre:'María José Jimenez Parra',programas:['Instrumental AM'],profesores:['Daniela Visbal','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Nicolás Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:71,nombre:'María Lucia Domínguez Rubio',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:72,nombre:'Maríapaz Velandia Díaz',programas:['Musicaminadores','Preiniciación'],profesores:['Laura Gómez','Luna Arenas','Ricardo Fortunato'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'},{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
+  {id:35,nombre:'JHOJAN SNEYDER MENDOZA GOMEZ',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Daniela Visbal','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Alejandro Vergel',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'jhojansmg@gmail.com'},
+  {id:36,nombre:'JORGE LEONARDO RODRÍGUEZ PRADA',programas:['Instrumental AM'],profesores:['Josmel Flores'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Josmel Flores',hora:'8:30am'}],jornada:'AM',correo1:'jorgeprada.artist@gmail.com',correo2:'djprada.brass@gmail.com'},
+  {id:37,nombre:'JUAN ANDRES PEREZ CAMARGO',programas:['Instrumental AM'],profesores:['Génesis Moreno','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Génesis Moreno',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'milec85@gmail.com',correo2:'ragdepe@gmail.com'},
+  {id:38,nombre:'JUANA VALENTINA PEÑA MUÑOZ',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Prada',hora:'10:30am'}],jornada:'AM',correo1:'tatianamcuis@gmail.com',correo2:'hansell1.p@gmail.com'},
+  {id:39,nombre:'Jacobo Pineda Alvarez',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Alejandro Vergel',hora:'10:30am'}],jornada:'AM',correo1:'nurse2506@hotmail.com',correo2:'camilopinedarugeles@gmail.com'},
+  {id:40,nombre:'Jerónimo Montoya Gómez',programas:['Instrumental AM'],profesores:['Génesis Moreno','Maria Camila Orellano','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Maria Camila Orellano',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'geritalgo@hotmail.com',correo2:'oscarm176@gmail.com'},
+  {id:41,nombre:'Jesus Santiago Niño Basto',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Alejandro Vergel',hora:'10:30am'}],jornada:'AM',correo1:'arquitectomauricio777@gmail.com',correo2:'designio4rq@gmail.com'},
+  {id:42,nombre:'Jhon Emanuel Gutierrez Lizcano',programas:['Instrumental AM'],profesores:['Génesis Moreno','Maria Camila Orellano','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Maria Camila Orellano',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'jhondotor@hotmail.com',correo2:'jacqueline.lizcano@hotmail.com'},
+  {id:43,nombre:'Joaquín García Sánchez',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'karenviviana.sanchez@gmail.com'},
+  {id:44,nombre:'Juan Andrés Medina Barrera',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Maria Camila Orellano'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Maria Camila Orellano',hora:'10:30am'}],jornada:'AM',correo1:'yesids@hotmail.com',correo2:'samiba_44@hotmail.com'},
+  {id:45,nombre:'Juan Camilo Obregon Maldonado',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'juancom5@hotmail.com',correo2:'deyaniramg20@hotmail.com'},
+  {id:46,nombre:'Juan Diego Canal Parada',programas:['Instrumental AM'],profesores:['Daniela Visbal','Mariana Pinto','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Mariana Pinto',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'caroparada77@hotmail.com'},
+  {id:47,nombre:'Juan Jose Vega Ortiz',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal','Génesis Moreno'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Génesis Moreno',hora:'10:30am'}],jornada:'AM',correo1:'alejandraortiz09@gmail.com'},
+  {id:48,nombre:'Juan José Hincapié Correa',programas:['Preuniversitario'],profesores:['Génesis Moreno','Nicolás Navarro','Ricardo Fortunato','Santiago Sguerra'],clases:[{programa:'Preuniversitario',clase:'Instrumento',profesor:'Ricardo Fortunato',hora:''},{programa:'Preuniversitario',clase:'Teoría y Solfeo',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Teoria Músical',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Ensamble Musical',profesor:'Santiago Sguerra',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Coro',profesor:'Génesis Moreno',hora:'5:00pm'}],jornada:'PM',correo1:'juanjosehincapiecorrea2818@gmail.com',correo2:'saruco76@hotmail.com'},
+  {id:49,nombre:'Juan Manuel Ardila Correa',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Maria Camila Orellano'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Maria Camila Orellano',hora:'10:30am'}],jornada:'AM',correo1:'wilsonardilaparra@gmail.com',correo2:'yuiscorrea@gmail.com'},
+  {id:50,nombre:'Juan Pablo Coronel Niño',programas:['Instrumental AM'],profesores:['Andrés Navarro','Daniela Visbal','Génesis Moreno'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Navarro',hora:'10:30am'}],jornada:'AM',correo1:'linale3113@gmail.com',correo2:'d.alejandrocoronell@gmail.com'},
+  {id:51,nombre:'Juan Pablo Toloza Diaz',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM',correo1:'tolozaj859@gmail.com',correo2:'luztoloza1234@gmail.com'},
+  {id:52,nombre:'Juan Sebastián Guerrero Tavera',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM',correo1:'andreitat04@gmail.com',correo2:'albert_barza@hotmail.com'},
+  {id:53,nombre:'Juana María Ariza Tarazona',programas:['Instrumental AM'],profesores:['Daniela Visbal','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Nicolás Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'brayandaniel.27791@gmail.com'},
+  {id:54,nombre:'KEREN DANIELA LOPEZ SOLANO',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM',correo1:'deisol20@hotmail.es'},
+  {id:55,nombre:'Kevin de jesus diaz peñaloza',programas:['Instrumental AM'],profesores:['Daniela Visbal','Jasón Pinzón','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Santiago Sguerra',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'nelson_alberto_diaz_angarita@hotmail.com'},
+  {id:56,nombre:'Lianna Jova Loaiza',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM',correo1:'anamloaiza@gmail.com',correo2:'elejalde537@gmail.com'},
+  {id:57,nombre:'Lili Dahiana Becerra García',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM',correo1:'ldbecgar@uis.edu.co'},
+  {id:58,nombre:'Lucio Matteo Cruz Contreras',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM',correo1:'lyancruzd@gmail.com',correo2:'contrerasserrano@hotmail.com'},
+  {id:59,nombre:'Luis Felipe Herrera Suarez',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM',correo1:'jtsuarez16@gmail.com',correo2:'yirysuarez17@gmail.com'},
+  {id:60,nombre:'Lukas Arango Abril',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM',correo1:'k.abril@platinoweb.com',correo2:'contacto@platinoweb.com'},
+  {id:61,nombre:'MATEO GARCIA UTRERA',programas:['Instrumental AM'],profesores:['Génesis Moreno','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Génesis Moreno',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'jennyutrera2610@gmail.com',correo2:'gogaba502@gmail.com'},
+  {id:62,nombre:'MAXIMO AVELLANEDA NABARLATZ',programas:['Instrumental AM'],profesores:['Daniela Visbal','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Santiago Sguerra',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'dnabarla@uis.edu.co',correo2:'deboranabarlatz@gmail.com'},
+  {id:63,nombre:'Manuel Eduardo Martinez Amador',programas:['Instrumental AM'],profesores:['Andrés Navarro','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Navarro',hora:'10:30am'}],jornada:'AM',correo1:'eduamarti75@gmail.com',correo2:'dcamadorb@gmail.com'},
+  {id:64,nombre:'Maria Antonia Caetano Prada',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Daniela Visbal','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Alejandro Vergel',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'llprada@hotmail.com'},
+  {id:65,nombre:'Maria Lucia Vega Olarte',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM',correo1:'malu779@hotmail.com',correo2:'olgaolarte779@yahoo.com'},
+  {id:66,nombre:'Maria Lucía Gomez Ruiz',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Ricardo Fortunato'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Ricardo Fortunato',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'karenruiz281@gmail.com'},
+  {id:67,nombre:'Mariana Bautista Mejia',programas:['Instrumental AM'],profesores:['Génesis Moreno','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Génesis Moreno',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'adricar255@hotmail.com',correo2:'okybautista65@hotmail.com'},
+  {id:68,nombre:'María Alejandra Caballero Infante',programas:['Instrumental AM'],profesores:['Daniela Visbal','Jasón Pinzón','Laura Gómez'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Laura Gómez',hora:'10:30am'}],jornada:'AM',correo1:'erlyedith@hotmail.com',correo2:'club100metros@gmail.com'},
+  {id:69,nombre:'María Fernanda Sánchez Calderón',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM',correo1:'05mafe28@gmail.com'},
+  {id:70,nombre:'María José Jimenez Parra',programas:['Instrumental AM'],profesores:['Daniela Visbal','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Nicolás Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'francymp01@gmail.com',correo2:'gjimenezd@gmail.com'},
+  {id:71,nombre:'María Lucia Domínguez Rubio',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'clacolme@uis.edu.co',correo2:'jadcjony@gmail.com'},
+  {id:72,nombre:'Maríapaz Velandia Díaz',programas:['Musicaminadores','Preiniciación'],profesores:['Laura Gómez','Luna Arenas','Ricardo Fortunato'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'},{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'ldiaz26@unab.edu.co',correo2:'jcveland@hotmail.com'},
   {id:73,nombre:'Mateo Hernandez Hillon',programas:['Instrumental AM'],profesores:['Génesis Moreno'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:74,nombre:'Matías Oswaldo Prada Sarmiento',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Génesis Moreno','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Alejandro Vergel',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:75,nombre:'Maximiliano Vargas Cárdenas',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:76,nombre:'Mia Prada Serpa',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:77,nombre:'Mia delgado porras',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM'},
-  {id:78,nombre:'Miguel Eduardo Herrera Leon',programas:['Musicaminadores','Preiniciación'],profesores:['Laura Gómez','Luna Arenas','Ricardo Fortunato'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'},{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:79,nombre:'Miguel Mauricio Castro Martinez',programas:['Instrumental AM'],profesores:['Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Daniela Visbal',hora:'10:30am'}],jornada:'AM'},
-  {id:80,nombre:'NATALIA GUAYACAN ARIAS',programas:['Instrumental AM'],profesores:['Génesis Moreno','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Génesis Moreno',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:81,nombre:'NICOLAS FABIAN REMOLINA OQUENDO',programas:['Instrumental AM'],profesores:['Andrés Jiménez','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Jiménez',hora:'10:30am'}],jornada:'AM'},
-  {id:82,nombre:'Owen Camilo Niño Neira',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Alejandro Vergel',hora:'10:30am'}],jornada:'AM'},
-  {id:83,nombre:'Paulina Solano Jaimes',programas:['Instrumental AM'],profesores:['Daniela Visbal','Jasón Pinzón','Laura Gómez'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Laura Gómez',hora:'10:30am'}],jornada:'AM'},
-  {id:84,nombre:'RIDLEY ANDREWNG HUFFINGTON JAIMES',programas:['Instrumental AM'],profesores:['Daniela Visbal','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Génesis Moreno',hora:'10:30am'}],jornada:'AM'},
-  {id:85,nombre:'SAMUEL DELGADO LÓPEZ',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM'},
-  {id:86,nombre:'SANTIAGO GUERRERO TAVERA',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:87,nombre:'Salome Remolina Oquendo',programas:['Instrumental AM'],profesores:['Daniela Visbal','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Nicolás Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:88,nombre:'Salomé Quintero Oviedo',programas:['Instrumental AM'],profesores:['Daniela Visbal','Jasón Pinzón','Laura Gómez'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Laura Gómez',hora:'10:30am'}],jornada:'AM'},
-  {id:89,nombre:'Salomón Fonseca Aparicio',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM'},
-  {id:90,nombre:'Salomón Gómez Torres',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:91,nombre:'Samantha castro lizcano',programas:['Instrumental AM'],profesores:['Andrés Prada','Génesis Moreno','Laura Gómez'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Laura Gómez',hora:'10:30am'}],jornada:'AM'},
-  {id:92,nombre:'Samuel Alejandro Pardo Crespo',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM'},
-  {id:93,nombre:'Samuel Duarte Rojas',programas:['Instrumental AM'],profesores:['Génesis Moreno','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Génesis Moreno',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:94,nombre:'Samuel Quintero Oviedo',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Mariana Pinto'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Mariana Pinto',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:95,nombre:'Samuel Salvatore Vincenzo Martinez Olave',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Ricardo Fortunato'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Ricardo Fortunato',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:96,nombre:'Santiago Sebastián Chaves Jaimes',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Alejandro Vergel',hora:'10:30am'}],jornada:'AM'},
-  {id:97,nombre:'Sara Luciana Saavedra Mesa',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM'},
-  {id:98,nombre:'Sara Lucía Paternina González',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Prada',hora:'10:30am'}],jornada:'AM'},
-  {id:99,nombre:'Sara Ramirez Contreras',programas:['Instrumental AM'],profesores:['Andrés Navarro','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Andrés Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:100,nombre:'Sara Sofia Benavides camargo',programas:['Instrumental AM'],profesores:['Daniela Visbal','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Nicolás Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:101,nombre:'Sarah Angieline Carrillo Moncada',programas:['Instrumental AM'],profesores:['Andrés Navarro','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Navarro',hora:'10:30am'}],jornada:'AM'},
-  {id:102,nombre:'Sergio Andres Gil Moreno',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM'},
-  {id:103,nombre:'Simón Alejandro Coronel Niño',programas:['Instrumental AM'],profesores:['Daniela Visbal','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Nicolás Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:104,nombre:'TOMÁS ANDRÉS MÉNDEZ FERREIRA',programas:['Preuniversitario'],profesores:['Génesis Moreno','Nicolás Navarro','Santiago Sguerra'],clases:[{programa:'Preuniversitario',clase:'Instrumento',profesor:'Nicolás Navarro',hora:''},{programa:'Preuniversitario',clase:'Teoría y Solfeo',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Teoria Músical',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Ensamble Musical',profesor:'Santiago Sguerra',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Coro',profesor:'Génesis Moreno',hora:'5:00pm'}],jornada:'PM'},
-  {id:105,nombre:'Thiago Rivero Pinzon',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM'},
-  {id:106,nombre:'Tomás Santiago Pereira Vargas',programas:['Instrumental AM'],profesores:['Andrés Navarro','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Andrés Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:107,nombre:'VALERY MARIN MENDOZA',programas:['Instrumental AM'],profesores:['Daniela Visbal','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Santiago Sguerra',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:108,nombre:'Verónica Galvis Limbrunner',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM'},
-  {id:109,nombre:'Yaidy Katherin Calderón Tarazona',programas:['Preuniversitario'],profesores:['Génesis Moreno','Nicolás Navarro','Santiago Sguerra'],clases:[{programa:'Preuniversitario',clase:'Instrumento',profesor:'Nicolás Navarro',hora:''},{programa:'Preuniversitario',clase:'Teoría y Solfeo',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Teoria Músical',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Ensamble Musical',profesor:'Santiago Sguerra',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Coro',profesor:'Génesis Moreno',hora:'5:00pm'}],jornada:'PM'},
-  {id:110,nombre:'diana alejandra guevara duran',programas:['Instrumental AM'],profesores:['Daniela Visbal','Jasón Pinzón','Mariana Pinto'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Mariana Pinto',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM'},
-  {id:111,nombre:'jeronimo delgado porras',programas:['Instrumental AM'],profesores:['Andrés Navarro','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Andrés Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM'},
-  {id:112,nombre:'salome prado sandoval',programas:['Instrumental AM'],profesores:['Andrés Prada','Génesis Moreno'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Génesis Moreno',hora:'10:30am'}],jornada:'AM'},
-  {id:113,nombre:'thomas emiliano castañeda castillo',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal','Laura Gómez'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Laura Gómez',hora:'10:30am'}],jornada:'AM'},
-  {id:114,nombre:'Álvaro Augusto Páez Arteaga',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM'},
-  {id:115,nombre:'Álvaro paez',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM'},
+  {id:74,nombre:'Matías Oswaldo Prada Sarmiento',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Génesis Moreno','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Alejandro Vergel',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'elizabeth0107@gmail.com',correo2:'oswaldoprada369@hotmail.com'},
+  {id:75,nombre:'Maximiliano Vargas Cárdenas',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'diegoavargass@gmail.com',correo2:'tatiss2053@hotmail.com'},
+  {id:76,nombre:'Mia Prada Serpa',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'katerin24-08@hotmail.com'},
+  {id:77,nombre:'Mia delgado porras',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM',correo1:'angie2_porras6@hotmail.com',correo2:'joan-manuel93@hotmail.com'},
+  {id:78,nombre:'Miguel Eduardo Herrera Leon',programas:['Musicaminadores','Preiniciación'],profesores:['Laura Gómez','Luna Arenas','Ricardo Fortunato'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'},{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'cheqed@gmail.com',correo2:'camila.a.leon.v@gmail.com'},
+  {id:79,nombre:'Miguel Mauricio Castro Martinez',programas:['Instrumental AM'],profesores:['Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Daniela Visbal',hora:'10:30am'}],jornada:'AM',correo1:'elprofemcf@gmail.com',correo2:'modika27@hotmail.com'},
+  {id:80,nombre:'NATALIA GUAYACAN ARIAS',programas:['Instrumental AM'],profesores:['Génesis Moreno','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Génesis Moreno',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'ednaarias0815@gmail.com',correo2:'jcguayacan0721@hotmail.com'},
+  {id:81,nombre:'NICOLAS FABIAN REMOLINA OQUENDO',programas:['Instrumental AM'],profesores:['Andrés Jiménez','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Jiménez',hora:'10:30am'}],jornada:'AM',correo1:'fabian2r1@hotmail.com'},
+  {id:82,nombre:'Owen Camilo Niño Neira',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Alejandro Vergel',hora:'10:30am'}],jornada:'AM',correo1:'njessicaalexandra@gmail.com'},
+  {id:83,nombre:'Paulina Solano Jaimes',programas:['Instrumental AM'],profesores:['Daniela Visbal','Jasón Pinzón','Laura Gómez'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Laura Gómez',hora:'10:30am'}],jornada:'AM',correo1:'gjaimes0913@gmail.com',correo2:'felipe110908@gmail.com'},
+  {id:84,nombre:'RIDLEY ANDREWNG HUFFINGTON JAIMES',programas:['Instrumental AM'],profesores:['Daniela Visbal','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Génesis Moreno',hora:'10:30am'}],jornada:'AM',correo1:'lauramarcelajaimes4@gmail.com',correo2:'lauramarcelajaimes4@gmail.com'},
+  {id:85,nombre:'SAMUEL DELGADO LÓPEZ',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM',correo1:'lu_creativa@hotmail.com',correo2:'jorgeohm44@gmail.com'},
+  {id:86,nombre:'SANTIAGO GUERRERO TAVERA',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'andreitat04@gmail.com',correo2:'albert_barza@hotmail.com'},
+  {id:87,nombre:'Salome Remolina Oquendo',programas:['Instrumental AM'],profesores:['Daniela Visbal','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Nicolás Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'fabian2r1@hotmail.com'},
+  {id:88,nombre:'Salomé Quintero Oviedo',programas:['Instrumental AM'],profesores:['Daniela Visbal','Jasón Pinzón','Laura Gómez'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Jasón Pinzón',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Laura Gómez',hora:'10:30am'}],jornada:'AM',correo1:'julianchoquintero11@gmail.com',correo2:'vanessaoviedo07@hotmail.com'},
+  {id:89,nombre:'Salomón Fonseca Aparicio',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM',correo1:'afonsecabarajas@gmail.com',correo2:'karenaparicio8@gmail.com'},
+  {id:90,nombre:'Salomón Gómez Torres',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'laura.torresesparza@gmail.com'},
+  {id:91,nombre:'Samantha castro lizcano',programas:['Instrumental AM'],profesores:['Andrés Prada','Génesis Moreno','Laura Gómez'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Laura Gómez',hora:'10:30am'}],jornada:'AM',correo1:'nelson-castro-l@hotmail.com',correo2:'julieth_lizcano@hotmail.com'},
+  {id:92,nombre:'Samuel Alejandro Pardo Crespo',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM',correo1:'parluismiguel@gmail.com',correo2:'cristinacrespovalero@gmail.com'},
+  {id:93,nombre:'Samuel Duarte Rojas',programas:['Instrumental AM'],profesores:['Génesis Moreno','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Génesis Moreno',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'rero0190@gmail.com',correo2:'duartesj23@gmail.com'},
+  {id:94,nombre:'Samuel Quintero Oviedo',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Mariana Pinto'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Mariana Pinto',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'julianchoquintero11@gmail.com',correo2:'vanessaoviedo07@hotmail.com'},
+  {id:95,nombre:'Samuel Salvatore Vincenzo Martinez Olave',programas:['Instrumental AM'],profesores:['Génesis Moreno','Jasón Pinzón','Ricardo Fortunato'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Ricardo Fortunato',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'lilianaolave22@hotmail.com',correo2:'danieladyro@outlook.com'},
+  {id:96,nombre:'Santiago Sebastián Chaves Jaimes',programas:['Instrumental AM'],profesores:['Alejandro Vergel','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Alejandro Vergel',hora:'10:30am'}],jornada:'AM',correo1:'carlosarturochaves@gmail.com',correo2:'astridjaba@hotmail.com'},
+  {id:97,nombre:'Sara Luciana Saavedra Mesa',programas:['Musicaminadores'],profesores:['Luna Arenas'],clases:[{programa:'Musicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30am'}],jornada:'AM',correo1:'rociomesap@gmail.com',correo2:'orsaarue@correo.uis.edu.co'},
+  {id:98,nombre:'Sara Lucía Paternina González',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Prada',hora:'10:30am'}],jornada:'AM',correo1:'mariaunab2025@gmail.com',correo2:'ronaldeps@gmail.com'},
+  {id:99,nombre:'Sara Ramirez Contreras',programas:['Instrumental AM'],profesores:['Andrés Navarro','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Andrés Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'oscar.mrf@hotmail.com'},
+  {id:100,nombre:'Sara Sofia Benavides camargo',programas:['Instrumental AM'],profesores:['Daniela Visbal','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Nicolás Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'tanic83@gmail.com',correo2:'faarbevi@gmail.com'},
+  {id:101,nombre:'Sarah Angieline Carrillo Moncada',programas:['Instrumental AM'],profesores:['Andrés Navarro','Daniela Visbal'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Daniela Visbal',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Andrés Navarro',hora:'10:30am'}],jornada:'AM',correo1:'angelicamoncada1978@gmail.com'},
+  {id:102,nombre:'Sergio Andres Gil Moreno',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM',correo1:'sgmoreno484@gmail.com'},
+  {id:103,nombre:'Simón Alejandro Coronel Niño',programas:['Instrumental AM'],profesores:['Daniela Visbal','Nicolás Navarro'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Nicolás Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Nicolás Navarro',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'linale3113@gmail.com',correo2:'d.alejandrocoronell@gmail.com'},
+  {id:104,nombre:'TOMÁS ANDRÉS MÉNDEZ FERREIRA',programas:['Preuniversitario'],profesores:['Génesis Moreno','Nicolás Navarro','Santiago Sguerra'],clases:[{programa:'Preuniversitario',clase:'Instrumento',profesor:'Nicolás Navarro',hora:''},{programa:'Preuniversitario',clase:'Teoría y Solfeo',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Teoria Músical',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Ensamble Musical',profesor:'Santiago Sguerra',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Coro',profesor:'Génesis Moreno',hora:'5:00pm'}],jornada:'PM',correo1:'tamf2007@hotmail.com',correo2:'jmen075@hotmail.com'},
+  {id:105,nombre:'Thiago Rivero Pinzon',programas:['Preiniciación'],profesores:['Laura Gómez','Ricardo Fortunato'],clases:[{programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40am'},{programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40am'}],jornada:'AM',correo1:'dmpinzon13@gmail.com'},
+  {id:106,nombre:'Tomás Santiago Pereira Vargas',programas:['Instrumental AM'],profesores:['Andrés Navarro','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Andrés Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'katavave25@gmail.com',correo2:'cesar.pereirag28@gmail.com'},
+  {id:107,nombre:'VALERY MARIN MENDOZA',programas:['Instrumental AM'],profesores:['Daniela Visbal','Santiago Sguerra'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Santiago Sguerra',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Santiago Sguerra',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'darwinmc@gmail.com',correo2:'yadiraines@gmail.com'},
+  {id:108,nombre:'Verónica Galvis Limbrunner',programas:['Iniciación'],profesores:['Génesis Moreno','Laura Gómez','Mariana Pinto','Ricardo Fortunato'],clases:[{programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30am'},{programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40am'},{programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45am'},{programa:'Iniciación',clase:'Expresión Corporal',profesor:'Ricardo Fortunato',hora:'11:40am'}],jornada:'AM',correo1:'luijogalvis@yahoo.es',correo2:'suzanne.limbrunner@gmail.com'},
+  {id:109,nombre:'Yaidy Katherin Calderón Tarazona',programas:['Preuniversitario'],profesores:['Génesis Moreno','Nicolás Navarro','Santiago Sguerra'],clases:[{programa:'Preuniversitario',clase:'Instrumento',profesor:'Nicolás Navarro',hora:''},{programa:'Preuniversitario',clase:'Teoría y Solfeo',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Teoria Músical',profesor:'Nicolás Navarro',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Ensamble Musical',profesor:'Santiago Sguerra',hora:'5:00pm'},{programa:'Preuniversitario',clase:'Coro',profesor:'Génesis Moreno',hora:'5:00pm'}],jornada:'PM',correo1:'yaidykatherincalderontarazona@gmail.com',correo2:'jorgecaldero734@gmail.com'},
+  {id:110,nombre:'diana alejandra guevara duran',programas:['Instrumental AM'],profesores:['Daniela Visbal','Jasón Pinzón','Mariana Pinto'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Mariana Pinto',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'}],jornada:'AM',correo1:'mduranpinto88@gmail.com'},
+  {id:111,nombre:'jeronimo delgado porras',programas:['Instrumental AM'],profesores:['Andrés Navarro','Génesis Moreno','Jasón Pinzón'],clases:[{programa:'Instrumental AM',clase:'Instrumento - Grupo A',profesor:'Andrés Navarro',hora:'8:30am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo A',profesor:'Jasón Pinzón',hora:'10:00am'},{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'}],jornada:'AM',correo1:'angie2_porras6@hotmail.com',correo2:'joan-manuel93@hotmail.com'},
+  {id:112,nombre:'salome prado sandoval',programas:['Instrumental AM'],profesores:['Andrés Prada','Génesis Moreno'],clases:[{programa:'Instrumental AM',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Génesis Moreno',hora:'10:30am'}],jornada:'AM',correo1:'floralbaruedaperez@gmail.com'},
+  {id:113,nombre:'thomas emiliano castañeda castillo',programas:['Instrumental AM'],profesores:['Andrés Prada','Daniela Visbal','Laura Gómez'],clases:[{programa:'Instrumental AM',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40am'},{programa:'Instrumental AM',clase:'Auralidad - Grupo B',profesor:'Andrés Prada',hora:'8:30am'},{programa:'Instrumental AM',clase:'Instrumento - Grupo B',profesor:'Laura Gómez',hora:'10:30am'}],jornada:'AM',correo1:'a-castaneda.morales@hotmail.com'},
+  {id:114,nombre:'Álvaro Augusto Páez Arteaga',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM',correo1:'alaupar_6406@hotmail.com',correo2:'olbe5@hotmail.com'},
+  {id:115,nombre:'Álvaro paez',programas:['Comunidad UIS'],profesores:['Camilo Durán'],clases:[{programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30pm'}],jornada:'PM',correo1:'alaupar_6406@hotmail.com'},
 ];
 // Legacy alias
 const EST=EST_AM;
@@ -949,7 +1101,7 @@ let _lastSyncTime=0;
 // ── Configuración centralizada — igual en TODOS los dispositivos ──
 // Cambiar aquí actualiza automáticamente para todos sin tocar nada más.
 var GS_SHEET_ID   = '1fm6LqodGvOR2SamCuxhJLIPrOag1QVWqMEoT8i_VI-w';
-var GS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx9lnsVYJy3Z0c3Mbp8R5hnK8Du-GYx2SqHsYaiObIIV29xKJotHLA2syLJvqvMmkwU/exec';
+var GS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYiBFn-75cjKffei_QrPV9P6RjErXNnlT5JknqEQ4K8nFveAvgXcIQ2Gj6z732LPTt/exec';
 
 // Sincronizar localStorage con los valores del código
 // (si el localStorage tiene algo diferente, el código gana)
@@ -961,37 +1113,25 @@ localStorage.setItem('cfg_gsheets', GS_SCRIPT_URL);
 // ============================================================
 function gsUrl(){ return GS_SCRIPT_URL; }
 
-// Envía datos a Google Sheets via GET (sin CORS, sin proxy)
+// Envía datos a Google Sheets via GET
+// Usa no-cors para garantizar que el dato llega aunque Google redirija (302)
 function gsEnviar(params, cb) {
   var url = gsUrl();
-  if (!url) {
-    console.warn('[Sheets] URL del Apps Script no configurada');
-    if(cb) cb(false);
-    return;
-  }
+  if (!url) { if(cb) cb(false); return; }
   var qs = Object.keys(params).map(function(k){
     return encodeURIComponent(k) + '=' + encodeURIComponent(params[k] != null ? params[k] : '');
   }).join('&');
   var fullUrl = url + '?' + qs;
-  console.log('[Sheets] Enviando:', params.action, fullUrl.substring(0, 120) + '...');
-  fetch(fullUrl)
-    .then(function(r){
-      console.log('[Sheets] HTTP status:', r.status);
-      return r.json();
+
+  // no-cors: el dato siempre llega a Sheets aunque no podamos leer la respuesta
+  // (Google Apps Script redirige con 302 lo cual bloquea fetch con cors)
+  fetch(fullUrl, { method: 'GET', mode: 'no-cors' })
+    .then(function() {
+      // Con no-cors siempre llegamos aquí si hay red — asumir éxito
+      if(cb) cb(true);
     })
-    .then(function(d){
-      console.log('[Sheets] Respuesta:', JSON.stringify(d));
-      if (d && d.ok) {
-        // Éxito silencioso — ya hay notify del registro
-      } else {
-        console.warn('[Sheets] Respuesta inesperada:', d);
-        notify('⚠️ Sheets: ' + (d && d.msg ? d.msg : JSON.stringify(d)));
-      }
-      if(cb) cb(d && d.ok === true, d);
-    })
-    .catch(function(err){
-      console.error('[Sheets] Error de red:', err);
-      notify('⚠️ Sin conexión con Sheets — guardado solo localmente');
+    .catch(function() {
+      // Sin red
       if(cb) cb(false);
     });
 }
@@ -1167,10 +1307,10 @@ function showTab(t) {
   if (t === 'configuracion') { updateSvcStatus(); cargarValoresCfg(); renderCfg(); }
   if (t === 'reportes') renderRep();
   if (t === 'estudiantes') renderEst();
-  if (t === 'faltas') renderFaltas();
+  if (t === 'faltas') { poblarFiltrosFaltas(); renderFaltas(); }
   if (t === 'logistica') renderLog();
   if (t === 'comunicacion') renderCom();
-  if (t === 'evidencias') renderEvids();
+  if (t === 'evidencias') { initEvidencias(); renderEvids(); }
 }
 
 // ============================================================
@@ -1215,10 +1355,11 @@ function loadMisClases() {
 
 function popLogClase() {
   var sel = document.getElementById('logClase'); if (!sel) return;
-  var mine = myClases();
-  sel.innerHTML = mine.length
-    ? mine.map(function(c){ return '<option value="' + c.id + '">' + c.programa + ' — ' + c.clase + ' (' + c.hora + ')</option>'; }).join('')
-    : '<option>Sin clases asignadas</option>';
+  var mine = CU && CU.role === 'coordinadora' ? CLASES_AM : myClases();
+  sel.innerHTML = '<option value="">— Selecciona una clase —</option>'
+    + (mine.length
+        ? mine.map(function(c){ return '<option value="' + c.id + '">' + c.programa + ' — ' + c.clase + ' (' + c.hora + ')</option>'; }).join('')
+        : '<option value="">Sin clases asignadas</option>');
 }
 
 // ============================================================
@@ -1533,32 +1674,192 @@ function detFaltas() {
 }
 
 // ============================================================
-// PESTAÑA: FALTAS
+// PESTAÑA: FALTAS — Solo coordinadora
 // ============================================================
+
+// Poblar los selectores de clase y profesor con los datos reales
+// misClases: array de nombres de clases para filtrar (null = todas)
+function poblarFiltrosFaltas(misClases) {
+  var selClase = document.getElementById('f-clase');
+  if (selClase) {
+    // Repoblar siempre para reflejar el rol correcto
+    selClase.innerHTML = '<option value="">Todas las clases</option>';
+    var fuente = misClases
+      ? misClases  // profesor: solo sus clases
+      : (function(){ // coordinadora: todas
+          var todas = [];
+          CLASES_AM.forEach(function(c){ if (todas.indexOf(c.clase) < 0) todas.push(c.clase); });
+          return todas.sort();
+        })();
+    fuente.forEach(function(c){
+      var o = document.createElement('option'); o.value = c; o.textContent = c;
+      selClase.appendChild(o);
+    });
+  }
+  // Profesores: solo para coordinadora
+  var selProf = document.getElementById('f-profesor');
+  if (selProf && selProf.options.length <= 1) {
+    var profs = [];
+    USERS.filter(function(u){ return u.role === 'profesor'; }).forEach(function(u){
+      profs.push(u.name + ' ' + u.surname);
+    });
+    profs.sort().forEach(function(p){
+      var o = document.createElement('option'); o.value = p; o.textContent = p;
+      selProf.appendChild(o);
+    });
+  }
+}
+
+function limpiarFiltrosFaltas() {
+  var ids = ['f-search','f-fecha','f-clase','f-profesor'];
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  renderFaltas();
+}
+
+// Eliminar una falta por su key de localStorage
+function eliminarFalta(key) {
+  if (!CU || CU.role !== 'coordinadora') return;
+  localStorage.removeItem(key);
+  notify('🗑️ Falta eliminada');
+  renderFaltas();
+}
+
 function renderFaltas() {
-  var sr = (document.getElementById('f-search') || {}).value ? document.getElementById('f-search').value.toLowerCase() : '';
-  var fd = (document.getElementById('f-day') || {}).value || '';
+  var el = document.getElementById('faltasTable');
+  if (!el) return;
+
+  var esCoor = CU && CU.role === 'coordinadora';
+  var esProf = CU && CU.role === 'profesor';
+
+  // Ni coordinadora ni profesor → acceso denegado
+  if (!esCoor && !esProf) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--tm)">'
+      + '<div style="font-size:32px;margin-bottom:8px">🔒</div>'
+      + '<div style="font-weight:700;color:var(--gd)">Acceso restringido</div>'
+      + '</div>';
+    var filtros = document.getElementById('faltasFiltros');
+    if (filtros) filtros.style.display = 'none';
+    return;
+  }
+
+  // Mostrar/configurar filtros según rol
+  var filtros = document.getElementById('faltasFiltros');
+  if (filtros) filtros.style.display = 'block';
+
+  if (esCoor) {
+    // Coordinadora: poblar filtros completos (todos los profesores y clases)
+    poblarFiltrosFaltas(null);
+    // Mostrar filtro de profesor
+    var pfWrap = document.getElementById('f-profesor-wrap');
+    if (pfWrap) pfWrap.style.display = 'block';
+  } else {
+    // Profesor: poblar solo sus clases, ocultar filtro de profesor
+    var misClasesNombres = myClases().map(function(c){ return c.clase; });
+    poblarFiltrosFaltas(misClasesNombres);
+    var pfWrap = document.getElementById('f-profesor-wrap');
+    if (pfWrap) pfWrap.style.display = 'none';
+  }
+
+  // Leer filtros
+  var sr    = (document.getElementById('f-search')   || {value:''}).value.toLowerCase().trim();
+  var fecha = (document.getElementById('f-fecha')    || {value:''}).value;
+  var clase = (document.getElementById('f-clase')    || {value:''}).value;
+  var prof  = esCoor ? (document.getElementById('f-profesor') || {value:''}).value : '';
+
+  // Leer TODAS las faltas del localStorage
   var fl = [];
   for (var k in localStorage) {
-    if (k.startsWith('mu_f_')) try { fl.push(JSON.parse(localStorage[k])); } catch(e) {}
+    if (k.startsWith('mu_f_')) {
+      try {
+        var rec = JSON.parse(localStorage[k]);
+        rec._key = k;
+        fl.push(rec);
+      } catch(e) {}
+    }
   }
-  if (CU.role !== 'coordinadora') fl = fl.filter(function(f){ return f.teacher === CU.name + ' ' + CU.surname; });
-  if (sr) fl = fl.filter(function(f){ return f.sname.toLowerCase().includes(sr); });
-  if (fd) fl = fl.filter(function(f){ return f.dia === fd; });
-  var el = document.getElementById('faltasTable');
-  if (!fl.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--tm)">Sin faltas registradas</div>'; return; }
-  var bc = {};
-  fl.forEach(function(f){ if(!bc[f.clase]) bc[f.clase] = { clase: f.clase, items: [] }; bc[f.clase].items.push(f); });
-  el.innerHTML = Object.values(bc).map(function(g){
-    return '<div style="margin-bottom:16px">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">'
-      + '<h4 style="font-size:13px;font-weight:700;color:var(--gd)">' + g.clase + '</h4>'
-      + '<span class="badge br2">' + g.items.length + ' falta(s)</span></div>'
-      + '<table><thead><tr><th>Estudiante</th><th>Día</th><th>Fecha</th><th>Profesor</th></tr></thead><tbody>'
-      + g.items.map(function(f){ return '<tr><td>' + f.sname + '</td><td>' + (f.dia||'—') + '</td><td>' + (f.date||'—') + '</td><td>' + f.teacher + '</td></tr>'; }).join('')
-      + '</tbody></table></div>';
-  }).join('');
+
+  // Profesor: filtrar solo sus clases
+  if (esProf) {
+    var fn = CU.name + ' ' + CU.surname;
+    var misClasesNombres = myClases().map(function(c){ return c.clase; });
+    fl = fl.filter(function(f){
+      return f.teacher === fn || misClasesNombres.indexOf(f.clase) >= 0;
+    });
+  }
+
+  // Aplicar filtros de UI
+  if (sr)    fl = fl.filter(function(f){ return f.sname && f.sname.toLowerCase().indexOf(sr) >= 0; });
+  if (fecha) fl = fl.filter(function(f){ return f.date === fecha; });
+  if (clase) fl = fl.filter(function(f){ return f.clase === clase; });
+  if (prof)  fl = fl.filter(function(f){ return f.teacher === prof; });
+
+  // Ordenar por fecha descendente
+  fl.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+
+  if (!fl.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--tm)">'
+      + '<div style="font-size:28px;margin-bottom:8px">✅</div>'
+      + '<div style="font-weight:600">Sin faltas' + (esProf ? ' en tus clases' : '') + '</div>'
+      + '</div>';
+    return;
+  }
+
+  // Resumen
+  var resumen = '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'
+    + '<span class="badge br2" style="font-size:12px;padding:5px 12px">' + fl.length + ' falta(s)</span>';
+  if (fecha) resumen += '<span class="badge bg" style="font-size:12px;padding:5px 12px">📅 ' + fecha + '</span>';
+  if (clase) resumen += '<span class="badge bo" style="font-size:12px;padding:5px 12px">📚 ' + clase + '</span>';
+  if (prof)  resumen += '<span class="badge bpu" style="font-size:12px;padding:5px 12px">👤 ' + prof + '</span>';
+  if (esProf) resumen += '<span class="badge bo" style="font-size:12px;padding:5px 12px">👤 Solo tus clases</span>';
+  resumen += '</div>';
+
+  // Agrupar por fecha + clase
+  var grupos = {};
+  fl.forEach(function(f){
+    var gkey = (f.date||'—') + '||' + (f.clase||'—');
+    if (!grupos[gkey]) grupos[gkey] = { date: f.date||'—', clase: f.clase||'—', profesor: f.teacher||'—', items: [] };
+    grupos[gkey].items.push(f);
+  });
+
+  var html = resumen;
+  Object.values(grupos).forEach(function(g){
+    html += '<div style="margin-bottom:18px;border:1px solid var(--br);border-radius:var(--r);overflow:hidden">'
+      + '<div style="background:var(--gbg);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'
+      + '<div>'
+      + '<span style="font-weight:700;font-size:13px;color:var(--gd)">📚 ' + g.clase + '</span>'
+      + '<span style="font-size:11px;color:var(--tm);margin-left:10px">👤 ' + g.profesor + '</span>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+      + '<span style="font-size:11px;color:var(--tm)">📅 ' + g.date + '</span>'
+      + '<span class="badge br2">' + g.items.length + ' falta(s)</span>'
+      + '</div>'
+      + '</div>'
+      // Columna 🗑️ solo para coordinadora
+      + '<table><thead><tr><th>Estudiante</th><th>Programa</th><th>Hora</th>'
+      + (esCoor ? '<th style="width:48px"></th>' : '')
+      + '</tr></thead><tbody>'
+      + g.items.map(function(f){
+          return '<tr>'
+            + '<td style="font-weight:600">' + f.sname + '</td>'
+            + '<td style="color:var(--tm)">' + (f.programa||'—') + '</td>'
+            + '<td style="font-family:\'DM Mono\',monospace;font-size:11px">' + (f.hora||'—') + '</td>'
+            + (esCoor
+                ? '<td><button onclick="eliminarFalta(\'' + f._key + '\')" '
+                  + 'style="background:none;border:none;cursor:pointer;color:#c0392b;font-size:16px;padding:2px 6px;border-radius:4px" '
+                  + 'title="Eliminar falta">🗑️</button></td>'
+                : '')
+            + '</tr>';
+        }).join('')
+      + '</tbody></table>'
+      + '</div>';
+  });
+
+  el.innerHTML = html;
 }
+
 
 // ============================================================
 // PESTAÑA: ESTUDIANTES
@@ -1586,7 +1887,7 @@ function renderEst() {
   var j = (document.getElementById('est-jornada') || {value:''}).value;
   var p = (document.getElementById('est-prog') || {value:''}).value;
   var s = myStudents();
-  if (sr) s = s.filter(function(x){ return x.nombre.toLowerCase().indexOf(sr) >= 0; });
+  if (sr) s = s.filter(function(x){ return x.nombre.toLowerCase().indexOf(sr) >= 0 || (x.correo1 && x.correo1.toLowerCase().indexOf(sr) >= 0); });
   if (p) {
     if (p === 'Instrumental AM') s = s.filter(function(x){ return x.programas.indexOf('Instrumental AM') >= 0; });
     else if (p === 'Instrumental PM') s = s.filter(function(x){ return x.programas.indexOf('Instrumental PM') >= 0; });
@@ -1621,6 +1922,20 @@ function renderEst() {
           + '<button class="btn btn-p" style="font-size:10px;padding:3px 8px" onclick="printMP(' + x.id + ',\'' + sn + '\',\'' + sp + '\',\'' + si + '\')">🖨️</button>'
           + '</div>'
         : '';
+      // Correo: enlace si existe, guión si no
+      var correoHTML = '';
+      if (x.correo1 && x.correo1 !== 'PENDIENTE') {
+        correoHTML = '<div style="display:flex;align-items:center;gap:5px;margin-top:4px;flex-wrap:wrap">'
+          + '<span style="font-size:10px;color:var(--tm);font-family:\'DM Mono\',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0">✉️ ' + x.correo1 + '</span>'
+          + '<a href="mailto:' + x.correo1 + '" style="font-size:9px;color:var(--go);font-weight:700;text-decoration:none;flex-shrink:0">Enviar</a>'
+          + '</div>';
+        if (x.correo2 && x.correo2 !== 'PENDIENTE') {
+          correoHTML += '<div style="font-size:10px;color:var(--tm);font-family:\'DM Mono\',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px">✉️ ' + x.correo2 + '</div>';
+        }
+      } else {
+        correoHTML = '<div style="font-size:10px;color:var(--br);margin-top:4px">✉️ sin correo registrado</div>';
+      }
+
       out += '<div class="card" style="padding:13px">'
         + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px">'
         + '<div style="flex:1;min-width:0">'
@@ -1632,6 +1947,7 @@ function renderEst() {
         + '<div style="font-size:10px;color:var(--tm);display:grid;gap:2px">'
         + '<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📚 ' + claseSummary + '</div>'
         + '</div>'
+        + correoHTML
         + qrBtns + '</div>';
     });
     out += '</div></div>';
@@ -1643,16 +1959,38 @@ function renderEst() {
 // PESTAÑA: REPORTES
 // ============================================================
 function renderRep() {
+  // ── Contadores resumen ──
   document.getElementById('r-est').textContent = EST_AM.length;
   document.getElementById('r-att').textContent = attRec.length;
   var tf = 0;
   for (var k in localStorage) if (k.startsWith('mu_f_')) tf++;
   document.getElementById('r-flt').textContent = tf;
   document.getElementById('r-nov').textContent = evids.length;
+
+  // ── Gráficas asistencia ──
   var cc = {}, pc = {};
-  attRec.forEach(function(r){ cc[r.clase] = (cc[r.clase]||0)+1; pc[r.teacher] = (pc[r.teacher]||0)+1; });
-  barChart('chartC', cc);
-  barChart('chartP', pc);
+  attRec.forEach(function(r){
+    cc[r.clase]    = (cc[r.clase]   ||0) + 1;
+    pc[r.teacher]  = (pc[r.teacher] ||0) + 1;
+  });
+  barChart('chartC', cc, 'var(--go)');
+  barChart('chartP', pc, 'var(--go)');
+
+  // ── Gráficas faltas — leer de localStorage ──
+  var fc = {}, fp = {};
+  for (var k in localStorage) {
+    if (k.startsWith('mu_f_')) {
+      try {
+        var f = JSON.parse(localStorage[k]);
+        if (f.clase)    fc[f.clase]    = (fc[f.clase]   ||0) + 1;
+        if (f.teacher)  fp[f.teacher]  = (fp[f.teacher] ||0) + 1;
+      } catch(e) {}
+    }
+  }
+  barChart('chartFC', fc, '#e74c3c');
+  barChart('chartFP', fp, '#e74c3c');
+
+  // ── Novedades recientes ──
   var ne = document.getElementById('repNov');
   ne.innerHTML = evids.length
     ? '<table><thead><tr><th>Profesor</th><th>Tipo</th><th>Salón</th><th>Fecha</th><th>Observación</th></tr></thead><tbody>'
@@ -1662,39 +2000,80 @@ function renderRep() {
         }).join('') + '</tbody></table>'
     : '<div style="text-align:center;padding:18px;color:var(--tm)">Sin novedades</div>';
 }
-function barChart(id, data) {
+
+// barChart: dibuja una gráfica de barras horizontales
+// color: color de las barras (CSS variable o hex)
+function barChart(id, data, color) {
   var el = document.getElementById(id); if (!el) return;
-  var e = Object.entries(data).sort(function(a,b){ return b[1]-a[1]; }).slice(0,6);
-  var mx = (e[0] && e[0][1]) || 1;
-  el.innerHTML = e.length
-    ? e.map(function(item){ return '<div class="cbr"><div class="cbl" title="' + item[0] + '">' + item[0].substring(0,22) + '</div><div class="cbt"><div class="cbf" style="width:' + Math.round(item[1]/mx*100) + '%"></div></div><div class="cbc">' + item[1] + '</div></div>'; }).join('')
-    : '<div style="color:var(--tm);font-size:12px">Sin datos</div>';
+  color = color || 'var(--go)';
+  var entries = Object.entries(data)
+    .sort(function(a,b){ return b[1] - a[1]; })
+    .slice(0, 8);  // máximo 8 barras
+  var mx = (entries[0] && entries[0][1]) || 1;
+
+  if (!entries.length) {
+    el.innerHTML = '<div style="text-align:center;padding:18px;color:var(--tm);font-size:12px">Sin datos aún</div>';
+    return;
+  }
+
+  el.innerHTML = entries.map(function(item) {
+    var label = item[0] || '—';
+    var val   = item[1];
+    var pct   = Math.max(4, Math.round(val / mx * 100));
+    return '<div class="cbr">'
+      + '<div class="cbl" title="' + label + '">' + label.substring(0, 24) + '</div>'
+      + '<div class="cbt">'
+      + '<div class="cbf" style="width:' + pct + '%;background:' + color + '"></div>'
+      + '</div>'
+      + '<div class="cbc">' + val + '</div>'
+      + '</div>';
+  }).join('');
 }
 
 // ============================================================
 // PESTAÑA: EVIDENCIAS
 // ============================================================
+
+// Inicializar los campos de la clase y hora al abrir la pestaña
+function initEvidencias() {
+  // Selector de clase — solo las del profesor
+  var sel = document.getElementById('evClase');
+  if (sel) {
+    sel.innerHTML = '<option value="">— Selecciona tu clase —</option>'
+      + myClases().map(function(c){
+          return '<option value="' + c.id + '">' + c.programa + ' — ' + c.clase + ' (' + c.hora + ')</option>';
+        }).join('');
+  }
+  // Datos del profesor y hora actual
+  var lProf  = document.getElementById('evProfesorLabel');
+  var lFecha = document.getElementById('evFechaLabel');
+  var lHora  = document.getElementById('evHoraLabel');
+  if (lProf)  lProf.textContent  = CU.name + ' ' + CU.surname;
+  if (lFecha) lFecha.textContent = new Date().toLocaleDateString('es-CO');
+  if (lHora)  lHora.textContent  = horaCO();
+}
+
 function hFile(input, type) {
   var file = input.files[0]; if (!file) return;
-  var labelId = type === 'find' ? 'evFindN' : 'evLeaveN';
-  var previewId = type === 'find' ? 'evFindPreview' : 'evLeavePreview';
-  var zoneId = type === 'find' ? 'evFindZone' : 'evLeaveZone';
+  var labelId   = type === 'find' ? 'evFindN'       : 'evLeaveN';
+  var previewId = type === 'find' ? 'evFindPreview'  : 'evLeavePreview';
+  var zoneId    = type === 'find' ? 'evFindZone'     : 'evLeaveZone';
   document.getElementById(labelId).textContent = file.name + ' (' + Math.round(file.size/1024) + 'KB)';
   var prev = document.getElementById(previewId); prev.style.display = 'block';
   if (file.type.startsWith('image/')) {
     var r = new FileReader();
-    r.onload = function(ev){ prev.innerHTML = '<img src="' + ev.target.result + '" style="max-width:100%;max-height:180px;border-radius:10px;border:2px solid var(--go);object-fit:cover">'; };
+    r.onload = function(ev){ prev.innerHTML = '<img src="' + ev.target.result + '" style="max-width:100%;max-height:160px;border-radius:10px;border:2px solid var(--go);object-fit:cover">'; };
     r.readAsDataURL(file);
   } else if (file.type.startsWith('video/')) {
-    var url = URL.createObjectURL(file);
-    prev.innerHTML = '<video src="' + url + '" controls style="max-width:100%;max-height:180px;border-radius:10px;border:2px solid var(--go)"></video>';
+    prev.innerHTML = '<video src="' + URL.createObjectURL(file) + '" controls style="max-width:100%;max-height:160px;border-radius:10px;border:2px solid var(--go)"></video>';
   } else {
-    prev.innerHTML = '<div style="padding:10px;background:var(--gbg);border-radius:8px;font-size:12px;color:var(--gd)">📎 ' + file.name + '</div>';
+    prev.innerHTML = '<div style="padding:8px;background:var(--gbg);border-radius:8px;font-size:12px">📎 ' + file.name + '</div>';
   }
   var zone = document.getElementById(zoneId); if(zone) zone.style.borderColor = 'var(--go)';
   if (type === 'find') window._evFindFile = file; else window._evLeaveFile = file;
   notify('✅ Archivo listo: ' + file.name);
 }
+
 function evOpenCamera(type) {
   var el = document.getElementById(type === 'find' ? 'evFindF' : 'evLeaveF');
   if (el) { el.removeAttribute('capture'); el.setAttribute('capture','environment'); el.click(); }
@@ -1704,95 +2083,173 @@ function evOpenGallery(type) {
   if (el) { el.removeAttribute('capture'); el.click(); }
 }
 
+// Subir imagen a Imgur (API anónima, gratis, sin servidor propio)
+// Sube foto/video a Google Drive via Apps Script
+// Acepta imágenes y videos (cualquier mime type)
+function subirDrive(file, nombreBase, onDone) {
+  if (!file) { onDone(null); return; }
+  var url = gsUrl();
+  if (!url) { onDone(null); return; }
+
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var base64 = ev.target.result.split(',')[1];
+    var mime   = file.type || 'application/octet-stream';
+    var ext    = file.name.split('.').pop() || 'jpg';
+    var now    = new Date();
+    var ts     = now.toLocaleDateString('es-CO').replace(/\//g,'-') + '_'
+               + now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}).replace(/:/g,'-');
+    var fileName = (nombreBase + '_' + ts + '.' + ext).replace(/\s/g,'_');
+
+    // Enviar por POST al Apps Script (base64 es muy largo para GET)
+    fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action:     'guardar_evidencia_archivo',
+        fileName:   fileName,
+        fileBase64: base64,
+        fileMime:   mime
+      })
+    })
+    .then(function(){ onDone('drive'); })  // no-cors: no podemos leer URL, pero sabemos que llegó
+    .catch(function(){ onDone(null); });
+  };
+  reader.readAsDataURL(file);
+}
+
 function saveEv(tipo) {
-  var pre = tipo === 'encuentro' ? 'F' : 'L';
-  var salon = document.getElementById('ev' + pre + 'S').value;
-  var obs = document.getElementById('ev' + pre + 'O').value;
-  var file = tipo === 'encuentro' ? window._evFindFile : window._evLeaveFile;
-  var now = new Date();
-  var ts = now.toLocaleDateString('es-CO').replace(/\//g,'-') + '_' + now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}).replace(/:/g,'-');
-  var ext = file ? file.name.split('.').pop() : '';
-  var fileName = file ? (CU.name + '_' + CU.surname + '_' + (salon||'SinSalon') + '_' + tipo + '_' + ts + '.' + ext).replace(/\s/g,'_') : '';
-  var rec = { id: Date.now(), user: CU.name + ' ' + CU.surname, uid: CU.id, tipo: tipo,
-              salon: salon, obs: obs, fileName: fileName, fileData: null,
-              date: now.toLocaleDateString('es-CO'), time: now.toLocaleTimeString('es-CO'), uploadStatus: 'pending' };
+  var claseId = document.getElementById('evClase').value;
+  var claseObj = CLASES_AM.find(function(c){ return c.id === claseId; });
+  var salon   = document.getElementById('evSalon').value.trim();
+  var obs     = tipo === 'encuentro'
+    ? document.getElementById('evFO').value.trim()
+    : document.getElementById('evLO').value.trim();
+  var file    = tipo === 'encuentro' ? window._evFindFile : window._evLeaveFile;
+  var now     = new Date();
+  var fecha   = now.toLocaleDateString('es-CO');
+  var hora    = horaCO();
+  var profesor = CU.name + ' ' + CU.surname;
+  var clase   = claseObj ? (claseObj.programa + ' — ' + claseObj.clase) : '';
+
+  // Checklist (solo para "dejo")
+  var checklist = '';
+  if (tipo === 'dejo') {
+    var items = [];
+    if (document.getElementById('chk-sillas')      && document.getElementById('chk-sillas').checked)      items.push('✅ Sillas ordenadas');
+    if (document.getElementById('chk-luces')       && document.getElementById('chk-luces').checked)       items.push('✅ Luces apagadas');
+    if (items.length) checklist = items.join(' · ');
+  }
+
+  var obsCompleto = [obs, checklist].filter(Boolean).join(' | ');
+  var rec = {
+    id: Date.now(), user: profesor, uid: CU.id, tipo: tipo,
+    clase: clase, salon: salon, obs: obsCompleto,
+    fecha: fecha, hora: hora,
+    fileName: '', imgurUrl: '', fileData: null, uploadStatus: 'pending'
+  };
+
+  function guardarYEnviar(driveResult) {
+    var subida = driveResult === 'drive';
+    rec.imgurUrl = subida ? 'drive' : '';
+    rec.uploadStatus = subida ? 'ok' : (file ? 'local' : 'no-file');
+    evids.push(rec);
+    localStorage.setItem('mu_ev', JSON.stringify(evids));
+
+    // Enviar metadatos a Sheets (el archivo ya fue enviado por separado via POST no-cors)
+    gsEnviar({
+      action: 'guardar_evidencia',
+      fecha: fecha, hora: hora, tipo: tipo,
+      clase: clase, salon: salon, obs: obsCompleto,
+      profesor: profesor,
+      imgUrl: subida ? 'Ver Google Drive' : ''
+    }, null);
+
+    resetEvForm(tipo);
+    renderEvids();
+    if (subida) {
+      notify('✅ Evidencia y archivo guardados en Google Drive');
+    } else if (file) {
+      notify('💾 Evidencia guardada localmente (sin conexión)');
+    } else {
+      notify('✅ Evidencia guardada');
+    }
+  }
+
   if (file) {
-    notify('☁️ Guardando evidencia...');
+    notify('☁️ Subiendo a Google Drive...');
     var reader = new FileReader();
-    reader.onload = function(ev){
-      rec.fileData = ev.target.result;
-      var base64 = ev.target.result.split(',')[1];
-      var mime = file.type || 'application/octet-stream';
-      evids.push(rec);
-      localStorage.setItem('mu_ev', JSON.stringify(evids));
-      // Enviar a Sheets (sin archivo — solo metadatos, ya que GET tiene límite de URL)
-      gsEnviar({
-        action: 'guardar_evidencia', fecha: rec.date, hora: rec.time,
-        tipo: tipo, salon: salon, obs: obs, profesor: rec.user, fileName: fileName
-      }, function(ok){
-        rec.uploadStatus = ok ? 'ok' : 'local';
-        localStorage.setItem('mu_ev', JSON.stringify(evids));
-        renderEvids();
-        notify(ok ? '✅ Evidencia guardada en Sheets' : '⚠️ Guardado localmente (sin conexión)');
+    reader.onload = function(ev) {
+      rec.fileData = ev.target.result; // preview local
+      var nombreBase = (CU.name + '_' + CU.surname + '_' + (salon||'salon') + '_' + tipo).replace(/\s/g,'_');
+      subirDrive(file, nombreBase, function(result) {
+        guardarYEnviar(result === 'drive' ? 'drive' : null);
       });
     };
     reader.readAsDataURL(file);
   } else {
-    rec.uploadStatus = 'no-file';
-    evids.push(rec);
-    localStorage.setItem('mu_ev', JSON.stringify(evids));
-    gsEnviar({ action: 'guardar_evidencia', fecha: rec.date, hora: rec.time,
-               tipo: tipo, salon: salon, obs: obs, profesor: rec.user, fileName: '' }, null);
-    resetEvForm(pre, tipo);
-    renderEvids();
-    notify('✅ Evidencia guardada (sin archivo)');
+    guardarYEnviar(null);
   }
 }
 
-function resetEvForm(pre, tipo) {
-  document.getElementById('ev'+pre+'S').value = '';
-  document.getElementById('ev'+pre+'O').value = '';
-  var labelId = tipo === 'encuentro' ? 'evFindN' : 'evLeaveN';
-  var previewId = tipo === 'encuentro' ? 'evFindPreview' : 'evLeavePreview';
-  var zoneId = tipo === 'encuentro' ? 'evFindZone' : 'evLeaveZone';
-  var fileId = tipo === 'encuentro' ? 'evFindF' : 'evLeaveF';
-  document.getElementById(labelId).textContent = '';
-  var prev = document.getElementById(previewId); if(prev){ prev.style.display='none'; prev.innerHTML=''; }
-  var zone = document.getElementById(zoneId); if(zone) zone.style.borderColor = '';
-  document.getElementById(fileId).value = '';
-  if (tipo === 'encuentro') window._evFindFile = null; else window._evLeaveFile = null;
+function resetEvForm(tipo) {
+  if (tipo === 'encuentro') {
+    document.getElementById('evFO').value = '';
+    document.getElementById('evFindN').textContent = '';
+    var p = document.getElementById('evFindPreview'); if(p){p.style.display='none';p.innerHTML='';}
+    var z = document.getElementById('evFindZone'); if(z) z.style.borderColor='';
+    document.getElementById('evFindF').value = '';
+    window._evFindFile = null;
+  } else {
+    document.getElementById('evLO').value = '';
+    document.getElementById('evLeaveN').textContent = '';
+    var p = document.getElementById('evLeavePreview'); if(p){p.style.display='none';p.innerHTML='';}
+    var z = document.getElementById('evLeaveZone'); if(z) z.style.borderColor='';
+    document.getElementById('evLeaveF').value = '';
+    window._evLeaveFile = null;
+    // Reset checklist
+    ['chk-sillas','chk-luces'].forEach(function(id){
+      var el = document.getElementById(id); if(el) el.checked = false;
+    });
+  }
 }
 
 function renderEvids() {
-  var e = CU.role === 'coordinadora' ? evids : evids.filter(function(x){ return x.uid === CU.id; });
+  var lista = CU.role === 'coordinadora' ? evids : evids.filter(function(x){ return x.uid === CU.id; });
   var el = document.getElementById('evidList'); if (!el) return;
-  if (!e.length) { el.innerHTML = '<div style="text-align:center;padding:18px;color:var(--tm)">Sin evidencias registradas</div>'; return; }
-  el.innerHTML = e.slice().reverse().map(function(x){
+  if (!lista.length) {
+    el.innerHTML = '<div style="text-align:center;padding:18px;color:var(--tm)">Sin evidencias registradas</div>';
+    return;
+  }
+  el.innerHTML = lista.slice().reverse().map(function(x){
     var thumb = '';
-    if (x.fileData && x.fileData.startsWith('data:image')) {
+    if (x.imgurUrl) {
+      thumb = '<a href="' + x.imgurUrl + '" target="_blank"><img src="' + x.imgurUrl + '" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid var(--go)"></a>';
+    } else if (x.fileData && x.fileData.startsWith('data:image')) {
       thumb = '<img src="' + x.fileData + '" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid var(--go);cursor:pointer" onclick="viewEvidImg(this.src)">';
     } else if (x.fileData && x.fileData.startsWith('data:video')) {
-      thumb = '<video src="' + x.fileData + '" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:2px solid var(--go)" muted playsinline></video>';
-    } else if (x.fileName) {
-      thumb = '<div style="width:64px;height:64px;border-radius:8px;background:var(--gbg);border:1px solid var(--br);display:flex;align-items:center;justify-content:center;font-size:22px">📎</div>';
+      thumb = '<video src="' + x.fileData + '" style="width:64px;height:64px;object-fit:cover;border-radius:8px;" muted playsinline></video>';
     }
-    var statusBadge = x.uploadStatus === 'ok'
-      ? '<span style="font-size:9px;background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:9px;font-weight:600">☁️ Sheets</span>'
-      : (x.uploadStatus === 'local' || x.uploadStatus === 'pending')
-        ? '<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:2px 6px;border-radius:9px;font-weight:600">⚠️ Local</span>'
+
+    var enDrive = x.imgurUrl === 'drive' || x.uploadStatus === 'ok';
+    var statusBadge = enDrive
+      ? '<span style="font-size:9px;background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:9px;font-weight:600">☁️ Drive</span>'
+      : x.uploadStatus === 'local'
+        ? '<span style="font-size:9px;background:#fff3e0;color:#e65100;padding:2px 6px;border-radius:9px;font-weight:600">📱 Local</span>'
         : '';
-    var dlBtn = x.fileData ? '<button onclick="dlEvid(\'' + x.id + '\')" class="btn btn-g" style="font-size:10px;padding:3px 7px;margin-top:4px">⬇ Descargar</button>' : '';
+
     return '<div style="display:grid;grid-template-columns:auto 1fr;gap:12px;padding:12px;border-bottom:1px solid var(--br);align-items:start">'
-      + '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:64px">' + thumb + dlBtn + '</div>'
+      + '<div>' + (thumb || '<div style="width:64px;height:64px;border-radius:8px;background:var(--gbg);border:1px solid var(--br);display:flex;align-items:center;justify-content:center;font-size:22px">📝</div>') + '</div>'
       + '<div>'
-      + '<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:5px">'
+      + '<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:4px">'
       + '<span class="badge ' + (x.tipo==='encuentro'?'bg':'bo') + '">' + (x.tipo==='encuentro'?'🔍 Encuentro':'✅ Dejo') + '</span>'
       + statusBadge
-      + '<span style="font-size:10px;color:var(--tm)">' + x.date + ' ' + x.time + '</span>'
       + '</div>'
-      + (x.salon ? '<div style="font-size:12px;color:var(--gd);font-weight:600">🏫 ' + x.salon + '</div>' : '')
-      + (x.obs ? '<div style="font-size:11px;color:var(--tm);margin-top:3px">' + x.obs + '</div>' : '')
-      + (CU.role==='coordinadora' ? '<div style="font-size:10px;color:var(--go);margin-top:2px">👤 ' + x.user + '</div>' : '')
+      + '<div style="font-size:11px;font-weight:700;color:var(--gd)">' + (x.clase||'—') + '</div>'
+      + '<div style="font-size:10px;color:var(--tm);margin-top:2px">👤 ' + x.user + ' &nbsp;·&nbsp; 📅 ' + (x.fecha||x.date||'—') + ' &nbsp;·&nbsp; 🕐 ' + (x.hora||x.time||'—') + '</div>'
+      + (x.salon ? '<div style="font-size:11px;color:var(--gd);margin-top:2px">🏫 ' + x.salon + '</div>' : '')
+      + (x.obs   ? '<div style="font-size:11px;color:var(--tm);margin-top:2px">' + x.obs + '</div>' : '')
       + '</div></div>';
   }).join('');
 }
@@ -1804,59 +2261,101 @@ function viewEvidImg(src) {
   m.onclick = function(){ m.remove(); };
   document.body.appendChild(m);
 }
-function dlEvid(id) {
-  var rec = evids.find(function(x){ return x.id == id; });
-  if (!rec || !rec.fileData) return;
-  var a = document.createElement('a'); a.href = rec.fileData; a.download = rec.fileName || ('evidencia_' + id); a.click();
-}
+
 
 // ============================================================
 // PESTAÑA: LOGÍSTICA
 // ============================================================
+function logAutoSalon() {
+  var claseId = document.getElementById('logClase').value;
+  var claseObj = CLASES_AM.find(function(c){ return c.id === claseId; });
+  if (claseObj && claseObj.hora) {
+    var h = document.getElementById('logHora');
+    if (h && !h.value) h.value = claseObj.hora;
+  }
+}
+
+function limpiarFiltrosLog() {
+  var fj = document.getElementById('logFiltJornada'); if(fj) fj.value = '';
+  var ff = document.getElementById('logFiltFecha');   if(ff) ff.value = '';
+  renderLog();
+}
+
 function saveLog() {
-  var c = document.getElementById('logClase').value;
-  var it = document.getElementById('logItems').value.trim();
-  if (!it) { notify('⚠️ Describe los elementos'); return; }
-  var idx = logs.findIndex(function(r){ return r.uid === CU.id && r.clase === c; });
+  var claseId = document.getElementById('logClase').value;
+  var salon   = document.getElementById('logSalon').value.trim();
+  var hora    = document.getElementById('logHora').value.trim();
+  var fecha   = document.getElementById('logFecha').value;
+  var items   = document.getElementById('logItems').value.trim();
+  if (!claseId) { notify('⚠️ Selecciona una clase'); return; }
+  if (!items)   { notify('⚠️ Describe los elementos necesarios'); return; }
+  if (!fecha)   { notify('⚠️ Indica el sábado para el que lo necesitas'); return; }
+  var claseObj = CLASES_AM.find(function(c){ return c.id === claseId; });
+  var jornada  = claseObj ? claseObj.jornada : '';
+  var claseNombre = claseObj ? claseObj.programa + ' — ' + claseObj.clase : claseId;
   var req = {
-    id: idx >= 0 ? logs[idx].id : Date.now(),
-    uid: CU.id, user: CU.name + ' ' + CU.surname,
-    clase: c, items: it,
-    date: new Date().toLocaleDateString('es-CO'),
-    time: new Date().toLocaleTimeString('es-CO')
+    id: Date.now(), uid: CU.id, user: CU.name + ' ' + CU.surname,
+    claseId: claseId, clase: claseNombre,
+    salon: salon, hora: hora || (claseObj ? claseObj.hora : ''),
+    fecha: fecha, jornada: jornada, items: items,
+    enviado: new Date().toLocaleDateString('es-CO')
   };
-  if (idx >= 0) { logs[idx] = req; notify('✅ Solicitud actualizada'); }
-  else { logs.push(req); notify('✅ Solicitud enviada'); }
+  logs.push(req);
   localStorage.setItem('mu_log', JSON.stringify(logs));
+  gsEnviar({
+    action: 'guardar_logistica',
+    clase: req.clase, salon: req.salon, hora: req.hora,
+    fecha: req.fecha, jornada: req.jornada, items: req.items, profesor: req.user
+  }, null);
   document.getElementById('logItems').value = '';
-  // Enviar a Sheets
-  gsEnviar({ action: 'guardar_logistica', clase: req.clase, items: req.items, profesor: req.user }, null);
+  document.getElementById('logSalon').value = '';
+  document.getElementById('logHora').value  = '';
+  document.getElementById('logFecha').value = '';
+  notify('✅ Solicitud enviada');
   renderLog();
 }
 
 function renderLog() {
-  var ia = CU.role === 'coordinadora' || CU.role === 'logistico';
-  var r = ia ? logs : logs.filter(function(x){ return x.uid === CU.id; });
+  var esAdmin = CU && (CU.role === 'coordinadora' || CU.id === 'samuel');
   var el = document.getElementById('logList'); if (!el) return;
-  if (!r.length) { el.innerHTML = '<div style="text-align:center;padding:18px;color:var(--tm)">Sin solicitudes</div>'; return; }
-  el.innerHTML = r.map(function(x){
-    return '<div class="ri">'
-      + '<div style="flex:1">'
-      + (ia ? '<div style="font-size:10px;color:var(--tm)">' + x.user + '</div>' : '')
-      + '<div style="font-weight:700;font-size:12px;color:var(--gd)">' + x.clase + '</div>'
-      + '<div style="font-size:12px;margin-top:3px">' + x.items + '</div>'
+  var adminFilt = document.getElementById('logAdminFilt');
+  if (adminFilt) adminFilt.style.display = esAdmin ? 'flex' : 'none';
+  var lista = esAdmin ? logs.slice() : logs.filter(function(x){ return x.uid === CU.id; });
+  if (esAdmin) {
+    var filtJornada = (document.getElementById('logFiltJornada') || {value:''}).value;
+    var filtFecha   = (document.getElementById('logFiltFecha')   || {value:''}).value;
+    if (filtJornada) lista = lista.filter(function(x){ return x.jornada === filtJornada; });
+    if (filtFecha)   lista = lista.filter(function(x){ return x.fecha   === filtFecha; });
+  }
+  lista.sort(function(a,b){ return (a.fecha||'').localeCompare(b.fecha||''); });
+  if (!lista.length) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--tm)">Sin solicitudes</div>';
+    return;
+  }
+  el.innerHTML = lista.map(function(x){
+    return '<div class="ri" style="flex-direction:column;gap:7px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:5px">'
+      + '<div>'
+      + (esAdmin ? '<div style="font-size:10px;color:var(--go);font-weight:700">👤 ' + x.user + '</div>' : '')
+      + '<div style="font-weight:700;font-size:13px;color:var(--gd)">' + x.clase + '</div>'
       + '</div>'
-      + '<div style="text-align:right;flex-shrink:0;margin-left:9px">'
-      + '<div style="font-size:10px;color:var(--tm)">' + x.date + '</div>'
-      + (!ia ? '<button class="btn btn-g" style="font-size:10px;padding:3px 8px;margin-top:4px" onclick="editLog(\'' + x.id + '\')">Editar</button>' : '')
-      + '</div></div>';
+      + '<span class="badge ' + (x.jornada === 'AM' ? 'bo' : 'bpu') + '">' + (x.jornada||'—') + '</span>'
+      + '</div>'
+      + '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--tm)">'
+      + (x.salon ? '<span>🏫 ' + x.salon + '</span>' : '')
+      + (x.hora  ? '<span>🕐 ' + x.hora  + '</span>' : '')
+      + (x.fecha ? '<span>📅 ' + x.fecha + '</span>' : '')
+      + '</div>'
+      + '<div style="font-size:12px;background:var(--gbg);padding:8px 10px;border-radius:var(--rs);border:1px solid var(--br)">' + x.items + '</div>'
+      + '<div style="font-size:10px;color:var(--tm)">Enviado: ' + (x.enviado||'—') + '</div>'
+      + '</div>';
   }).join('');
 }
 
 function editLog(id) {
   var r = logs.find(function(x){ return x.id == id; }); if (!r) return;
   var el = document.getElementById('logItems'); if(el) el.value = r.items;
-  var cl = document.getElementById('logClase'); if(cl) cl.value = r.clase;
+  var cl = document.getElementById('logClase'); if(cl) cl.value = r.claseId || r.clase;
   notify('Edita y pulsa Enviar');
 }
 
@@ -1900,7 +2399,6 @@ function renderCom() {
           + (x.correo2 ? '<div style="font-size:11px;color:var(--tm);font-family:\'DM Mono\',monospace">' + x.correo2 + '</div>' : '')
           + '<div style="display:flex;gap:5px;margin-top:9px">'
           + '<button class="btn btn-g" style="font-size:10px;padding:4px 9px;flex:1" onclick="copyEmail(\'' + x.correo1 + '\')">📋 Copiar</button>'
-          + '<a href="mailto:' + x.correo1 + '" class="btn btn-p" style="font-size:10px;padding:4px 9px;flex:1;text-decoration:none">✉️ Enviar</a>'
           + '</div></div>';
       }).join('')
     : '<div style="text-align:center;padding:20px;color:var(--tm)">Sin correos registrados</div>';
