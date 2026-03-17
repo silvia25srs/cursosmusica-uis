@@ -459,86 +459,42 @@ tr:hover td{background:var(--gbg)}
     <div class="tab-page" id="page-evidencias">
       <div class="ph"><h2>📸 Evidencias</h2><p>Registro del estado del salón antes y después de la clase</p></div>
 
-      <!-- Datos de la clase — compartidos por ambas secciones -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="card-titulo" style="font-size:11px;font-weight:700;color:var(--go);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Datos de la clase</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div>
-            <span class="lbl">Clase</span>
-            <select class="sel" id="evClase">
-              <option value="">— Selecciona tu clase —</option>
-            </select>
-          </div>
-          <div>
-            <span class="lbl">Salón</span>
-            <input class="inp" id="evSalon" placeholder="Ej: Sala 202">
-          </div>
-        </div>
-        <div style="margin-top:8px;font-size:11px;color:var(--tm)">
-          👤 <strong id="evProfesorLabel">—</strong> &nbsp;·&nbsp; 📅 <strong id="evFechaLabel">—</strong> &nbsp;·&nbsp; 🕐 <strong id="evHoraLabel">—</strong>
-        </div>
-      </div>
-
+      <!-- Dos formularios: Como lo encuentro / Como lo dejo -->
       <div class="g2">
+
         <!-- COMO LO ENCUENTRO -->
-        <div class="card">
-          <h3 style="font-size:15px;font-weight:700;color:var(--gd);margin-bottom:12px">🔍 Como lo encuentro</h3>
-          <div class="uz" id="evFindZone" onclick="document.getElementById('evFindF').click()" style="min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px">
-            <div style="font-size:28px">📷</div>
-            <div style="font-size:12px;font-weight:600;color:var(--gd)">Toca para tomar foto</div>
-            <div style="font-size:10px;color:var(--tm)" id="evFindN"></div>
-          </div>
-          <input type="file" id="evFindF" accept="image/*,video/*" capture="environment" style="display:none" onchange="hFile(this,'find')">
-          <div id="evFindPreview" style="display:none;margin-top:10px;text-align:center"></div>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="btn btn-p" style="flex:1;justify-content:center" onclick="evOpenCamera('find')">📷 Cámara</button>
-            <button class="btn btn-g" style="flex:1;justify-content:center" onclick="evOpenGallery('find')">🖼️ Galería</button>
-          </div>
-          <div style="margin-top:12px">
-            <span class="lbl">Observaciones</span>
-            <textarea class="tex inp" id="evFO" rows="2" placeholder="Estado del salón e instrumentos al llegar..."></textarea>
-          </div>
-          <button class="btn btn-p" style="margin-top:10px;width:100%" onclick="saveEv('encuentro')">💾 Guardar</button>
+        <div class="card" style="text-align:center;padding:28px 20px">
+          <div style="font-size:44px;margin-bottom:12px">🔍</div>
+          <h3 style="font-family:'Playfair Display',serif;font-size:17px;color:var(--gd);margin-bottom:8px">Como lo encuentro</h3>
+          <p style="font-size:12px;color:var(--tm);margin-bottom:20px;line-height:1.6">
+            Registra el estado inicial del salón al llegar y sube las fotos correspondientes.
+          </p>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSc9v-WyFjDe-_9Doy39nfgH-0P4nQPLYO6UStdGBt4M8xJH0Q/viewform" target="_blank"
+             style="display:inline-flex;align-items:center;gap:8px;background:var(--gd);color:#fff;text-decoration:none;padding:12px 22px;border-radius:var(--r);font-size:13px;font-weight:700;box-shadow:var(--sh)"
+             onmouseover="this.style.background='#223d12'" onmouseout="this.style.background='var(--gd)'">
+            📝 Abrir formulario
+          </a>
+          <p style="font-size:10px;color:var(--tm);margin-top:12px">Abre en nueva pestaña</p>
         </div>
 
         <!-- COMO LO DEJO -->
-        <div class="card">
-          <h3 style="font-size:15px;font-weight:700;color:var(--gd);margin-bottom:12px">✅ Como lo dejo</h3>
-          <div class="uz" id="evLeaveZone" onclick="document.getElementById('evLeaveF').click()" style="min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px">
-            <div style="font-size:28px">📷</div>
-            <div style="font-size:12px;font-weight:600;color:var(--gd)">Toca para tomar foto</div>
-            <div style="font-size:10px;color:var(--tm)" id="evLeaveN"></div>
-          </div>
-          <input type="file" id="evLeaveF" accept="image/*,video/*" capture="environment" style="display:none" onchange="hFile(this,'leave')">
-          <div id="evLeavePreview" style="display:none;margin-top:10px;text-align:center"></div>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="btn btn-o" style="flex:1;justify-content:center" onclick="evOpenCamera('leave')">📷 Cámara</button>
-            <button class="btn btn-g" style="flex:1;justify-content:center" onclick="evOpenGallery('leave')">🖼️ Galería</button>
-          </div>
-          <!-- Checklist de salida -->
-          <div style="margin-top:12px;background:var(--gbg);border-radius:var(--rs);padding:12px;border:1px solid var(--br)">
-            <div style="font-size:11px;font-weight:700;color:var(--go);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Lista de verificación</div>
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:7px;cursor:pointer">
-              <input type="checkbox" id="chk-sillas" style="width:16px;height:16px;accent-color:var(--go)">
-              <span>🪑 Sillas ordenadas</span>
-            </label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-              <input type="checkbox" id="chk-luces" style="width:16px;height:16px;accent-color:var(--go)">
-              <span>💡 Luces apagadas</span>
-            </label>
-          </div>
-          <div style="margin-top:10px">
-            <span class="lbl">Observaciones adicionales</span>
-            <textarea class="tex inp" id="evLO" rows="2" placeholder="Algo que reportar al dejar el salón..."></textarea>
-          </div>
-          <button class="btn btn-o" style="margin-top:10px;width:100%" onclick="saveEv('dejo')">💾 Guardar</button>
+        <div class="card" style="text-align:center;padding:28px 20px">
+          <div style="font-size:44px;margin-bottom:12px">✅</div>
+          <h3 style="font-family:'Playfair Display',serif;font-size:17px;color:var(--gd);margin-bottom:8px">Como lo dejo</h3>
+          <p style="font-size:12px;color:var(--tm);margin-bottom:20px;line-height:1.6">
+            Registra el estado final del salón al salir, marca la verificación y sube las fotos.
+          </p>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSd9ZbjXkmVwb-F0Q100vrbmkCACOOJFljec3vPnZ0uSSnag9w/viewform" target="_blank"
+             style="display:inline-flex;align-items:center;gap:8px;background:var(--go);color:#fff;text-decoration:none;padding:12px 22px;border-radius:var(--r);font-size:13px;font-weight:700;box-shadow:var(--sh)"
+             onmouseover="this.style.background='#6e8530'" onmouseout="this.style.background='var(--go)'">
+            📝 Abrir formulario
+          </a>
+          <p style="font-size:10px;color:var(--tm);margin-top:12px">Abre en nueva pestaña</p>
         </div>
+
       </div>
 
-      <div class="card" style="margin-top:16px">
-        <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:12px">Mis Evidencias</h3>
-        <div id="evidList"></div>
-      </div>
+
     </div>
 
     <div class="tab-page" id="page-logistica">
@@ -793,13 +749,6 @@ function guardarLogistica(p) {
           </div>
         </div>
 
-        <div style="background:var(--gbg);border-radius:var(--rs);padding:16px;border:1px solid var(--br)">
-          <div style="font-weight:700;font-size:14px;color:var(--gd);margin-bottom:4px">📁 Google Drive — Evidencias</div>
-          <div class="al al-s" style="margin-top:8px;font-size:12px">
-            ✅ Carpeta: <strong>Evidencias_MusicaUIS_2026-1</strong> · ID: <code style="font-size:10px">1pXADsK5eLk3SHcaqIe9VaY_VhysexLA8</code><br>
-            🔗 <a href="https://drive.google.com/drive/folders/1pXADsK5eLk3SHcaqIe9VaY_VhysexLA8" target="_blank" style="color:var(--go)">Ver en Google Drive</a>
-          </div>
-        </div>
       </div>
 
       <div class="g2">
@@ -807,7 +756,6 @@ function guardarLogistica(p) {
           <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:12px">Servicios Vinculados</h3>
           <div class="ci2"><div><div class="cil">Google Sheets — Asistencia</div><div class="cis">📊 Cuenta: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9efbe6eafbf0edf7f1f0f3ebedf7fdffb0ebf7eddef9f3fff7f2b0fdf1f3">[email&#160;protected]</a><br>📄 Archivo: <em>Asistencia Cursos Música UIS 2026-1</em><br>🔗 Scripts: Google Apps Script vinculado</div></div><span class="badge bo">✅ Conectado</span></div>
           <div class="ci2"><div><div class="cil">Google Sheets — Faltas</div><div class="cis">📊 Misma cuenta: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ea8f929e8f8499838584879f9983898bc49f8399aa8d878b8386c4898587">[email&#160;protected]</a><br>📄 Archivo: <em>Registro de Faltas 2026-1</em><br>🗂️ Una hoja por profesor, actualización automática</div></div><span class="badge bo">✅ Conectado</span></div>
-          <div class="ci2"><div><div class="cil">Microsoft OneDrive — Evidencias</div><div class="cis">📁 Cuenta: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3340525e46565f1d5c40435a5d5273465a401d5657461d505c">[email&#160;protected]</a> (Logística)<br>📂 Carpeta: <em>EscuelaMusicaUIS/Evidencias2026-1/</em><br>🖼️ Fotos y videos organizados por fecha y salón</div></div><span class="badge bpu">⚙️ Configurar acceso</span></div>
           <div class="ci2"><div><div class="cil">Lector QR — Music Pass</div><div class="cis">📷 Cámara del dispositivo (jsQR)<br>🎵 Formato: MUSICUIS-[ID]-[Nombre]<br>✅ Compatible con todos los navegadores modernos</div></div><span class="badge bo">✅ Activo</span></div>
           <div class="ci2"><div><div class="cil">Calendario — Google Calendar</div><div class="cis">📅 Cuenta: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="791c010d1c170a101617140c0a101a18570c100a391e14181015571a1614">[email&#160;protected]</a><br>📆 Calendario: Cursos Música UIS 2026-1<br>🔔 Notificaciones activadas para eventos clave</div></div><span class="badge bo">⚙️ Próximamente</span></div>
         </div>
