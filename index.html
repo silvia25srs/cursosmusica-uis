@@ -965,14 +965,36 @@ function gsUrl(){ return localStorage.getItem('cfg_gsheets') || ''; }
 // Envía datos a Google Sheets via GET (sin CORS, sin proxy)
 function gsEnviar(params, cb) {
   var url = gsUrl();
-  if (!url) { if(cb) cb(false); return; }
+  if (!url) {
+    console.warn('[Sheets] URL del Apps Script no configurada');
+    if(cb) cb(false);
+    return;
+  }
   var qs = Object.keys(params).map(function(k){
     return encodeURIComponent(k) + '=' + encodeURIComponent(params[k] != null ? params[k] : '');
   }).join('&');
-  fetch(url + '?' + qs)
-    .then(function(r){ return r.json(); })
-    .then(function(d){ if(cb) cb(d && d.ok === true, d); })
-    .catch(function(){ if(cb) cb(false); });
+  var fullUrl = url + '?' + qs;
+  console.log('[Sheets] Enviando:', params.action, fullUrl.substring(0, 120) + '...');
+  fetch(fullUrl)
+    .then(function(r){
+      console.log('[Sheets] HTTP status:', r.status);
+      return r.json();
+    })
+    .then(function(d){
+      console.log('[Sheets] Respuesta:', JSON.stringify(d));
+      if (d && d.ok) {
+        // Éxito silencioso — ya hay notify del registro
+      } else {
+        console.warn('[Sheets] Respuesta inesperada:', d);
+        notify('⚠️ Sheets: ' + (d && d.msg ? d.msg : JSON.stringify(d)));
+      }
+      if(cb) cb(d && d.ok === true, d);
+    })
+    .catch(function(err){
+      console.error('[Sheets] Error de red:', err);
+      notify('⚠️ Sin conexión con Sheets — guardado solo localmente');
+      if(cb) cb(false);
+    });
 }
 
 // Lee datos de una hoja via gviz (sin auth, no requiere login Google)
@@ -1394,14 +1416,19 @@ function handleQR(data) {
   localStorage.setItem('mu_att', JSON.stringify(attRec));
   notify('✅ ' + sname + ' registrado/a');
   renderAttLog();
-  // Enviar a Sheets
+  // Enviar a Sheets y confirmar
   gsEnviar({
     action: 'registrar_asistencia',
     id: String(rec.id), fecha: fechaCO(rec.date), hora: rec.time,
     estudiante: rec.sname, clase: rec.clase, programa: rec.programa, profesor: rec.teacher
-  }, null);
-  // Pausa 2 s anti-duplicado
-  if (scanIv) { clearInterval(scanIv); scanIv = null; }
+  }, function(ok) {
+    if (ok) {
+      notify('✅ ' + rec.sname + ' — registrado en Sheets');
+    } else {
+      notify('💾 ' + rec.sname + ' — guardado localmente (sin Sheets)');
+    }
+    renderAttLog();
+  });
   setTimeout(function(){ if(camActive) startScan(); }, 2000);
 }
 
