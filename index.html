@@ -2469,22 +2469,49 @@ function initCarnetsButtons() {
 }
 
 // ── QR generation ──
+// Normaliza texto eliminando tildes y caracteres especiales
+// para que qrcode-generator no falle con UTF-8
+function normQR(str) {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')  // quita diacríticos (tildes, diéresis)
+    .replace(/[^\x00-\x7F]/g, '?');   // reemplaza cualquier otro no-ASCII
+}
+
 function drawQR(el, text) {
   el.innerHTML = '';
-  try {
-    var qr = qrcode(7, 'M'); qr.addData(text); qr.make();
-    var mods = qr.getModuleCount();
-    var sz = Math.max(2, Math.floor(Math.min(180, window.innerWidth * 0.7) / mods));
-    var canvas = document.createElement('canvas');
-    canvas.width = sz * mods; canvas.height = sz * mods;
-    var ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = '#31511E';
-    for (var r = 0; r < mods; r++) for (var c = 0; c < mods; c++) if (qr.isDark(r,c)) ctx.fillRect(c*sz,r*sz,sz,sz);
-    el.appendChild(canvas);
-  } catch(e) { el.innerHTML = '<div style="font-size:9px;color:#888;padding:8px">ID-' + text.split('|')[1] + '</div>'; }
+  var safeText = normQR(text);
+  // Intentar con tipo 7, si falla escalar al tipo necesario
+  var typeNums = [7, 9, 10, 12, 15];
+  for (var t = 0; t < typeNums.length; t++) {
+    try {
+      var qr = qrcode(typeNums[t], 'M');
+      qr.addData(safeText);
+      qr.make();
+      var mods = qr.getModuleCount();
+      var sz = Math.max(2, Math.floor(Math.min(180, window.innerWidth * 0.7) / mods));
+      var canvas = document.createElement('canvas');
+      canvas.width = sz * mods; canvas.height = sz * mods;
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#31511E';
+      for (var r = 0; r < mods; r++)
+        for (var c = 0; c < mods; c++)
+          if (qr.isDark(r, c)) ctx.fillRect(c*sz, r*sz, sz, sz);
+      el.appendChild(canvas);
+      return; // éxito
+    } catch(e) { /* intentar con tipo mayor */ }
+  }
+  // Si todos fallaron mostrar ID
+  el.innerHTML = '<div style="font-size:9px;color:#888;padding:8px">ID-' + text.split('|')[1] + '</div>';
 }
-function genQR(id, nombre) { setTimeout(function(){ var el = document.getElementById('mp-qr-' + id); if(el) drawQR(el, 'MUSICUIS|' + id + '|' + nombre); }, 400); }
+
+function genQR(id, nombre) {
+  setTimeout(function(){
+    var el = document.getElementById('mp-qr-' + id);
+    if (el) drawQR(el, 'MUSICUIS|' + id + '|' + nombre);
+  }, 400);
+}
 
 function mpHTML(id, nombre, programa, instrumento) {
   return '<div class="mp">'
