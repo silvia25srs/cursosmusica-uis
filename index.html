@@ -1386,7 +1386,7 @@ function startCam() {
 
 function stopCam() {
   if (camStream) { camStream.getTracks().forEach(function(t){ t.stop(); }); camStream = null; }
-  if (scanIv) { cancelAnimationFrame(scanIv); clearInterval(scanIv); scanIv = null; }
+  if (scanIv) { clearInterval(scanIv); scanIv = null; }
   camActive = false;
   var v = document.getElementById('camVid'); if(v){ v.srcObject = null; v.onloadeddata = null; }
   document.getElementById('camWrap').style.display = 'none';
@@ -1401,78 +1401,76 @@ var _lastScanned = '';
 var _lastScannedTime = 0;
 
 function startScan() {
-  if (!_scanCanvas) {
-    _scanCanvas = document.createElement('canvas');
-  }
-  if (scanIv) { cancelAnimationFrame(scanIv); scanIv = null; }
+  if (scanIv) { clearInterval(scanIv); scanIv = null; }
+  if (!_scanCanvas) _scanCanvas = document.createElement('canvas');
 
-  var v = document.getElementById('camVid');
-  var ss = document.getElementById('scanStatus');
-  var frameCount = 0;
+  var v   = document.getElementById('camVid');
+  var ss  = document.getElementById('scanStatus');
+  var tick = 0;
 
-  function scan() {
-    // Continuar si la cámara sigue activa
-    if (!camActive) return;
+  scanIv = setInterval(function() {
+    // ── Verificaciones básicas ──────────────────────────────────────────────
+    if (!camActive)              return;
+    if (!v)                      return;
+    if (v.videoWidth  === 0)     return;
+    if (v.videoHeight === 0)     return;
+    if (v.readyState  < 3)       return;  // HAVE_FUTURE_DATA = 3
 
-    scanIv = requestAnimationFrame(scan);
-    frameCount++;
-
-    // Verificar que el video tiene datos
-    if (!v || v.videoWidth === 0 || v.videoHeight === 0 || v.paused) return;
-
-    // Indicador animado cada ~15 frames (~0.5s a 30fps)
-    if (frameCount % 15 === 0 && ss) {
-      var dots = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'];
-      ss.textContent = dots[Math.floor(frameCount/15) % dots.length] + ' Escaneando — apunta al código QR';
+    // ── Indicador visual ────────────────────────────────────────────────────
+    tick++;
+    if (ss && tick % 4 === 0) {
+      var icons = ['🔍','📷','🔍','✨'];
+      ss.textContent = icons[(tick/4) % icons.length | 0] + ' Escaneando — apunta al QR';
     }
 
-    // Usar resolución NATIVA del video para máxima sensibilidad
-    // jsQR funciona mejor con imagen nítida sin escalar
-    var W = v.videoWidth;
-    var H = v.videoHeight;
+    // ── Dibujar frame en canvas (400px de ancho, proporcional) ─────────────
+    // 400px es el tamaño óptimo para jsQR: lo suficiente para leer el QR
+    // sin sobrecargar la CPU del móvil
+    var W = 400;
+    var H = Math.round(v.videoHeight * W / v.videoWidth);
     _scanCanvas.width  = W;
     _scanCanvas.height = H;
 
-    var ctx = _scanCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
+    var ctx = _scanCanvas.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(v, 0, 0, W, H);
 
+    // ── Intentar leer QR ────────────────────────────────────────────────────
+    var imageData;
     try {
-      var imageData = ctx.getImageData(0, 0, W, H);
-      var code = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: 'attemptBoth'
-      });
+      imageData = ctx.getImageData(0, 0, W, H);
+    } catch(e) { return; }  // CORS o contexto inválido
 
-      if (code && code.data) {
-        var now = Date.now();
-        // Anti-duplicado: mismo QR en menos de 3 segundos = ignorar
-        if (code.data === _lastScanned && now - _lastScannedTime < 3000) return;
-        _lastScanned    = code.data;
-        _lastScannedTime = now;
+    var code = null;
+    try {
+      code = jsQR(imageData.data, W, H, { inversionAttempts: 'attemptBoth' });
+    } catch(e) { console.warn('jsQR:', e); return; }
 
-        // Flash verde instantáneo
-        var sb = document.querySelector('.sb');
-        if (sb) {
-          sb.style.borderColor  = '#4ade80';
-          sb.style.background   = 'rgba(74,222,128,0.15)';
-          sb.style.boxShadow    = '0 0 0 9999px rgba(0,60,0,0.7)';
-          setTimeout(function(){
-            if (sb) { sb.style.borderColor=''; sb.style.background=''; sb.style.boxShadow=''; }
-          }, 600);
-        }
-        if (ss) ss.textContent = '✅ ¡QR leído!';
+    if (!code || !code.data) return;  // nada en este frame
 
-        // Pausar escaneo mientras se procesa
-        cancelAnimationFrame(scanIv); scanIv = null;
-        handleQR(code.data);
-      }
-    } catch(e) {
-      console.warn('scan error:', e);
+    // ── QR encontrado ───────────────────────────────────────────────────────
+    var now = Date.now();
+    if (code.data === _lastScanned && now - _lastScannedTime < 3000) return;
+    _lastScanned     = code.data;
+    _lastScannedTime = now;
+
+    // Flash verde
+    var sb = document.querySelector('.sb');
+    if (sb) {
+      sb.style.borderColor = '#4ade80';
+      sb.style.boxShadow   = '0 0 0 9999px rgba(0,80,0,.7)';
+      setTimeout(function(){
+        if(sb){ sb.style.borderColor=''; sb.style.boxShadow=''; }
+      }, 700);
     }
-  }
+    if (ss) ss.textContent = '✅ ¡QR leído!';
 
-  // Arrancar el loop
-  scanIv = requestAnimationFrame(scan);
+    // Pausar 2 s para que no registre dos veces el mismo pase
+    clearInterval(scanIv); scanIv = null;
+    handleQR(code.data);
+
+  }, 150);  // cada 150ms ≈ ~7 lecturas por segundo
 }
+
 
 // ── Procesar QR ──
 function handleQR(data) {
@@ -1511,7 +1509,7 @@ function handleQR(data) {
     estudiante: rec.sname, clase: rec.clase, programa: rec.programa, profesor: rec.teacher
   }, null);
   // Pausa 2 s anti-duplicado
-  if (scanIv) { cancelAnimationFrame(scanIv); clearInterval(scanIv); scanIv = null; }
+  if (scanIv) { clearInterval(scanIv); scanIv = null; }
   setTimeout(function(){ if(camActive) startScan(); }, 2000);
 }
 
