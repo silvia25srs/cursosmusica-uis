@@ -680,31 +680,61 @@ tr:hover td{background:var(--gbg)}
 
 function doGet(e) {
   var p = (e && e.parameter) ? e.parameter : {};
-  var action = p.action || 'ping';
   var result;
   try {
-    if      (action === 'ping')                result = { ok:true, msg:'Conectado OK v2026-6' };
-    else if (action === 'registrar_asistencia') result = registrarAsistencia(p);
-    else if (action === 'registrar_falta')      result = registrarFalta(p);
-    else if (action === 'guardar_evidencia')    result = guardarEvidencia(p);  // metadatos sin archivo
-    else if (action === 'guardar_evidencia_archivo') result = guardarEvidenciaArchivo(p);
-    else if (action === 'guardar_logistica')    result = guardarLogistica(p);
-    else if (action === 'asistencia')           result = getData('Asistencia', p.profesor);
-    else if (action === 'faltas')               result = getData('Faltas', p.profesor);
-    else if (action === 'evidencias')           result = getData('Evidencias', p.profesor);
-    else if (action === 'logistica')            result = getData('Logistica', p.profesor);
-    else result = { ok:false, msg:'Accion no reconocida: ' + action };
-  } catch(err) { result = { ok:false, error: err.toString() }; }
+    result = doGetAction(p.action || 'ping', p);
+  } catch(err) {
+    result = { ok:false, error: err.toString() };
+  }
   return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
   try {
-    var data = JSON.parse(e.postData.contents);
-    return doGet({ parameter: data });
+    // Los forms HTML envían application/x-www-form-urlencoded
+    // Apps Script los expone en e.parameter (igual que GET)
+    var data = {};
+    if (e.postData && e.postData.type === 'application/x-www-form-urlencoded') {
+      data = e.parameter || {};
+    } else if (e.postData && e.postData.contents) {
+      try { data = JSON.parse(e.postData.contents); } catch(ex) { data = e.parameter || {}; }
+    } else {
+      data = e.parameter || {};
+    }
+    var action = data.action || '';
+
+    // Manejar subida de archivo directamente en doPost
+    if (action === 'guardar_evidencia_archivo') {
+      return ContentService
+        .createTextOutput(JSON.stringify(guardarEvidenciaArchivo(data)))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Resto de acciones
+    return ContentService
+      .createTextOutput(JSON.stringify(doGetAction(action, data)))
+      .setMimeType(ContentService.MimeType.JSON);
+
   } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ ok:false, error:err.toString() })).setMimeType(ContentService.MimeType.JSON);
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok:false, error:err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// Función auxiliar para ejecutar acciones desde doGet o doPost
+function doGetAction(action, p) {
+  if (action === 'ping')                    return { ok:true, msg:'Conectado OK' };
+  if (action === 'registrar_asistencia')    return registrarAsistencia(p);
+  if (action === 'registrar_falta')         return registrarFalta(p);
+  if (action === 'guardar_evidencia')       return guardarEvidencia(p);
+  if (action === 'guardar_evidencia_archivo') return guardarEvidenciaArchivo(p);
+  if (action === 'guardar_logistica')       return guardarLogistica(p);
+  if (action === 'asistencia')              return getData('Asistencia', p.profesor);
+  if (action === 'faltas')                  return getData('Faltas', p.profesor);
+  if (action === 'evidencias')              return getData('Evidencias', p.profesor);
+  if (action === 'logistica')               return getData('Logistica', p.profesor);
+  return { ok:false, msg:'Accion no reconocida: ' + action };
 }
 
 function hoy()  { return Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy'); }
@@ -1101,7 +1131,7 @@ let _lastSyncTime=0;
 // ── Configuración centralizada — igual en TODOS los dispositivos ──
 // Cambiar aquí actualiza automáticamente para todos sin tocar nada más.
 var GS_SHEET_ID   = '1fm6LqodGvOR2SamCuxhJLIPrOag1QVWqMEoT8i_VI-w';
-var GS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYiBFn-75cjKffei_QrPV9P6RjErXNnlT5JknqEQ4K8nFveAvgXcIQ2Gj6z732LPTt/exec';
+var GS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxpuyk6Oefc0i7NfrKjEmtyyWjZk_vyLriAnK6pxISRtDfnQP6rFIXyAcRxCLmA5nP/exec';
 
 // Sincronizar localStorage con los valores del código
 // (si el localStorage tiene algo diferente, el código gana)
@@ -2091,32 +2121,86 @@ function subirDrive(file, nombreBase, onDone) {
   var url = gsUrl();
   if (!url) { onDone(null); return; }
 
+  var ext      = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  var mime     = file.type || 'application/octet-stream';
+  var now      = new Date();
+  var ts       = now.toLocaleDateString('es-CO').replace(/\//g,'-') + '_'
+               + now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}).replace(/:/g,'-');
+  var fileName = (nombreBase + '_' + ts + '.' + ext).replace(/\s/g,'_');
+
   var reader = new FileReader();
   reader.onload = function(ev) {
     var base64 = ev.target.result.split(',')[1];
-    var mime   = file.type || 'application/octet-stream';
-    var ext    = file.name.split('.').pop() || 'jpg';
-    var now    = new Date();
-    var ts     = now.toLocaleDateString('es-CO').replace(/\//g,'-') + '_'
-               + now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}).replace(/:/g,'-');
-    var fileName = (nombreBase + '_' + ts + '.' + ext).replace(/\s/g,'_');
 
-    // Enviar por POST al Apps Script (base64 es muy largo para GET)
-    fetch(url, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action:     'guardar_evidencia_archivo',
-        fileName:   fileName,
-        fileBase64: base64,
-        fileMime:   mime
-      })
-    })
-    .then(function(){ onDone('drive'); })  // no-cors: no podemos leer URL, pero sabemos que llegó
-    .catch(function(){ onDone(null); });
+    // Redimensionar imagen antes de enviar (máx 1200px, calidad 80%)
+    // para que el base64 no exceda el límite de Apps Script (50MB POST)
+    if (file.type.startsWith('image/')) {
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var MAX = 1200;
+        var ratio = Math.min(1, MAX / Math.max(img.width, img.height));
+        canvas.width  = Math.round(img.width  * ratio);
+        canvas.height = Math.round(img.height * ratio);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        var b64compressed = canvas.toDataURL('image/jpeg', 0.80).split(',')[1];
+        enviarBase64AlScript(url, fileName, b64compressed, 'image/jpeg', onDone);
+      };
+      img.src = ev.target.result;
+    } else {
+      // Video u otro: enviar tal cual
+      enviarBase64AlScript(url, fileName, base64, mime, onDone);
+    }
   };
   reader.readAsDataURL(file);
+}
+
+function enviarBase64AlScript(url, fileName, base64, mime, onDone) {
+  // Técnica: formulario HTML oculto con iframe target
+  // Los forms POST no tienen restricciones CORS — el dato SIEMPRE llega
+  // El iframe absorbe la respuesta sin errores
+  try {
+    var iframeName = '_upload_' + Date.now();
+    var iframe = document.createElement('iframe');
+    iframe.name   = iframeName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    var form = document.createElement('form');
+    form.method  = 'POST';
+    form.action  = url;
+    form.target  = iframeName;
+    form.enctype = 'application/x-www-form-urlencoded';
+    form.style.display = 'none';
+
+    var campos = {
+      action:     'guardar_evidencia_archivo',
+      fileName:   fileName,
+      fileBase64: base64,
+      fileMime:   mime
+    };
+    Object.keys(campos).forEach(function(k) {
+      var inp = document.createElement('input');
+      inp.type  = 'hidden';
+      inp.name  = k;
+      inp.value = campos[k];
+      form.appendChild(inp);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+
+    // Limpiar después de 5s
+    setTimeout(function() {
+      if (form.parentNode)   form.parentNode.removeChild(form);
+      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+    }, 5000);
+
+    onDone('drive');
+  } catch(err) {
+    console.warn('enviarBase64 error:', err);
+    onDone(null);
+  }
 }
 
 function saveEv(tipo) {
