@@ -252,11 +252,13 @@ tr:hover td{background:var(--gbg)}
 .ri{display:flex;justify-content:space-between;align-items:flex-start;padding:11px;background:var(--gbg);border-radius:var(--rs);margin-bottom:7px;border:1px solid var(--br)}
 .ae{display:flex;justify-content:space-between;align-items:center;padding:8px 11px;border-bottom:1px solid var(--br)}
 .ae:last-child{border-bottom:none}
-.cw{position:relative;width:100%;max-width:420px;margin:0 auto}
-.cw video{width:100%;border-radius:var(--r)}
+.cw{position:relative;width:100%;max-width:100%;margin:0 auto;background:#000;border-radius:var(--r);overflow:hidden}
+.cw video{width:100%;max-height:70vh;display:block;object-fit:cover}
 .so{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.sb{width:185px;height:185px;border:3px solid var(--go);border-radius:11px;box-shadow:0 0 0 9999px rgba(0,0,0,.4);animation:sp 2s infinite}
-@keyframes sp{0%,100%{border-color:var(--go)}50%{border-color:var(--gl)}}
+.sb{width:min(260px,72vw);height:min(260px,72vw);border:3px solid #4ade80;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.55);animation:sp 1.5s infinite}
+@keyframes sp{0%,100%{border-color:#4ade80;box-shadow:0 0 0 9999px rgba(0,0,0,.55)}50%{border-color:#fff;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}}
+.scan-line{position:absolute;width:calc(min(260px,72vw) - 8px);height:3px;background:linear-gradient(90deg,transparent,#4ade80,transparent);animation:scanline 2s linear infinite}
+@keyframes scanline{0%{top:calc(50% - min(130px,36vw) + 4px)}100%{top:calc(50% + min(130px,36vw) - 7px)}}
 .cbr{display:flex;align-items:center;gap:9px;margin-bottom:7px}
 .cbl{font-size:11px;color:var(--tm);width:135px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cbt{flex:1;height:17px;background:var(--br);border-radius:8px;overflow:hidden}
@@ -329,7 +331,7 @@ tr:hover td{background:var(--gbg)}
           </div>
         </div>
         <div class="card">
-          <div class="cw" id="camWrap" style="display:none"><video id="camVid" autoplay playsinline webkit-playsinline muted></video><div class="so"><div class="sb"></div></div></div>
+          <div class="cw" id="camWrap" style="display:none"><video id="camVid" autoplay playsinline webkit-playsinline muted></video><div class="so"><div class="sb"></div><div class="scan-line"></div></div></div>
           <div id="camPh" style="text-align:center;padding:34px 18px;color:var(--tm)">
             <div style="font-size:42px;margin-bottom:9px">📷</div>
             <p style="font-size:13px;font-weight:600;color:var(--gd)">Activa la cámara para escanear</p>
@@ -1384,7 +1386,7 @@ function startCam() {
 
 function stopCam() {
   if (camStream) { camStream.getTracks().forEach(function(t){ t.stop(); }); camStream = null; }
-  if (scanIv) { clearInterval(scanIv); scanIv = null; }
+  if (scanIv) { cancelAnimationFrame(scanIv); clearInterval(scanIv); scanIv = null; }
   camActive = false;
   var v = document.getElementById('camVid'); if(v){ v.srcObject = null; v.onloadeddata = null; }
   document.getElementById('camWrap').style.display = 'none';
@@ -1399,53 +1401,77 @@ var _lastScanned = '';
 var _lastScannedTime = 0;
 
 function startScan() {
-  if (!_scanCanvas) _scanCanvas = document.createElement('canvas');
-  if (scanIv) clearInterval(scanIv);
-  var frameCount = 0;
-  scanIv = setInterval(function(){
-    var v = document.getElementById('camVid');
-    if (!v || v.readyState < 2 || v.videoWidth === 0) return;
+  if (!_scanCanvas) {
+    _scanCanvas = document.createElement('canvas');
+  }
+  if (scanIv) { cancelAnimationFrame(scanIv); scanIv = null; }
 
-    // Indicador visual de actividad cada ~1 s
+  var v = document.getElementById('camVid');
+  var ss = document.getElementById('scanStatus');
+  var frameCount = 0;
+
+  function scan() {
+    // Continuar si la cámara sigue activa
+    if (!camActive) return;
+
+    scanIv = requestAnimationFrame(scan);
     frameCount++;
-    if (frameCount % 5 === 0) {
-      var ss = document.getElementById('scanStatus');
-      if (ss) {
-        var dots = '.'.repeat((Math.floor(frameCount/5) % 3) + 1);
-        ss.textContent = '🔍 Escaneando' + dots + ' apunta al código QR';
-      }
+
+    // Verificar que el video tiene datos
+    if (!v || v.videoWidth === 0 || v.videoHeight === 0 || v.paused) return;
+
+    // Indicador animado cada ~15 frames (~0.5s a 30fps)
+    if (frameCount % 15 === 0 && ss) {
+      var dots = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'];
+      ss.textContent = dots[Math.floor(frameCount/15) % dots.length] + ' Escaneando — apunta al código QR';
     }
 
-    // En móvil escalar a máx 640px para mejor rendimiento sin perder legibilidad del QR
-    var scale = Math.min(1, 640 / Math.max(v.videoWidth, v.videoHeight));
-    var w = Math.floor(v.videoWidth * scale);
-    var h = Math.floor(v.videoHeight * scale);
-    _scanCanvas.width = w; _scanCanvas.height = h;
-    var ctx = _scanCanvas.getContext('2d', { willReadFrequently: true });
-    ctx.drawImage(v, 0, 0, w, h);
+    // Usar resolución NATIVA del video para máxima sensibilidad
+    // jsQR funciona mejor con imagen nítida sin escalar
+    var W = v.videoWidth;
+    var H = v.videoHeight;
+    _scanCanvas.width  = W;
+    _scanCanvas.height = H;
+
+    var ctx = _scanCanvas.getContext('2d', { willReadFrequently: true, alpha: false });
+    ctx.drawImage(v, 0, 0, W, H);
+
     try {
-      var d = ctx.getImageData(0, 0, w, h);
-      var code = jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
+      var imageData = ctx.getImageData(0, 0, W, H);
+      var code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: 'attemptBoth'
+      });
+
       if (code && code.data) {
         var now = Date.now();
+        // Anti-duplicado: mismo QR en menos de 3 segundos = ignorar
         if (code.data === _lastScanned && now - _lastScannedTime < 3000) return;
-        _lastScanned = code.data; _lastScannedTime = now;
-        // Flash verde en el recuadro de escaneo
+        _lastScanned    = code.data;
+        _lastScannedTime = now;
+
+        // Flash verde instantáneo
         var sb = document.querySelector('.sb');
         if (sb) {
-          sb.style.borderColor = 'lime';
-          sb.style.boxShadow = '0 0 0 9999px rgba(49,81,30,0.7)';
-          setTimeout(function(){ if(sb){ sb.style.borderColor = ''; sb.style.boxShadow = ''; } }, 700);
+          sb.style.borderColor  = '#4ade80';
+          sb.style.background   = 'rgba(74,222,128,0.15)';
+          sb.style.boxShadow    = '0 0 0 9999px rgba(0,60,0,0.7)';
+          setTimeout(function(){
+            if (sb) { sb.style.borderColor=''; sb.style.background=''; sb.style.boxShadow=''; }
+          }, 600);
         }
-        var ss2 = document.getElementById('scanStatus');
-        if (ss2) ss2.textContent = '✅ QR detectado! Registrando...';
+        if (ss) ss.textContent = '✅ ¡QR leído!';
+
+        // Pausar escaneo mientras se procesa
+        cancelAnimationFrame(scanIv); scanIv = null;
         handleQR(code.data);
       }
-    } catch(scanErr) {
-      // Loguear en consola pero no interrumpir el loop
-      console.warn('jsQR error:', scanErr);
+    } catch(e) {
+      console.warn('scan error:', e);
     }
-  }, 200);
+  }
+
+  // Arrancar el loop
+  scanIv = requestAnimationFrame(scan);
 }
 
 // ── Procesar QR ──
@@ -1485,7 +1511,7 @@ function handleQR(data) {
     estudiante: rec.sname, clase: rec.clase, programa: rec.programa, profesor: rec.teacher
   }, null);
   // Pausa 2 s anti-duplicado
-  if (scanIv) { clearInterval(scanIv); scanIv = null; }
+  if (scanIv) { cancelAnimationFrame(scanIv); clearInterval(scanIv); scanIv = null; }
   setTimeout(function(){ if(camActive) startScan(); }, 2000);
 }
 
