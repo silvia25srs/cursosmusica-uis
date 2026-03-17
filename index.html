@@ -1852,12 +1852,11 @@ function renderEst() {
       var sn = x.nombre.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       var sp = (x.programas[0]||'').replace(/'/g,"\\'");
       var si = instrumento.replace(/'/g,"\\'");
-      var qrBtns = isCoor
-        ? '<div style="display:flex;gap:5px;margin-top:8px">'
-          + '<button class="btn btn-g" style="font-size:10px;padding:3px 8px;flex:1" onclick="showMP(' + x.id + ',\'' + sn + '\',\'' + sp + '\',\'' + si + '\')">🎵 Pass</button>'
-          + '<button class="btn btn-p" style="font-size:10px;padding:3px 8px" onclick="printMP(' + x.id + ',\'' + sn + '\',\'' + sp + '\',\'' + si + '\')">🖨️</button>'
-          + '</div>'
-        : '';
+      var qrBtns = '<div style="display:flex;gap:5px;margin-top:8px">'
+        + (isCoor ? '<button class="btn btn-g" style="font-size:10px;padding:3px 8px;flex:1" onclick="showMP(' + x.id + ',\'' + sn + '\',\'' + sp + '\',\'' + si + '\')">🎵 Pass</button>' : '')
+        + '<button class="btn btn-p" style="font-size:10px;padding:3px 8px;flex:1" onclick="descargarMP(' + x.id + ',\'' + sn + '\',\'' + sp + '\',\'' + si + '\')">⬇️ Descargar</button>'
+        + (isCoor ? '<button class="btn btn-p" style="font-size:10px;padding:3px 8px" onclick="printMP(' + x.id + ',\'' + sn + '\',\'' + sp + '\',\'' + si + '\')">🖨️</button>' : '')
+        + '</div>';
       // Correo: enlace si existe, guión si no
       var correoHTML = '';
       if (x.correo1 && x.correo1 !== 'PENDIENTE') {
@@ -2554,6 +2553,58 @@ function goAllMP() {
   notify('Music Pass generados');
 }
 function showAllMP() { goAllMP(); }
+
+// Descarga el Music Pass como imagen PNG con el nombre del estudiante
+function descargarMP(id, nombre, programa, instrumento) {
+  // Crear un contenedor temporal fuera de pantalla
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1';
+  wrap.innerHTML = mpHTML(id, nombre, programa, instrumento);
+  document.body.appendChild(wrap);
+
+  // Generar el QR en el contenedor temporal
+  var qrEl = document.getElementById('mp-qr-' + id);
+  drawQR(qrEl, 'MUSICUIS|' + id + '|' + nombre);
+
+  // Esperar a que el QR se dibuje, luego capturar con html2canvas
+  setTimeout(function() {
+    var mpEl = wrap.querySelector('.mp');
+    if (!mpEl) { document.body.removeChild(wrap); return; }
+
+    // Usar html2canvas para capturar el elemento
+    var script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    script.onload = function() {
+      html2canvas(mpEl, {
+        scale: 3,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false
+      }).then(function(canvas) {
+        document.body.removeChild(wrap);
+        var link = document.createElement('a');
+        link.download = nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, '').trim() + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        notify('⬇️ Descargando Music Pass de ' + nombre);
+      }).catch(function() {
+        document.body.removeChild(wrap);
+        notify('⚠️ No se pudo generar la imagen');
+      });
+    };
+    script.onerror = function() {
+      document.body.removeChild(wrap);
+      notify('⚠️ Error al cargar html2canvas');
+    };
+    // Solo cargar si no está ya cargado
+    if (typeof html2canvas === 'undefined') {
+      document.head.appendChild(script);
+    } else {
+      script.onload();
+    }
+  }, 600);
+}
+
 
 // ============================================================
 // PESTAÑA: CONFIGURACIÓN
