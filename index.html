@@ -667,8 +667,37 @@ function guardarLogistica(p) {
 </div>
 <div class="ni" id="notif"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
+<!-- qrcode-generator: múltiples CDN de respaldo -->
+<script>
+(function(){
+  function loadScript(urls, idx, onDone) {
+    if (idx >= urls.length) { onDone(false); return; }
+    var s = document.createElement('script');
+    s.src = urls[idx];
+    s.onload = function(){ onDone(true); };
+    s.onerror = function(){ loadScript(urls, idx+1, onDone); };
+    document.head.appendChild(s);
+  }
+  // Cargar qrcode-generator con fallback
+  loadScript([
+    'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.js',
+    'https://unpkg.com/qrcode-generator@1.4.4/qrcode.js'
+  ], 0, function(ok){ window._qrcodeLoaded = ok; });
+
+  // Cargar jsQR con fallback
+  loadScript([
+    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js',
+    'https://unpkg.com/jsqr@1.4.0/dist/jsQR.js'
+  ], 0, function(ok){
+    window._jsqrLoaded = ok;
+    if (!ok) {
+      console.error('jsQR no pudo cargar desde ningún CDN');
+    }
+  });
+})();
+</script>
 
 <script>
 
@@ -1273,13 +1302,25 @@ function syncNow() {
 function toggleCam() { camActive ? stopCam() : startCam(); }
 
 function startCam() {
-  // Verificar que jsQR está disponible
-  if (typeof jsQR === 'undefined') {
-    notify('⚠️ La librería de escaneo no cargó. Verifica tu conexión e intenta de nuevo.');
+  // Verificar acceso a cámara
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    notify('⚠️ Tu navegador no soporta cámara. Usa Chrome o Safari actualizado.');
     return;
   }
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    notify('⚠️ Tu navegador no soporta acceso a cámara. Usa Chrome o Safari actualizado.');
+  // Si jsQR aún no cargó, esperar hasta 5 s y reintentar
+  if (typeof jsQR === 'undefined') {
+    notify('⏳ Cargando librería QR, espera un momento...');
+    var intentos = 0;
+    var espera = setInterval(function(){
+      intentos++;
+      if (typeof jsQR !== 'undefined') {
+        clearInterval(espera);
+        startCam(); // reintentar ahora que cargó
+      } else if (intentos >= 10) {
+        clearInterval(espera);
+        notify('⚠️ No se pudo cargar el escáner QR. Verifica tu conexión a internet e intenta de nuevo.');
+      }
+    }, 500);
     return;
   }
 
