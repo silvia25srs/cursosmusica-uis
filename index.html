@@ -459,42 +459,169 @@ tr:hover td{background:var(--gbg)}
     <div class="tab-page" id="page-evidencias">
       <div class="ph"><h2>📸 Evidencias</h2><p>Registro del estado del salón antes y después de la clase</p></div>
 
-      <!-- Dos formularios: Como lo encuentro / Como lo dejo -->
       <div class="g2">
 
-        <!-- COMO LO ENCUENTRO -->
-        <div class="card" style="text-align:center;padding:28px 20px">
-          <div style="font-size:44px;margin-bottom:12px">🔍</div>
-          <h3 style="font-family:'Playfair Display',serif;font-size:17px;color:var(--gd);margin-bottom:8px">Como lo encuentro</h3>
-          <p style="font-size:12px;color:var(--tm);margin-bottom:20px;line-height:1.6">
-            Registra el estado inicial del salón al llegar y sube las fotos correspondientes.
-          </p>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSc9v-WyFjDe-_9Doy39nfgH-0P4nQPLYO6UStdGBt4M8xJH0Q/viewform" target="_blank"
-             style="display:inline-flex;align-items:center;gap:8px;background:var(--gd);color:#fff;text-decoration:none;padding:12px 22px;border-radius:var(--r);font-size:13px;font-weight:700;box-shadow:var(--sh)"
-             onmouseover="this.style.background='#223d12'" onmouseout="this.style.background='var(--gd)'">
-            📝 Abrir formulario
-          </a>
-          <p style="font-size:10px;color:var(--tm);margin-top:12px">Abre en nueva pestaña</p>
+        <!-- ══════════════════════════════════════════
+             SECCIÓN 1: COMO LO ENCONTRÉ
+        ══════════════════════════════════════════ -->
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--go)">
+            <div style="font-size:32px">🔍</div>
+            <div>
+              <h3 style="font-family:'Playfair Display',serif;font-size:17px;color:var(--gd);margin:0">Como lo Encontré</h3>
+              <p style="font-size:11px;color:var(--tm);margin:2px 0 0">Estado inicial del salón al llegar</p>
+            </div>
+          </div>
+
+          <!-- Datos automáticos -->
+          <div style="background:var(--gbg);border-radius:var(--rs);padding:10px 13px;margin-bottom:14px;border:1px solid var(--br)">
+            <div style="font-size:10px;font-weight:700;color:var(--go);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Datos registrados automáticamente</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;color:var(--tx)">
+              <div>👤 <strong id="ev1-user">—</strong></div>
+              <div>🕐 <strong id="ev1-hora">—</strong></div>
+              <div style="grid-column:1/-1">📅 <strong id="ev1-fecha">—</strong></div>
+            </div>
+          </div>
+
+          <div style="display:grid;gap:11px">
+            <div>
+              <span class="lbl">Salón</span>
+              <input class="inp" id="ev1-salon" placeholder="Ej: Sala 202, Sala de Ensayo A...">
+            </div>
+            <div>
+              <span class="lbl">Clase</span>
+              <select class="sel" id="ev1-clase">
+                <option value="">— Selecciona una clase —</option>
+              </select>
+            </div>
+            <div>
+              <span class="lbl">Observaciones</span>
+              <textarea class="tex inp" id="ev1-obs" rows="3" placeholder="Describe el estado del salón, instrumentos, equipos..."></textarea>
+            </div>
+
+            <!-- Upload foto/video -->
+            <div>
+              <span class="lbl">📷 Foto / Video del estado inicial</span>
+              <div style="background:var(--gbg);border-radius:var(--rs);padding:12px;border:1px dashed var(--go);margin-top:4px">
+                <input type="file" id="ev1-file" accept="image/*,video/*" style="display:none" onchange="ev1FileSelected(this)">
+                <div style="text-align:center">
+                  <button class="btn btn-g" style="width:100%;margin-bottom:8px" onclick="document.getElementById('ev1-file').click()">
+                    📎 Seleccionar archivo
+                  </button>
+                  <div id="ev1-file-name" style="font-size:11px;color:var(--tm)">Ningún archivo seleccionado</div>
+                  <div id="ev1-file-preview" style="margin-top:8px;display:none">
+                    <img id="ev1-img-preview" style="max-width:100%;max-height:120px;border-radius:var(--rs);border:1px solid var(--br)" src="">
+                  </div>
+                </div>
+                <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--br)">
+                  <div style="font-size:10px;font-weight:700;color:var(--go);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Nombre del archivo generado:</div>
+                  <div id="ev1-filename-preview" style="font-size:11px;color:var(--gd);font-family:'DM Mono',monospace;background:var(--wh);padding:5px 8px;border-radius:4px;border:1px solid var(--br)">Completa los campos para ver el nombre</div>
+                </div>
+                <button class="btn btn-p" style="width:100%;margin-top:10px" onclick="abrirOneDriveEncontré()">
+                  ☁️ Ir a carpeta OneDrive para subir archivo
+                </button>
+                <p style="font-size:10px;color:var(--tm);margin-top:6px;text-align:center">Sube el archivo con el nombre indicado arriba a la carpeta que se abrirá</p>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-p" style="margin-top:16px;width:100%" onclick="guardarEv1()">
+            ✅ Registrar — Como lo Encontré
+          </button>
+          <div id="ev1-status" style="font-size:12px;margin-top:8px;min-height:16px;text-align:center"></div>
         </div>
 
-        <!-- COMO LO DEJO -->
-        <div class="card" style="text-align:center;padding:28px 20px">
-          <div style="font-size:44px;margin-bottom:12px">✅</div>
-          <h3 style="font-family:'Playfair Display',serif;font-size:17px;color:var(--gd);margin-bottom:8px">Como lo dejo</h3>
-          <p style="font-size:12px;color:var(--tm);margin-bottom:20px;line-height:1.6">
-            Registra el estado final del salón al salir, marca la verificación y sube las fotos.
-          </p>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSd9ZbjXkmVwb-F0Q100vrbmkCACOOJFljec3vPnZ0uSSnag9w/viewform" target="_blank"
-             style="display:inline-flex;align-items:center;gap:8px;background:var(--go);color:#fff;text-decoration:none;padding:12px 22px;border-radius:var(--r);font-size:13px;font-weight:700;box-shadow:var(--sh)"
-             onmouseover="this.style.background='#6e8530'" onmouseout="this.style.background='var(--go)'">
-            📝 Abrir formulario
-          </a>
-          <p style="font-size:10px;color:var(--tm);margin-top:12px">Abre en nueva pestaña</p>
+
+        <!-- ══════════════════════════════════════════
+             SECCIÓN 2: COMO LO DEJÉ
+        ══════════════════════════════════════════ -->
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--pu)">
+            <div style="font-size:32px">✅</div>
+            <div>
+              <h3 style="font-family:'Playfair Display',serif;font-size:17px;color:var(--pu);margin:0">Como lo Dejé</h3>
+              <p style="font-size:11px;color:var(--tm);margin:2px 0 0">Estado final del salón al salir</p>
+            </div>
+          </div>
+
+          <!-- Datos automáticos -->
+          <div style="background:var(--pul);border-radius:var(--rs);padding:10px 13px;margin-bottom:14px;border:1px solid rgba(83,62,133,.2)">
+            <div style="font-size:10px;font-weight:700;color:var(--pu);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Datos registrados automáticamente</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;color:var(--tx)">
+              <div>👤 <strong id="ev2-user">—</strong></div>
+              <div>🕐 <strong id="ev2-hora">—</strong></div>
+              <div style="grid-column:1/-1">📅 <strong id="ev2-fecha">—</strong></div>
+            </div>
+          </div>
+
+          <div style="display:grid;gap:11px">
+            <div>
+              <span class="lbl">Salón</span>
+              <input class="inp" id="ev2-salon" placeholder="Ej: Sala 202, Sala de Ensayo A...">
+            </div>
+            <div>
+              <span class="lbl">Clase</span>
+              <select class="sel" id="ev2-clase">
+                <option value="">— Selecciona una clase —</option>
+              </select>
+            </div>
+            <div>
+              <span class="lbl">Observaciones</span>
+              <textarea class="tex inp" id="ev2-obs" rows="3" placeholder="Describe cómo quedó el salón, instrumentos, equipos..."></textarea>
+            </div>
+
+            <!-- Checklist -->
+            <div>
+              <span class="lbl">✔️ Lista de verificación al salir</span>
+              <div style="background:var(--gbg);border-radius:var(--rs);padding:12px;border:1px solid var(--br);margin-top:4px;display:grid;gap:8px">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--tx)">
+                  <input type="checkbox" id="chk-luces" style="width:18px;height:18px;accent-color:var(--pu);cursor:pointer">
+                  💡 Luces apagadas
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--tx)">
+                  <input type="checkbox" id="chk-ventanas" style="width:18px;height:18px;accent-color:var(--pu);cursor:pointer">
+                  🪟 Ventanas cerradas
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--tx)">
+                  <input type="checkbox" id="chk-sillas" style="width:18px;height:18px;accent-color:var(--pu);cursor:pointer">
+                  🪑 Sillas ordenadas
+                </label>
+              </div>
+            </div>
+
+            <!-- Upload foto/video -->
+            <div>
+              <span class="lbl">📷 Foto / Video del estado final</span>
+              <div style="background:var(--gbg);border-radius:var(--rs);padding:12px;border:1px dashed var(--pu);margin-top:4px">
+                <input type="file" id="ev2-file" accept="image/*,video/*" style="display:none" onchange="ev2FileSelected(this)">
+                <div style="text-align:center">
+                  <button class="btn btn-pu" style="width:100%;margin-bottom:8px" onclick="document.getElementById('ev2-file').click()">
+                    📎 Seleccionar archivo
+                  </button>
+                  <div id="ev2-file-name" style="font-size:11px;color:var(--tm)">Ningún archivo seleccionado</div>
+                  <div id="ev2-file-preview" style="margin-top:8px;display:none">
+                    <img id="ev2-img-preview" style="max-width:100%;max-height:120px;border-radius:var(--rs);border:1px solid var(--br)" src="">
+                  </div>
+                </div>
+                <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--br)">
+                  <div style="font-size:10px;font-weight:700;color:var(--pu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Nombre del archivo generado:</div>
+                  <div id="ev2-filename-preview" style="font-size:11px;color:var(--gd);font-family:'DM Mono',monospace;background:var(--wh);padding:5px 8px;border-radius:4px;border:1px solid var(--br)">Completa los campos para ver el nombre</div>
+                </div>
+                <button class="btn btn-pu" style="width:100%;margin-top:10px" onclick="abrirOneDriveDejar()">
+                  ☁️ Ir a carpeta OneDrive para subir archivo
+                </button>
+                <p style="font-size:10px;color:var(--tm);margin-top:6px;text-align:center">Sube el archivo con el nombre indicado arriba a la carpeta que se abrirá</p>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-pu" style="margin-top:16px;width:100%" onclick="guardarEv2()">
+            ✅ Registrar — Como lo Dejé
+          </button>
+          <div id="ev2-status" style="font-size:12px;margin-top:8px;min-height:16px;text-align:center"></div>
         </div>
 
       </div>
-
-
     </div>
 
     <div class="tab-page" id="page-logistica">
@@ -734,10 +861,11 @@ function guardarEvidencia(p) {
     }
   }
 
-  sheet('Evidencias',['Fecha','Hora','Tipo','Clase','Salon','Observaciones','Profesor','URL Foto'])
+  sheet('Evidencias',['Fecha','Hora','Tipo','Clase','Salon','Observaciones','Profesor','Nombre Archivo','Checklist','OneDrive'])
     .appendRow([p.fecha||hoy(), p.hora||ahora(), p.tipo||'',
-                p.clase||'', p.salon||'', p.obs||'', p.profesor||'', driveUrl]);
-  return { ok:true, driveUrl:driveUrl };
+                p.clase||'', p.salon||'', p.obs||'', p.profesor||'',
+                p.fileName||'', p.checklist||'', p.onedrive||'']);
+  return { ok:true };
 }
 
 function guardarLogistica(p) {
@@ -841,7 +969,7 @@ const CLASES={
 };
 
 const CLASES_AM=[
-  {id:'c008',programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30 PM',jornada:'PM',estudiantes:["Maria Lucia Vega Olarte", "Juan Pablo Toloza Diaz", "María Fernanda Sánchez Calderón", "Camila Alejandra Leon Vanegas", "Cristian Leonardo Bohórquez Cucha", "Álvaro Augusto Páez Arteaga", "Álvaro paez", "Lili Dahiana Becerra García", "Sergio Andres Gil Moreno", "Andrés Arenas Santos", "Claudia Lucila Rodriguez Pinilla"]},
+  {id:'c008',programa:'Comunidad UIS',clase:'Comunidad UIS',profesor:'Camilo Durán',hora:'6:30 PM',jornada:'PM',estudiantes:["Maria Lucia Vega Olarte", "Juan Pablo Toloza Diaz", "María Fernanda Sánchez Calderón", "Camila Alejandra Leon Vanegas", "Cristian Leonardo Bohórquez Cucha", "Álvaro Augusto Páez Arteaga", "Lili Dahiana Becerra García", "Sergio Andres Gil Moreno", "Andrés Arenas Santos", "Claudia Lucila Rodriguez Pinilla"]},
   {id:'c013',programa:'Iniciación',clase:'Coro',profesor:'Génesis Moreno',hora:'9:40 AM',jornada:'AM',estudiantes:["Lianna Jova Loaiza", "Ariana Gabriela Barrera Jaimes", "Ilona Streithorst", "Isaac Bonilla Garcia", "KEREN DANIELA LOPEZ SOLANO", "Lukas Arango Abril", "Samuel Alejandro Pardo Crespo", "SAMUEL DELGADO LÓPEZ", "Verónica Galvis Limbrunner"]},
   {id:'c012',programa:'Iniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'8:30 AM',jornada:'AM',estudiantes:["Lianna Jova Loaiza", "Ariana Gabriela Barrera Jaimes", "Ilona Streithorst", "Isaac Bonilla Garcia", "KEREN DANIELA LOPEZ SOLANO", "Lukas Arango Abril", "Samuel Alejandro Pardo Crespo", "SAMUEL DELGADO LÓPEZ", "Verónica Galvis Limbrunner"]},
   {id:'c014',programa:'Iniciación',clase:'Exploración Musical',profesor:'Mariana Pinto',hora:'10:45 AM',jornada:'AM',estudiantes:["Lianna Jova Loaiza", "Ariana Gabriela Barrera Jaimes", "Ilona Streithorst", "Isaac Bonilla Garcia", "KEREN DANIELA LOPEZ SOLANO", "Lukas Arango Abril", "Samuel Alejandro Pardo Crespo", "SAMUEL DELGADO LÓPEZ", "Verónica Galvis Limbrunner"]},
@@ -860,7 +988,7 @@ const CLASES_AM=[
   {id:'c056',programa:'Instrumental',clase:'Auralidad - Grupo B',profesor:'Andrés Navarro',hora:'2:50 PM',jornada:'PM',estudiantes:["Andrea Catalina Hincapié González", "Thomas Santiago Amorocho Villabona", "Angel Daniel castro lizcano", "Angela Sofía Leon Barajas", "David Alejandro Sarmiento Vesga", "Thomas garay", "Maximiliano Mancilla", "ALEJANDRA PRADA GUTIERREZ", "FERNANDO GALVAN MUÑOZ", "Samantha castro lizcano", "Esteban Contreras Rodríguez", "SOFIA COZ BASTO"]},
   {id:'c042',programa:'Instrumental',clase:'CORO - Adultos',profesor:'Génesis Moreno',hora:'2 PM',jornada:'PM',estudiantes:["Andrea Catalina Hincapié González", "Jhan sebastian vanegas duran", "Daniel Alejandro Vega Nieves", "Juan Pablo Robayo Aguillón", "Jose Manuel Acevedo Triana", "Hugo Ariza Olarte", "Nelly Carreño Moreno", "Hernando Rodriguez Ochoa", "Gloria León Bermúdez", "Oscar Armando Ruiz Castro", "Leidy Paola Mariño León", "DELCY RODRIGUEZ BURBANO", "Bernarda Ballesteros Gómez", "IVETTE LUCIA PINTO BORJA", "Juan David Ramirez Diaz", "Belva Cristina morantes Rangel", "Johan Leonardo Cespedes Badillo", "DIANA CAROLINA PARRA ZAFRA", "Armando Rafael Calderon Granados", "Hector Eliecer Diaz Hernandez", "Juan Martín Valero Alvarado", "Diego Fernando Acero Mendoza", "Juan Guillermo Martínez Ojeda", "Angélica María Acevedo Galvis", "JORGE LEONARDO RODRÍGUEZ PRADA"]},
   {id:'c041',programa:'Instrumental',clase:'CORO - Juvenil',profesor:'Daniela Visbal',hora:'2 PM',jornada:'PM',estudiantes:["carlos manuel garcia osorio", "María José Ardila Correa", "Santiago Martí Rodriguez", "Jerónimo Franco Silva", "Alejandro Arenas Rocha", "Manuel Santiago Alvarado Lizarazo", "Angel David Mendoza Tapias", "Maria Fernanda Durán Abaunza", "Lucia Quintero Domínguez", "Julieta Castellanos Cáceres", "Mariana Lucia Vargas Plata", "Miguel Ángel Robayo Aguillón", "SEBASTIAN GABRIEL MONTOYA CHAMORRO", "CRISTIAN ANDRES RODRIGUEZ BURBANO", "Angie Gabriela Pabón Ortega", "Danna Sharlott E.E Quiroga Sandoval", "Thomas Santiago Amorocho Villabona", "Angel Daniel castro lizcano", "Angela Sofía Leon Barajas", "David Alejandro Sarmiento Vesga", "Thomas garay", "Maximiliano Mancilla", "ALEJANDRA PRADA GUTIERREZ", "SOFIA COZ BASTO", "AMELIE PEDRAZA RINCON", "ALEJANDRO GALVAN QUIJANO", "Andrea Camila Gomez Torres", "MARCO JAVIER DE JESUS HERNANDEZ MELENDEZ", "Luna Ayeleen Gómez Herrera", "Samantha castro lizcano", "Esteban Contreras Rodríguez", "FERNANDO GALVAN MUÑOZ", "Yecithy Alejandro Sánchez Becerra", "Ainkarin Lucia Cañas Carrillo", "Emely daniela castañeda sanchez", "Yasser Daniel Carvajal Jimenez", "Juan Diego Canal Parada"]},
-  {id:'c028',programa:'Instrumental',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40 AM',jornada:'AM',estudiantes:["Hernan José lizarazo Ayala", "Samuel Salvatore Vincenzo Martinez Olave", "Tomás Santiago Pereira Vargas", "jeronimo delgado porras", "Maria Lucía Gomez Ruiz", "Samuel Quintero Oviedo", "JUAN ANDRES PEREZ CAMARGO", "Samuel Duarte Rojas", "Juan Andrés Medina Barrera", "Arturo Almeida Manzano", "Sara Ramirez Contreras", "Jhon Emanuel Gutierrez Lizcano", "salome prado sandoval", "Juan Pablo Coronel Niño", "Gia mariana rueda Quiroz", "MATEO GARCIA UTRERA", "NATALIA GUAYACAN ARIAS", "Matías Oswaldo Prada Sarmiento", "Jerónimo Montoya Gómez", "Mariana Bautista Mejia", "Juan Manuel Ardila Correa", "ANLY ISABELLA VILLAMIZAR DELGADO", "EMANUEL GARCIA VILLAMIZAR", "Samantha castro lizcano", "Caleb Pineda Alvarez", "Mateo Hernandez Hillon", "Ana Sofía Arias Calvete"]},
+  {id:'c028',programa:'Instrumental',clase:'CORO - Pequeños',profesor:'Génesis Moreno',hora:'11:40 AM',jornada:'AM',estudiantes:["Hernan José lizarazo Ayala", "Samuel Salvatore Vincenzo Martinez Olave", "Tomás Santiago Pereira Vargas", "jeronimo delgado porras", "Maria Lucía Gomez Ruiz", "Samuel Quintero Oviedo", "JUAN ANDRES PEREZ CAMARGO", "Samuel Duarte Rojas", "Juan Andrés Medina Barrera", "Arturo Almeida Manzano", "Sara Ramirez Contreras", "Jhon Emanuel Gutierrez Lizcano", "salome prado sandoval", "Juan Pablo Coronel Niño", "Gia mariana rueda Quiroz", "MATEO GARCIA UTRERA", "NATALIA GUAYACAN ARIAS", "Matías Oswaldo Prada Sarmiento", "Jerónimo Montoya Gómez", "Mariana Bautista Mejia", "Juan Manuel Ardila Correa", "ANLY ISABELLA VILLAMIZAR DELGADO", "EMANUEL GARCIA VILLAMIZAR", "Samantha castro lizcano", "Caleb Pineda Alvarez", "Ana Sofía Arias Calvete"]},
   {id:'c029',programa:'Instrumental',clase:'CORO - Prejuvenil',profesor:'Daniela Visbal',hora:'11:40 AM',jornada:'AM',estudiantes:["Simón Alejandro Coronel Niño", "Kevin de jesus diaz peñaloza", "JHOJAN SNEYDER MENDOZA GOMEZ", "Andrés Camilo Araque Bermon", "Maria Antonia Caetano Prada", "Sara Sofia Benavides camargo", "diana alejandra guevara duran", "Miguel Mauricio Castro Martinez", "María José Jimenez Parra", "Juana María Ariza Tarazona", "Salome Remolina Oquendo", "Abril Hernández Sánchez", "Jacobo Pineda Alvarez", "NICOLAS FABIAN REMOLINA OQUENDO", "Paulina Solano Jaimes", "Adrián Vargas Jiménez", "Franco Villamizar Ordoñez", "Sara Lucía Paternina González", "MAXIMO AVELLANEDA NABARLATZ", "VALERY MARIN MENDOZA", "Emely daniela castañeda sanchez", "CATALINA MANTILLA GOMEZ", "Jesus Santiago Niño Basto", "Owen Camilo Niño Neira", "Salomé Quintero Oviedo", "thomas emiliano castañeda castillo", "María Alejandra Caballero Infante", "JUANA VALENTINA PEÑA MUÑOZ", "Manuel Eduardo Martinez Amador", "Sarah Angieline Carrillo Moncada", "Alejandro Acevedo Silva", "Alejandro Prada Gutierrez", "RIDLEY ANDREWNG HUFFINGTON JAIMES", "Ian Steve Caicedo", "JERONIMO MARTINEZ CESPEDES", "Santiago Sebastián Chaves Jaimes", "Juan Diego Canal Parada", "IVY  HELENA ROMERO MATEUS", "ALEJANDRA PRADA GUTIERREZ", "Juan Jose Vega Ortiz", "DANA LOZADA"]},
   {id:'c016',programa:'Instrumental',clase:'Instrumento - Grupo A',profesor:'Andrés Navarro',hora:'8:30 am',jornada:'AM',estudiantes:["Tomás Santiago Pereira Vargas", "Sara Ramirez Contreras", "Hernan José lizarazo Ayala", "jeronimo delgado porras"]},
   {id:'c017',programa:'Instrumental',clase:'Instrumento - Grupo A',profesor:'Ricardo Fortunato',hora:'8:30 am',jornada:'AM',estudiantes:["Gia mariana rueda Quiroz", "Maria Lucía Gomez Ruiz", "Samuel Salvatore Vincenzo Martinez Olave", "Alejandro Prada Gutierrez"]},
@@ -898,8 +1026,8 @@ const CLASES_AM=[
   {id:'c065',programa:'Instrumental',clase:'Instrumento - Grupo B',profesor:'Alejandro Vergel',hora:'4:50 PM',jornada:'PM',estudiantes:["María José Ardila Correa", "Jhan sebastian vanegas duran", "SOFIA COZ BASTO"]},
   {id:'c066',programa:'Instrumental',clase:'Instrumento - Grupo B',profesor:'Andrés Jiménez',hora:'4:50 PM',jornada:'PM',estudiantes:["Luna Ayeleen Gómez Herrera", "Esteban Contreras Rodríguez", "Ainkarin Lucia Cañas Carrillo"]},
   {id:'c009',programa:'Músicaminadores',clase:'Músicaminadores',profesor:'Luna Arenas',hora:'8:30 AM',jornada:'AM',estudiantes:["Benjamín Rincón Pinilla", "Sara Luciana Saavedra Mesa", "Lucio Matteo Cruz Contreras", "Mia delgado porras", "Salomón Fonseca Aparicio", "Juan Sebastián Guerrero Tavera", "Luis Felipe Herrera Suarez", "Maríapaz Velandia Díaz", "Miguel Eduardo Herrera Leon"]},
-  {id:'c010',programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40 AM',jornada:'AM',estudiantes:["Alma Zoé Bernal Lozano", "Emilio Caro Ortiz", "Erich Thomas Ortiz Osorio", "Iker Santiago Archila Jaimes", "Joaquín García Sánchez", "Juan Camilo Obregon Maldonado", "María Lucia Domínguez Rubio", "Maríapaz Velandia Díaz", "Maximiliano Vargas Cárdenas", "Mia Prada Serpa", "Miguel Eduardo Herrera Leon", "Salomón Gómez Torres", "SANTIAGO GUERRERO TAVERA", "Thiago Rivero Pinzon"]},
-  {id:'c011',programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40 AM',jornada:'AM',estudiantes:["Alma Zoé Bernal Lozano", "Emilio Caro Ortiz", "Erich Thomas Ortiz Osorio", "Iker Santiago Archila Jaimes", "Joaquín García Sánchez", "Juan Camilo Obregon Maldonado", "María Lucia Domínguez Rubio", "Maríapaz Velandia Díaz", "Maximiliano Vargas Cárdenas", "Mia Prada Serpa", "Miguel Eduardo Herrera Leon", "Salomón Gómez Torres", "SANTIAGO GUERRERO TAVERA", "Thiago Rivero Pinzon"]},
+  {id:'c010',programa:'Preiniciación',clase:'Ensamble Musical',profesor:'Laura Gómez',hora:'9:40 AM',jornada:'AM',estudiantes:["Alma Zoé Bernal Lozano", "Emilio Caro Ortiz", "Erich Thomas Ortiz Osorio", "Iker Santiago Archila Jaimes", "Joaquín García Sánchez", "Juan Camilo Obregon Maldonado", "María Lucia Domínguez Rubio", "Maríapaz Velandia Díaz", "Maximiliano Vargas Cárdenas", "Mia Prada Serpa", "Miguel Eduardo Herrera Leon", "Salomón Gómez Torres", "SANTIAGO GUERRERO TAVERA"]},
+  {id:'c011',programa:'Preiniciación',clase:'Expresión Musical',profesor:'Ricardo Fortunato',hora:'10:40 AM',jornada:'AM',estudiantes:["Alma Zoé Bernal Lozano", "Emilio Caro Ortiz", "Erich Thomas Ortiz Osorio", "Iker Santiago Archila Jaimes", "Joaquín García Sánchez", "Juan Camilo Obregon Maldonado", "María Lucia Domínguez Rubio", "Maríapaz Velandia Díaz", "Maximiliano Vargas Cárdenas", "Mia Prada Serpa", "Miguel Eduardo Herrera Leon", "Salomón Gómez Torres", "SANTIAGO GUERRERO TAVERA"]},
   {id:'c007',programa:'Preuniversitario',clase:'Coro',profesor:'Génesis Moreno',hora:'5 PM',jornada:'PM',estudiantes:["Juan José Hincapié Correa", "TOMÁS ANDRÉS MÉNDEZ FERREIRA", "Alejandro Sarmiento Gómez", "Yaidy Katherin Calderón Tarazona"]},
   {id:'c006',programa:'Preuniversitario',clase:'Ensamble Musical',profesor:'Santiago Sguerra',hora:'5 PM',jornada:'PM',estudiantes:["Juan José Hincapié Correa", "TOMÁS ANDRÉS MÉNDEZ FERREIRA", "Alejandro Sarmiento Gómez", "Yaidy Katherin Calderón Tarazona"]},
   {id:'c001',programa:'Preuniversitario',clase:'Instrumento',profesor:'Ricardo Fortunato',hora:'Hora',jornada:'AM',estudiantes:["Juan José Hincapié Correa"]},
@@ -1029,7 +1157,6 @@ const EST_AM=[
   {id:71,nombre:'María Lucia Domínguez Rubio',programas:["Preiniciación"],profesores:["Laura Gómez", "Ricardo Fortunato"],clases:[{"programa": "Preiniciación", "clase": "Ensamble Musical", "profesor": "Laura Gómez", "hora": "9:40 am"}, {"programa": "Preiniciación", "clase": "Expresión Musical", "profesor": "Ricardo Fortunato", "hora": "10:40 am"}],jornada:'AM'},
   {id:72,nombre:'Maríapaz Velandia Díaz',programas:["Musicaminadores", "Preiniciación"],profesores:["Luna Arenas", "Laura Gómez", "Ricardo Fortunato"],clases:[{"programa": "Musicaminadores", "clase": "Músicaminadores", "profesor": "Luna Arenas", "hora": "8:30 am"}, {"programa": "Preiniciación", "clase": "Ensamble Musical", "profesor": "Laura Gómez", "hora": "9:40 am"}, {"programa": "Preiniciación", "clase": "Expresión Musical", "profesor": "Ricardo Fortunato", "hora": "10:40 am"}],jornada:'AM'},
   {id:61,nombre:'MATEO GARCIA UTRERA',programas:["Instrumental"],profesores:["Génesis Moreno", "Nicolás Navarro"],clases:[{"programa": "Instrumental", "clase": "Instrumento - Grupo A", "profesor": "Génesis Moreno", "hora": "8:30 am"}, {"programa": "Instrumental", "clase": "Auralidad - Grupo A", "profesor": "Nicolás Navarro", "hora": "10 am"}, {"programa": "Instrumental", "clase": "CORO - Pequeños", "profesor": "Génesis Moreno", "hora": "11:40 am"}],jornada:'AM'},
-  {id:73,nombre:'Mateo Hernandez Hillon',programas:["Instrumental"],profesores:["Génesis Moreno"],clases:[{"programa": "Instrumental", "clase": "CORO - Pequeños", "profesor": "Génesis Moreno", "hora": "11:40 am"}],jornada:'AM'},
   {id:74,nombre:'Matías Oswaldo Prada Sarmiento',programas:["Instrumental"],profesores:["Alejandro Vergel", "Santiago Sguerra", "Génesis Moreno"],clases:[{"programa": "Instrumental", "clase": "Instrumento - Grupo A", "profesor": "Alejandro Vergel", "hora": "8:30 am"}, {"programa": "Instrumental", "clase": "Auralidad - Grupo A", "profesor": "Santiago Sguerra", "hora": "10 am"}, {"programa": "Instrumental", "clase": "CORO - Pequeños", "profesor": "Génesis Moreno", "hora": "11:40 am"}],jornada:'AM'},
   {id:162,nombre:'Maximiliano Mancilla',programas:["Instrumental"],profesores:["Daniela Visbal", "Andrés Navarro"],clases:[{"programa": "Instrumental", "clase": "CORO - Juvenil", "profesor": "Daniela Visbal", "hora": "2 pm"}, {"programa": "Instrumental", "clase": "Auralidad - Grupo B", "profesor": "Andrés Navarro", "hora": "2:50 pm"}, {"programa": "Instrumental", "clase": "Instrumento - Grupo B", "profesor": "Andrés Navarro", "hora": "4:50 pm"}],jornada:'PM'},
   {id:75,nombre:'Maximiliano Vargas Cárdenas',programas:["Preiniciación"],profesores:["Laura Gómez", "Ricardo Fortunato"],clases:[{"programa": "Preiniciación", "clase": "Ensamble Musical", "profesor": "Laura Gómez", "hora": "9:40 am"}, {"programa": "Preiniciación", "clase": "Expresión Musical", "profesor": "Ricardo Fortunato", "hora": "10:40 am"}],jornada:'AM'},
@@ -1069,7 +1196,6 @@ const EST_AM=[
   {id:102,nombre:'Sergio Andres Gil Moreno',programas:["Comunidad UIS"],profesores:["Camilo Durán"],clases:[{"programa": "Comunidad UIS", "clase": "Comunidad UIS", "profesor": "Camilo Durán", "hora": "6:30 pm"}],jornada:'PM'},
   {id:103,nombre:'Simón Alejandro Coronel Niño',programas:["Instrumental"],profesores:["Nicolás Navarro", "Daniela Visbal"],clases:[{"programa": "Instrumental", "clase": "Instrumento - Grupo A", "profesor": "Nicolás Navarro", "hora": "8:30 am"}, {"programa": "Instrumental", "clase": "Auralidad - Grupo A", "profesor": "Nicolás Navarro", "hora": "10 am"}, {"programa": "Instrumental", "clase": "CORO - Prejuvenil", "profesor": "Daniela Visbal", "hora": "11:40 am"}],jornada:'AM'},
   {id:168,nombre:'SOFIA COZ BASTO',programas:["Instrumental"],profesores:["Daniela Visbal", "Andrés Navarro", "Alejandro Vergel"],clases:[{"programa": "Instrumental", "clase": "CORO - Juvenil", "profesor": "Daniela Visbal", "hora": "2 pm"}, {"programa": "Instrumental", "clase": "Auralidad - Grupo B", "profesor": "Andrés Navarro", "hora": "2:50 pm"}, {"programa": "Instrumental", "clase": "Instrumento - Grupo B", "profesor": "Alejandro Vergel", "hora": "4:50 pm"}],jornada:'PM'},
-  {id:105,nombre:'Thiago Rivero Pinzon',programas:["Preiniciación"],profesores:["Laura Gómez", "Ricardo Fortunato"],clases:[{"programa": "Preiniciación", "clase": "Ensamble Musical", "profesor": "Laura Gómez", "hora": "9:40 am"}, {"programa": "Preiniciación", "clase": "Expresión Musical", "profesor": "Ricardo Fortunato", "hora": "10:40 am"}],jornada:'AM'},
   {id:113,nombre:'thomas emiliano castañeda castillo',programas:["Instrumental"],profesores:["Daniela Visbal", "Andrés Prada", "Laura Gómez"],clases:[{"programa": "Instrumental", "clase": "CORO - Prejuvenil", "profesor": "Daniela Visbal", "hora": "11:40 am"}, {"programa": "Instrumental", "clase": "Auralidad - Grupo B", "profesor": "Andrés Prada", "hora": "8:30 am"}, {"programa": "Instrumental", "clase": "Instrumento - Grupo B", "profesor": "Laura Gómez", "hora": "10:30 am"}],jornada:'AM'},
   {id:169,nombre:'Thomas garay',programas:["Instrumental"],profesores:["Daniela Visbal", "Nicolás Navarro", "Andrés Navarro"],clases:[{"programa": "Instrumental", "clase": "CORO - Juvenil", "profesor": "Daniela Visbal", "hora": "2 pm"}, {"programa": "Instrumental", "clase": "Instrumento - Grupo A", "profesor": "Nicolás Navarro", "hora": "2:50 pm"}, {"programa": "Instrumental", "clase": "Auralidad - Grupo B", "profesor": "Andrés Navarro", "hora": "2:50 pm"}],jornada:'PM'},
   {id:170,nombre:'Thomas Santiago Amorocho Villabona',programas:["Instrumental"],profesores:["Daniela Visbal", "Andrés Navarro", "Santiago Sguerra"],clases:[{"programa": "Instrumental", "clase": "CORO - Juvenil", "profesor": "Daniela Visbal", "hora": "2 pm"}, {"programa": "Instrumental", "clase": "Auralidad - Grupo B", "profesor": "Andrés Navarro", "hora": "2:50 pm"}, {"programa": "Instrumental", "clase": "Instrumento - Grupo B", "profesor": "Santiago Sguerra", "hora": "4:50 pm"}],jornada:'PM'},
@@ -1081,7 +1207,6 @@ const EST_AM=[
   {id:171,nombre:'Yasser Daniel Carvajal Jimenez',programas:["Instrumental"],profesores:["Daniela Visbal", "Sara Párraga", "Luna Arenas"],clases:[{"programa": "Instrumental", "clase": "CORO - Juvenil", "profesor": "Daniela Visbal", "hora": "2 pm"}, {"programa": "Instrumental", "clase": "Instrumento - Grupo A", "profesor": "Sara Párraga", "hora": "2:50 pm"}, {"programa": "Instrumental", "clase": "Auralidad - Grupo A", "profesor": "Luna Arenas", "hora": "4:20 pm"}],jornada:'PM'},
   {id:172,nombre:'Yecithy Alejandro Sánchez Becerra',programas:["Instrumental"],profesores:["Daniela Visbal", "Ricardo Fortunato", "Luna Arenas"],clases:[{"programa": "Instrumental", "clase": "CORO - Juvenil", "profesor": "Daniela Visbal", "hora": "2 pm"}, {"programa": "Instrumental", "clase": "Instrumento - Grupo A", "profesor": "Ricardo Fortunato", "hora": "2:50 pm"}, {"programa": "Instrumental", "clase": "Auralidad - Grupo A", "profesor": "Luna Arenas", "hora": "4:20 pm"}],jornada:'PM'},
   {id:114,nombre:'Álvaro Augusto Páez Arteaga',programas:["Comunidad UIS"],profesores:["Camilo Durán"],clases:[{"programa": "Comunidad UIS", "clase": "Comunidad UIS", "profesor": "Camilo Durán", "hora": "6:30 pm"}],jornada:'PM'},
-  {id:115,nombre:'Álvaro paez',programas:["Comunidad UIS"],profesores:["Camilo Durán"],clases:[{"programa": "Comunidad UIS", "clase": "Comunidad UIS", "profesor": "Camilo Durán", "hora": "6:30 pm"}],jornada:'PM'}
 ];
 // Legacy alias
 const EST=EST_AM;
@@ -1123,7 +1248,7 @@ let _lastSyncTime=0;
 // ── Configuración centralizada — igual en TODOS los dispositivos ──
 // Cambiar aquí actualiza automáticamente para todos sin tocar nada más.
 var GS_SHEET_ID   = '1fm6LqodGvOR2SamCuxhJLIPrOag1QVWqMEoT8i_VI-w';
-var GS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzp3eahTX763xpDBugre8Pr6k6ETD8I4R0s0W59PNyQ1mhXdelPg9dYfHTkqVUEpFL4/exec';
+var GS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbykkbdbabk8qj-X7Z_8grAzNkzq--Ea2cXJGS5Ag5OiSGw8tUdwcBTaOLGwJTH5Ju6B/exec';
 
 // Sincronizar localStorage con los valores del código
 // (si el localStorage tiene algo diferente, el código gana)
@@ -2055,23 +2180,246 @@ function barChart(id, data, color) {
 // PESTAÑA: EVIDENCIAS
 // ============================================================
 
-// Inicializar los campos de la clase y hora al abrir la pestaña
+// ── URLs de las carpetas OneDrive ──
+var ONEDRIVE_ENCONTRE = 'https://mailuis-my.sharepoint.com/:f:/g/personal/cursosmusica_uis_edu_co/IgC--ETRedWQR4XFYG3rQV9YAfCQDk_aPtk0ZwyLpk3Gc4o';
+var ONEDRIVE_DEJE     = 'https://mailuis-my.sharepoint.com/:f:/g/personal/cursosmusica_uis_edu_co/IgAcK8LhMaPaTrou7ZfqBo7XAWzV-XPBWzJv2y1yDqQNBK4';
+
+// Genera el nombre del archivo: NombreProfesor_DiaDDMMYYYY_Salon_Clase
+function evGenerarNombreArchivo(salon, claseId) {
+  var profesor = CU ? (CU.name + ' ' + CU.surname) : 'Profesor';
+  var now      = new Date();
+  var dia      = String(now.getDate()).padStart(2,'0')
+               + String(now.getMonth()+1).padStart(2,'0')
+               + now.getFullYear();
+  var claseObj = CLASES_AM.find(function(c){ return c.id === claseId; });
+  var claseNom = claseObj ? claseObj.clase : (claseId || 'Clase');
+  var safeProf  = profesor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g,'').trim().replace(/\s+/g,'_');
+  var safeSalon = (salon||'Salon').trim().replace(/\s+/g,'_');
+  var safeCls   = claseNom.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s0-9]/g,'').trim().replace(/\s+/g,'_');
+  return safeProf + '_' + dia + '_' + safeSalon + '_' + safeCls;
+}
+
+// Actualiza el preview del nombre del archivo en tiempo real
+function evActualizarNombre(seccion) {
+  var salon   = (document.getElementById('ev'+seccion+'-salon')||{}).value || '';
+  var claseId = (document.getElementById('ev'+seccion+'-clase')||{}).value || '';
+  var nombre  = evGenerarNombreArchivo(salon, claseId);
+  var el = document.getElementById('ev'+seccion+'-filename-preview');
+  if (el) el.textContent = nombre + '.[jpg/mp4/...]';
+}
+
+// Inicializar los campos al abrir la pestaña
 function initEvidencias() {
-  // Selector de clase — solo las del profesor
-  var sel = document.getElementById('evClase');
-  if (sel) {
-    sel.innerHTML = '<option value="">— Selecciona tu clase —</option>'
-      + myClases().map(function(c){
-          return '<option value="' + c.id + '">' + c.programa + ' — ' + c.clase + ' (' + c.hora + ')</option>';
-        }).join('');
+  var nombre = CU ? (CU.name + ' ' + CU.surname) : '—';
+  var fecha  = new Date().toLocaleDateString('es-CO');
+  var hora   = horaCO();
+
+  // Sección 1
+  var u1 = document.getElementById('ev1-user');   if(u1)  u1.textContent  = nombre;
+  var f1 = document.getElementById('ev1-fecha');  if(f1)  f1.textContent  = fecha;
+  var h1 = document.getElementById('ev1-hora');   if(h1)  h1.textContent  = hora;
+
+  // Sección 2
+  var u2 = document.getElementById('ev2-user');   if(u2)  u2.textContent  = nombre;
+  var f2 = document.getElementById('ev2-fecha');  if(f2)  f2.textContent  = fecha;
+  var h2 = document.getElementById('ev2-hora');   if(h2)  h2.textContent  = hora;
+
+  // Rellenar selectores de clase con las clases del profesor
+  var opts = '<option value="">— Selecciona una clase —</option>'
+    + myClases().map(function(c){
+        return '<option value="' + c.id + '">' + c.programa + ' — ' + c.clase + ' (' + c.hora + ')</option>';
+      }).join('');
+
+  var s1 = document.getElementById('ev1-clase'); if(s1) s1.innerHTML = opts;
+  var s2 = document.getElementById('ev2-clase'); if(s2) s2.innerHTML = opts;
+
+  // Eventos para actualizar nombre de archivo en tiempo real
+  ['ev1-salon','ev1-clase','ev2-salon','ev2-clase'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', function(){
+      var sec = id.startsWith('ev1') ? '1' : '2';
+      evActualizarNombre(sec);
+    });
+    if (el) el.addEventListener('change', function(){
+      var sec = id.startsWith('ev1') ? '1' : '2';
+      evActualizarNombre(sec);
+    });
+  });
+}
+
+// Preview de archivo — sección 1
+function ev1FileSelected(input) {
+  var file = input.files[0]; if(!file) return;
+  document.getElementById('ev1-file-name').textContent = file.name + ' (' + Math.round(file.size/1024) + ' KB)';
+  window._ev1File = file;
+  evActualizarNombre('1');
+  if (file.type.startsWith('image/')) {
+    var r = new FileReader();
+    r.onload = function(ev){
+      document.getElementById('ev1-img-preview').src = ev.target.result;
+      document.getElementById('ev1-file-preview').style.display = 'block';
+    };
+    r.readAsDataURL(file);
   }
-  // Datos del profesor y hora actual
-  var lProf  = document.getElementById('evProfesorLabel');
-  var lFecha = document.getElementById('evFechaLabel');
-  var lHora  = document.getElementById('evHoraLabel');
-  if (lProf)  lProf.textContent  = CU.name + ' ' + CU.surname;
-  if (lFecha) lFecha.textContent = new Date().toLocaleDateString('es-CO');
-  if (lHora)  lHora.textContent  = horaCO();
+  notify('✅ Archivo listo: ' + file.name);
+}
+
+// Preview de archivo — sección 2
+function ev2FileSelected(input) {
+  var file = input.files[0]; if(!file) return;
+  document.getElementById('ev2-file-name').textContent = file.name + ' (' + Math.round(file.size/1024) + ' KB)';
+  window._ev2File = file;
+  evActualizarNombre('2');
+  if (file.type.startsWith('image/')) {
+    var r = new FileReader();
+    r.onload = function(ev){
+      document.getElementById('ev2-img-preview').src = ev.target.result;
+      document.getElementById('ev2-file-preview').style.display = 'block';
+    };
+    r.readAsDataURL(file);
+  }
+  notify('✅ Archivo listo: ' + file.name);
+}
+
+// Abre la carpeta OneDrive "Como lo Encontré"
+function abrirOneDriveEncontré() {
+  window.open(ONEDRIVE_ENCONTRE, '_blank');
+  notify('📂 Carpeta OneDrive abierta — sube el archivo con el nombre indicado');
+}
+
+// Abre la carpeta OneDrive "Como lo Dejé"
+function abrirOneDriveDejar() {
+  window.open(ONEDRIVE_DEJE, '_blank');
+  notify('📂 Carpeta OneDrive abierta — sube el archivo con el nombre indicado');
+}
+
+// Guardar "Como lo Encontré" en Google Sheets
+function guardarEv1() {
+  if (!CU) { notify('⚠️ Debes iniciar sesión'); return; }
+  var salon   = (document.getElementById('ev1-salon')||{}).value.trim();
+  var claseId = (document.getElementById('ev1-clase')||{}).value;
+  var obs     = (document.getElementById('ev1-obs')||{}).value.trim();
+  if (!salon)   { notify('⚠️ Escribe el salón'); return; }
+  if (!claseId) { notify('⚠️ Selecciona la clase'); return; }
+
+  var claseObj = CLASES_AM.find(function(c){ return c.id === claseId; });
+  var clase    = claseObj ? (claseObj.programa + ' — ' + claseObj.clase) : '';
+  var profesor = CU.name + ' ' + CU.surname;
+  var now      = new Date();
+  var fecha    = now.toLocaleDateString('es-CO');
+  var hora     = horaCO();
+  var fileName = evGenerarNombreArchivo(salon, claseId);
+
+  var st = document.getElementById('ev1-status');
+  if(st) st.innerHTML = '<span style="color:var(--go)">⏳ Guardando...</span>';
+
+  gsEnviar({
+    action:    'guardar_evidencia',
+    fecha:     fecha,
+    hora:      hora,
+    tipo:      'encontré',
+    clase:     clase,
+    salon:     salon,
+    obs:       obs,
+    profesor:  profesor,
+    fileName:  fileName,
+    onedrive:  ONEDRIVE_ENCONTRE
+  }, function(ok){
+    if(st) st.innerHTML = ok
+      ? '<span style="color:var(--go)">✅ Registrado en Google Sheets</span>'
+      : '<span style="color:#856404">⚠️ Guardado local (sin conexión)</span>';
+  });
+
+  // Guardar localmente
+  var rec = {
+    id: Date.now(), user: profesor, uid: CU.id, tipo: 'encontré',
+    clase: clase, salon: salon, obs: obs, fecha: fecha, hora: hora,
+    fileName: fileName, uploadStatus: 'local'
+  };
+  evids.push(rec);
+  localStorage.setItem('mu_ev', JSON.stringify(evids));
+  renderEvids();
+
+  // Reset
+  document.getElementById('ev1-salon').value = '';
+  document.getElementById('ev1-clase').value = '';
+  document.getElementById('ev1-obs').value   = '';
+  document.getElementById('ev1-file-name').textContent = 'Ningún archivo seleccionado';
+  document.getElementById('ev1-file-preview').style.display = 'none';
+  document.getElementById('ev1-file').value = '';
+  document.getElementById('ev1-filename-preview').textContent = 'Completa los campos para ver el nombre';
+  window._ev1File = null;
+  notify('✅ Como lo Encontré — registrado');
+}
+
+// Guardar "Como lo Dejé" en Google Sheets
+function guardarEv2() {
+  if (!CU) { notify('⚠️ Debes iniciar sesión'); return; }
+  var salon   = (document.getElementById('ev2-salon')||{}).value.trim();
+  var claseId = (document.getElementById('ev2-clase')||{}).value;
+  var obs     = (document.getElementById('ev2-obs')||{}).value.trim();
+  if (!salon)   { notify('⚠️ Escribe el salón'); return; }
+  if (!claseId) { notify('⚠️ Selecciona la clase'); return; }
+
+  var claseObj = CLASES_AM.find(function(c){ return c.id === claseId; });
+  var clase    = claseObj ? (claseObj.programa + ' — ' + claseObj.clase) : '';
+  var profesor = CU.name + ' ' + CU.surname;
+  var now      = new Date();
+  var fecha    = now.toLocaleDateString('es-CO');
+  var hora     = horaCO();
+  var fileName = evGenerarNombreArchivo(salon, claseId);
+
+  // Checklist
+  var checks = [];
+  if (document.getElementById('chk-luces')    && document.getElementById('chk-luces').checked)    checks.push('💡 Luces apagadas');
+  if (document.getElementById('chk-ventanas') && document.getElementById('chk-ventanas').checked) checks.push('🪟 Ventanas cerradas');
+  if (document.getElementById('chk-sillas')   && document.getElementById('chk-sillas').checked)   checks.push('🪑 Sillas ordenadas');
+  var obsCompleto = [obs, checks.join(' · ')].filter(Boolean).join(' | ');
+
+  var st = document.getElementById('ev2-status');
+  if(st) st.innerHTML = '<span style="color:var(--pu)">⏳ Guardando...</span>';
+
+  gsEnviar({
+    action:    'guardar_evidencia',
+    fecha:     fecha,
+    hora:      hora,
+    tipo:      'dejé',
+    clase:     clase,
+    salon:     salon,
+    obs:       obsCompleto,
+    profesor:  profesor,
+    fileName:  fileName,
+    checklist: checks.join(' · '),
+    onedrive:  ONEDRIVE_DEJE
+  }, function(ok){
+    if(st) st.innerHTML = ok
+      ? '<span style="color:var(--pu)">✅ Registrado en Google Sheets</span>'
+      : '<span style="color:#856404">⚠️ Guardado local (sin conexión)</span>';
+  });
+
+  // Guardar localmente
+  var rec = {
+    id: Date.now(), user: profesor, uid: CU.id, tipo: 'dejé',
+    clase: clase, salon: salon, obs: obsCompleto, fecha: fecha, hora: hora,
+    fileName: fileName, uploadStatus: 'local'
+  };
+  evids.push(rec);
+  localStorage.setItem('mu_ev', JSON.stringify(evids));
+  renderEvids();
+
+  // Reset
+  document.getElementById('ev2-salon').value = '';
+  document.getElementById('ev2-clase').value = '';
+  document.getElementById('ev2-obs').value   = '';
+  document.getElementById('ev2-file-name').textContent = 'Ningún archivo seleccionado';
+  document.getElementById('ev2-file-preview').style.display = 'none';
+  document.getElementById('ev2-file').value = '';
+  document.getElementById('ev2-filename-preview').textContent = 'Completa los campos para ver el nombre';
+  document.getElementById('chk-luces').checked    = false;
+  document.getElementById('chk-ventanas').checked = false;
+  document.getElementById('chk-sillas').checked   = false;
+  window._ev2File = null;
+  notify('✅ Como lo Dejé — registrado');
 }
 
 function hFile(input, type) {
