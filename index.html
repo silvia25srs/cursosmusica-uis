@@ -459,41 +459,108 @@ tr:hover td{background:var(--gbg)}
     <div class="tab-page" id="page-evidencias">
       <div class="ph"><h2>📸 Evidencias</h2><p>Registro del estado del salón antes y después de la clase</p></div>
 
+      <!-- Fila de info automática -->
+      <div class="card" style="margin-bottom:16px;background:var(--gbg);border-color:var(--br)">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">
+          <div>
+            <span class="lbl">Profesor</span>
+            <div id="evProfesorLabel" style="font-size:13px;font-weight:600;color:var(--gd)">—</div>
+          </div>
+          <div>
+            <span class="lbl">Fecha</span>
+            <div id="evFechaLabel" style="font-size:13px;font-weight:600;color:var(--gd)">—</div>
+          </div>
+          <div>
+            <span class="lbl">Hora</span>
+            <div id="evHoraLabel" style="font-size:13px;font-weight:600;color:var(--gd)">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selector de clase y salón (compartido) -->
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <span class="lbl">Clase</span>
+            <select class="sel" id="evClase"></select>
+          </div>
+          <div>
+            <span class="lbl">Salón</span>
+            <input class="inp" id="evSalon" placeholder="Ej: Sala 202">
+          </div>
+        </div>
+      </div>
+
       <!-- Dos formularios: Como lo encuentro / Como lo dejo -->
       <div class="g2">
 
         <!-- COMO LO ENCUENTRO -->
-        <div class="card" style="text-align:center;padding:28px 20px">
-          <div style="font-size:44px;margin-bottom:12px">🔍</div>
-          <h3 style="font-family:'Playfair Display',serif;font-size:17px;color:var(--gd);margin-bottom:8px">Como lo encuentro</h3>
-          <p style="font-size:12px;color:var(--tm);margin-bottom:20px;line-height:1.6">
-            Registra el estado inicial del salón al llegar y sube las fotos correspondientes.
-          </p>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSc9v-WyFjDe-_9Doy39nfgH-0P4nQPLYO6UStdGBt4M8xJH0Q/viewform" target="_blank"
-             style="display:inline-flex;align-items:center;gap:8px;background:var(--gd);color:#fff;text-decoration:none;padding:12px 22px;border-radius:var(--r);font-size:13px;font-weight:700;box-shadow:var(--sh)"
-             onmouseover="this.style.background='#223d12'" onmouseout="this.style.background='var(--gd)'">
-            📝 Abrir formulario
-          </a>
-          <p style="font-size:10px;color:var(--tm);margin-top:12px">Abre en nueva pestaña</p>
+        <div class="card">
+          <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:var(--gd);margin-bottom:14px">🔍 Como lo encuentro</h3>
+          <div style="display:grid;gap:11px">
+            <div>
+              <span class="lbl">Observaciones iniciales</span>
+              <textarea class="tex inp" id="evFO" rows="3" placeholder="Describe el estado del salón al llegar..."></textarea>
+            </div>
+            <div>
+              <span class="lbl">Foto / Video</span>
+              <input type="file" id="evFindF" accept="image/*,video/*" style="display:none" onchange="hFile(this,'find')">
+              <div id="evFindZone" style="border:2px dashed var(--br);border-radius:var(--rs);padding:14px;text-align:center;cursor:pointer;transition:border-color .2s" onclick="evOpenGallery('find')">
+                <div style="font-size:28px;margin-bottom:4px">📷</div>
+                <div id="evFindN" style="font-size:11px;color:var(--tm)">Toca para seleccionar foto o video</div>
+              </div>
+              <div id="evFindPreview" style="display:none;margin-top:8px;text-align:center"></div>
+              <div style="display:flex;gap:7px;margin-top:8px">
+                <button class="btn btn-g" style="flex:1;font-size:11px" onclick="evOpenCamera('find')">📸 Cámara</button>
+                <button class="btn btn-g" style="flex:1;font-size:11px" onclick="evOpenGallery('find')">🖼️ Galería</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-p" style="margin-top:14px;width:100%" onclick="saveEv('encuentro')">💾 Guardar — Como lo encuentro</button>
         </div>
 
         <!-- COMO LO DEJO -->
-        <div class="card" style="text-align:center;padding:28px 20px">
-          <div style="font-size:44px;margin-bottom:12px">✅</div>
-          <h3 style="font-family:'Playfair Display',serif;font-size:17px;color:var(--gd);margin-bottom:8px">Como lo dejo</h3>
-          <p style="font-size:12px;color:var(--tm);margin-bottom:20px;line-height:1.6">
-            Registra el estado final del salón al salir, marca la verificación y sube las fotos.
-          </p>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSd9ZbjXkmVwb-F0Q100vrbmkCACOOJFljec3vPnZ0uSSnag9w/viewform" target="_blank"
-             style="display:inline-flex;align-items:center;gap:8px;background:var(--go);color:#fff;text-decoration:none;padding:12px 22px;border-radius:var(--r);font-size:13px;font-weight:700;box-shadow:var(--sh)"
-             onmouseover="this.style.background='#6e8530'" onmouseout="this.style.background='var(--go)'">
-            📝 Abrir formulario
-          </a>
-          <p style="font-size:10px;color:var(--tm);margin-top:12px">Abre en nueva pestaña</p>
+        <div class="card">
+          <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:var(--go);margin-bottom:14px">✅ Como lo dejo</h3>
+          <div style="display:grid;gap:11px">
+            <div>
+              <span class="lbl">Observaciones al salir</span>
+              <textarea class="tex inp" id="evLO" rows="3" placeholder="Describe el estado del salón al salir..."></textarea>
+            </div>
+            <!-- Checklist rápido -->
+            <div style="background:var(--gbg);border-radius:var(--rs);padding:12px;border:1px solid var(--br)">
+              <span class="lbl" style="display:block;margin-bottom:8px">Verificación de salida</span>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:6px;cursor:pointer">
+                <input type="checkbox" id="chk-sillas" style="width:15px;height:15px;accent-color:var(--go)"> Sillas ordenadas
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+                <input type="checkbox" id="chk-luces" style="width:15px;height:15px;accent-color:var(--go)"> Luces apagadas
+              </label>
+            </div>
+            <div>
+              <span class="lbl">Foto / Video</span>
+              <input type="file" id="evLeaveF" accept="image/*,video/*" style="display:none" onchange="hFile(this,'leave')">
+              <div id="evLeaveZone" style="border:2px dashed var(--br);border-radius:var(--rs);padding:14px;text-align:center;cursor:pointer;transition:border-color .2s" onclick="evOpenGallery('leave')">
+                <div style="font-size:28px;margin-bottom:4px">📷</div>
+                <div id="evLeaveN" style="font-size:11px;color:var(--tm)">Toca para seleccionar foto o video</div>
+              </div>
+              <div id="evLeavePreview" style="display:none;margin-top:8px;text-align:center"></div>
+              <div style="display:flex;gap:7px;margin-top:8px">
+                <button class="btn btn-g" style="flex:1;font-size:11px" onclick="evOpenCamera('leave')">📸 Cámara</button>
+                <button class="btn btn-g" style="flex:1;font-size:11px" onclick="evOpenGallery('leave')">🖼️ Galería</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-o" style="margin-top:14px;width:100%" onclick="saveEv('dejo')">💾 Guardar — Como lo dejo</button>
         </div>
 
       </div>
 
+      <!-- Historial de evidencias -->
+      <div class="card" style="margin-top:16px">
+        <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gd);margin-bottom:12px">📋 Historial de evidencias</h3>
+        <div id="evidList"></div>
+      </div>
 
     </div>
 
