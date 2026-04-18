@@ -596,6 +596,42 @@ tr:hover td{background:var(--gbg)}
       </div>
     </div>
 
+    <div class="tab-page" id="page-proceso">
+      <div class="ph"><h2>🎵 Proceso</h2><p>Seguimiento del proceso semestral por estudiante</p></div>
+
+      <!-- Selector de revisión -->
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div style="flex:1;min-width:180px">
+            <span class="lbl">Revisión</span>
+            <select class="sel" id="proc-revision" onchange="renderProcesoForm()">
+              <option value="1">1ª Revisión del Proceso</option>
+              <option value="2">2ª Revisión del Proceso</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:180px">
+            <span class="lbl">Clase</span>
+            <select class="sel" id="proc-clase" onchange="renderProcesoEstudiantes()">
+              <option value="">— Selecciona una clase —</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:var(--tm)">
+          👤 <strong id="proc-profesor-label">—</strong> &nbsp;·&nbsp; 📅 <strong id="proc-fecha-label">—</strong>
+        </div>
+      </div>
+
+      <!-- Lista de estudiantes con formulario por cada uno -->
+      <div id="proc-estudiantes-list"></div>
+
+      <!-- Botón guardar todo -->
+      <div id="proc-save-wrap" style="display:none;margin-top:16px">
+        <button class="btn btn-p" style="width:100%;padding:14px;font-size:15px;font-weight:700" onclick="guardarProceso()">
+          💾 Guardar Revisión de Proceso
+        </button>
+      </div>
+    </div>
+
     <div class="tab-page" id="page-logistica">
       <div class="ph"><h2>🎼 Logística</h2><p>Solicitudes de recursos por clase</p></div>
       <div class="g2">
@@ -763,6 +799,7 @@ function handle(p) {
   if (a === 'registrar_falta')      return registrarFalta(p);
   if (a === 'guardar_evidencia')    return guardarEvidencia(p);
   if (a === 'guardar_logistica')    return guardarLogistica(p);
+  if (a === 'guardar_proceso')       return guardarProceso(p);
   if (a === 'asistencia')  return getData('Asistencia', p.profesor);
   if (a === 'faltas')      return getData('Faltas',     p.profesor);
   if (a === 'evidencias')  return getData('Evidencias', p.profesor);
@@ -838,6 +875,34 @@ function guardarEvidencia(p) {
                 p.clase||'', p.salon||'', p.obs||'', p.profesor||'',
                 p.ventanas||'', p.sillas||'', p.ventilador||'']);
   return { ok:true };
+}
+
+function guardarProceso(p) {
+  // Usa upsert: busca fila existente por revision+clase+estudiante y la actualiza,
+  // si no existe la crea
+  var sh = sheet('Proceso', ['Revisión','Fecha','Programa','Clase','Instrumento','Estudiante','Documento','Observaciones','Porcentaje (%)','Profesor']);
+  var lastRow = sh.getLastRow();
+  if (lastRow > 1) {
+    var data = sh.getRange(2, 1, lastRow - 1, 9).getValues();
+    for (var i = 0; i < data.length; i++) {
+      if (data[i][0] === (p.revision||'') &&
+          data[i][3] === (p.clase||'') &&
+          data[i][5] === (p.estudiante||'')) {
+        sh.getRange(i + 2, 1, 1, 10).setValues([[
+          p.revision||'', p.fecha||hoy(), p.programa||'', p.clase||'',
+          p.instrumento||'', p.estudiante||'', p.documento||'',
+          p.observaciones||'', p.porcentaje||'', p.profesor||''
+        ]]);
+        return { ok:true, updated:true };
+      }
+    }
+  }
+  sh.appendRow([
+    p.revision||'', p.fecha||hoy(), p.programa||'', p.clase||'',
+    p.instrumento||'', p.estudiante||'', p.documento||'',
+    p.observaciones||'', p.porcentaje||'', p.profesor||''
+  ]);
+  return { ok:true, inserted:true };
 }
 
 function guardarLogistica(p) {
@@ -916,11 +981,11 @@ const USERS=[
 ];
 
 const TABS={
-  coordinadora:['asistencia','faltas','estudiantes','reportes','evidencias','logistica','comunicacion','calendario','carnets','configuracion','salir'],
+  coordinadora:['asistencia','faltas','estudiantes','reportes','evidencias','logistica','proceso','comunicacion','calendario','carnets','configuracion','salir'],
   logistico:   ['evidencias','logistica','calendario','carnets','salir'],
-  profesor:    ['asistencia','faltas','estudiantes','evidencias','logistica','calendario','comunicacion','carnets','salir'],
+  profesor:    ['asistencia','faltas','estudiantes','evidencias','logistica','proceso','calendario','comunicacion','carnets','salir'],
 };
-const TL={'asistencia':'📋 Asistencia','faltas':'⚠️ Faltas','estudiantes':'👩‍🎓 Estudiantes','reportes':'📊 Reportes','evidencias':'📸 Evidencias','logistica':'🎼 Logística','comunicacion':'✉️ Comunicación','calendario':'📅 Calendario','carnets':'🪪 Carnets','configuracion':'⚙️ Config.','salir':'🚪 Salir'};
+const TL={'asistencia':'📋 Asistencia','faltas':'⚠️ Faltas','estudiantes':'👩‍🎓 Estudiantes','reportes':'📊 Reportes','evidencias':'📸 Evidencias','logistica':'🎼 Logística','proceso':'🎵 Proceso','comunicacion':'✉️ Comunicación','calendario':'📅 Calendario','carnets':'🪪 Carnets','configuracion':'⚙️ Config.','salir':'🚪 Salir'};
 
 const CLASES={
   camilo:     [{dia:'Martes',    clase:'Comunidad UIS',                           hora:'6:30–8:30pm',  jornada:'PM'}],
@@ -1434,6 +1499,7 @@ function showTab(t) {
   if (t === 'estudiantes') renderEst();
   if (t === 'faltas') { poblarFiltrosFaltas(); renderFaltas(); }
   if (t === 'logistica') { sincronizarLog(); }
+  if (t === 'proceso')   { initProceso(); }
   if (t === 'comunicacion') renderCom();
   if (t === 'evidencias') { initEvidencias(); renderEvids(); }
 }
@@ -2767,6 +2833,235 @@ function editLog(id) {
   var cl = document.getElementById('logClase'); if(cl) cl.value = r.claseId || r.clase;
   notify('Edita y pulsa Enviar');
 }
+
+// ============================================================
+// PESTAÑA: PROCESO
+// ============================================================
+var procesoData = JSON.parse(localStorage.getItem('mu_proceso') || '[]');
+
+var PROC_DOC_MAP = {"MANUEL SANTIAGO ALVARADO LIZARAZO": "T.I 1185963283", "ADRIAN VARGAS JIMENEZ": "T.I 1222253718", "JHOJAN SNEYDER MENDOZA GOMEZ": "T.I 1139127656", "LUNA AYELEEN GOMEZ HERRERA": "T.I 1099744886", "JOAQUIN GARCIA SANCHEZ": "R.C 1016972012", "RIDLEY ANDREWNG HUFFINGTON JAIMES": "T.I 1011206485", "SOFIA COZ BASTO": "T.I 1097110013", "JUAN JOSE HINCAPIE CORREA": "T.I 1029649105", "EMELY DANIELA CASTANEDA SANCHEZ": "T.I 1099746293", "JUAN MANUEL ARDILA CORREA": "T.I 1142723248", "MARIA LUCIA VEGA OLARTE": "C.C 1098825003", "THIAGO RIVERO PINZON": "R.C 1098082779", "TOMAS ANDRES MENDEZ FERREIRA": "C.C 1101260937", "KEREN DANIELA LOPEZ SOLANO": "R.C 1239090663", "SARAH ANGIELINE CARRILLO MONCADA": "T.I 1221463998", "KEVIN DE JESUS DIAZ PENALOZA": "T.I 1098831451", "LIANNA JOVA LOAIZA": "R.C 12349089497", "SALOMON GOMEZ TORRES": "T.I 1014906957", "HECTOR ELIECER DIAZ HERNANDEZ": "C.C 13871580", "HUGO ARIZA OLARTE": "C.C 5659733", "MARIA FERNANDA DURAN ABAUNZA": "T.I 1221463246", "NELLY CARRENO MORENO": "C.C 63313001", "MAXIMO AVELLANEDA NABARLATZ": "T.I 1097123579", "JUAN DAVID RAMIREZ DIAZ": "C.C 1098805445", "ISAAC BONILLA GARCIA": "R.C 10238785", "MAXIMILIANO MANCILLA": "T.I 1096703190", "SANTIAGO MARTI RODRIGUEZ": "T.I 1125082851", "IAN STEVE CAICEDO LEON": "R.C 1097124182", "THOMAS EMILIANO CASTANEDA CASTILLO": "T.I 1097507957", "PAULINA SOLANO JAIMES": "T.I 1097508549", "ALEJANDRO SARMIENTO GOMEZ": "T.I 1096209264", "DIEGO FERNANDO ACERO MENDOZA": "C.C 1098717527", "NICOLAS FABIAN REMOLINA OQUENDO": "T.I 1097129539", "DANIEL ALEJANDRO VEGA NIEVES": "C.C 1098782182", "SALOME REMOLINA OQUENDO": "T.I 1097118227", "JORGE LEONARDO RODRIGUEZ PRADA": "C.C 1098681680", "JUAN ANDRES PEREZ CAMARGO": "R.C 1097142670", "BENJAMIN RINCON PINILLA": "R.C 1097158946", "MIA PRADA SERPA": "R.C 1099431271", "JHON EMANUEL GUTIERREZ LIZCANO": "T.I 1014743978", "JOSE MANUEL ACEVEDO TRIANA": "C.C 1005162342", "SAMUEL ALEJANDRO PARDO CRESPO": "R.C 1102395249", "ARTURO ALMEIDA MANZANO": "R.C 1097510405", "VALERY MARIN MENDOZA": "T.I 1097122000", "JUANA VALENTINA PENA MUNOZ": "T.I 1098077728", "FERNANDO GALVAN MUNOZ": "T.I 1098805073", "MARIA JOSE ARDILA CORREA": "T.I 1142718165", "ALEJANDRO GALVAN QUIJANO": "T.I 1127211096", "HERNAN JOSE LIZARAZO AYALA": "R.C 1097307398", "JUAN CAMILO OBREGON MALDONADO": "R.C 1098082103", "GIA MARIANA RUEDA QUIROZ": "T.I 1221465518", "EMANUEL GARCIA VILLAMIZAR": "T.I 1097136155", "JUAN PABLO TOLOZA DIAZ": "C.C 1096539049", "JUAN ANDRES MEDINA BARRERA": "R.C 1097145767", "GLORIA LEON BERMUDEZ": "C.C 37839698", "IVY  HELENA ROMERO MATEUS": "T.I 1097133404", "DELCY RODRIGUEZ BURBANO": "C.C 63349837", "SARA LUCIANA SAAVEDRA MESA": "R.C 1097158330", "MARIA LUCIA DOMINGUEZ RUBIO": "R.C 1095965392", "MARIAPAZ VELANDIA DIAZ": "R.C 1239093431", "ARIANA GABRIELA BARRERA JAIMES": "R.C 1014747797", "MIGUEL ANGEL ROBAYO AGUILLON": "T.I 1097785909", "JUAN PABLO ROBAYO AGUILLON": "C.C 1098807285", "LUCIO MATTEO CRUZ CONTRERAS": "R.C 1097512980", "HERNANDO RODRIGUEZ OCHOA": "C.C 4191593", "FRANCO VILLAMIZAR ORDONEZ": "R.C 1096704777", "SARA SOFIA BENAVIDES CAMARGO": "T.I 1097131386", "OSCAR ARMANDO RUIZ CASTRO": "C.C 79052224", "CRISTIAN ANDRES RODRIGUEZ BURBANO": "T.I 1097502012", "SAMUEL DUARTE ROJAS": "R.C 1095960873", "SEBASTIAN GABRIEL MONTOYA CHAMORRO": "T.I 1027152530", "JHAN SEBASTIAN VANEGAS DURAN": "C.C 1102385621", "IVETTE LUCIA PINTO BORJA": "C.C 63351591", "JUAN MARTIN VALERO ALVARADO": "C.C 91253040", "LUCIA QUINTERO DOMINGUEZ": "T.I 1095935525", "THOMAS SANTIAGO AMOROCHO VILLABONA": "T.I 1099424197", "MARIA FERNANDA SANCHEZ CALDERON": "C.C 1095795711", "MARIA LUCIA GOMEZ RUIZ": "R.C 1097511282", "JHOAN SEBASTIAN GUALDRON IBARRA": "C.C 1095832960", "CARLOS MANUEL GARCIA OSORIO": "T.I 1098717354", "ALEJANDRO ARENAS ROCHA": "T.I 1097787471", "ARMANDO RAFAEL CALDERON GRANADOS": "C.C 1098609831", "JERONIMO DELGADO PORRAS": "R.C 1098741811", "MIA DELGADO PORRAS": "R.C 1222255449", "ANGELA SOFIA LEON BARAJAS": "T.I 1097915747", "SALOME QUINTERO OVIEDO": "T.I 1097123998", "SAMUEL QUINTERO OVIEDO": "R.C 1142725688", "ANGEL DANIEL CASTRO LIZCANO": "T.I 1097501417", "YASSER DANIEL CARVAJAL JIMENEZ": "T.I 1142716485", "SARA LUCIA PATERNINA GONZALEZ": "T.I 1097132656", "JESUS SANTIAGO NINO BASTO": "T.I 1115738355", "JERONIMO FRANCO SILVA": "T.I 1098075410", "ERICH THOMAS ORTIZ OSORIO": "R.C 1095323257", "SALOMON FONSECA APARICIO": "R.C 1102646874", "JULIETA CASTELLANOS CACERES": "T.I 1142721063", "EMILIO CARO ORTIZ": "T.I 1095849111", "MANUEL EDUARDO MARTINEZ AMADOR": "T.I 1097120384", "ANDREA CAMILA GOMEZ TORRES": "T.I 1097113203", "ESTEBAN CONTRERAS RODRIGUEZ": "T.I 1099423434", "ANGEL DAVID MENDOZA TAPIAS": "T.I 1099423409", "DANNA SHARLOTT E.E QUIROGA SANDOVAL": "T.I 1099785899", "VERONICA GALVIS LIMBRUNNER": "R.C 1098833103", "JUAN GUILLERMO MARTINEZ OJEDA": "C.C 13827491", "MARIANA BAUTISTA MEJIA": "T.I 1095583300", "ANDRES CAMILO ARAQUE BERMON": "T.I 1092544378", "MARIA ANTONIA CAETANO PRADA": "T.I 1125599079", "ABRIL HERNANDEZ SANCHEZ": "T.I 1097130941", "JUANA MARIA ARIZA TARAZONA": "T.I 1102641342", "SIMON ALEJANDRO CORONEL NINO": "T.I 1033117200", "JUAN PABLO CORONEL NINO": "T.I 1033120946", "IKER SANTIAGO ARCHILA JAIMES": "R.C 1097151908", "ALEJANDRA PRADA GUTIERREZ": "T.I 1095315027", "MATEO GARCIA UTRERA": "T.I 1097739160", "NATALIA GUAYACAN ARIAS": "T.I 1097140370", "MARIA JOSE JIMENEZ PARRA": "T.I 1099427512", "MIGUEL EDUARDO HERRERA LEON": "R.C 1097796215", "CAMILA ALEJANDRA LEON VANEGAS": "C.C 1091670605", "BELVA CRISTINA MORANTES RANGEL": "C.C 37751638", "JUAN DIEGO CANAL PARADA": "T.I 1094271241", "ALEJANDRO PRADA GUTIERREZ": "T.I 1095316609", "CATALINA MANTILLA GOMEZ": "T.I 1098828403", "OWEN CAMILO NINO NEIRA": "T.I 1099426341", "YAIDY KATHERIN CALDERON TARAZONA": "C.C 1095304287", "MARIA ALEJANDRA CABALLERO INFANTE": "T.I 1142720453", "LUKAS ARANGO ABRIL": "R.C 1097922083", "AINKARIN LUCIA CANAS CARRILLO": "T.I 1095311025", "SAMUEL DELGADO LOPEZ": "R.C 1146338370", "MARIANA LUCIA VARGAS PLATA": "T.I 1055524536", "DAVID ALEJANDRO SARMIENTO VESGA": "T.I 1097788874", "THOMAS GARAY": "T.I 1032465604", "JOHAN LEONARDO CESPEDES BADILLO": "C.C 1005321084", "ALMA ZOE BERNAL LOZANO": "R.C 1239092570", "CRISTIAN LEONARDO BOHORQUEZ CUCHA": "C.C 1057711177", "SAMUEL SALVATORE VINCENZO MARTINEZ OLAVE": "R.C 1239090480", "ALVARO AUGUSTO PAEZ ARTEAGA": "C.C 91235688", "ALEJANDRO ACEVEDO SILVA": "T.I 1096704162", "SALOME PRADO SANDOVAL": "T.I 1095843930", "MATIAS OSWALDO PRADA SARMIENTO": "T.I 1097792886", "BERNARDA BALLESTEROS GOMEZ": "C.C 63322594", "MAXIMILIANO VARGAS CARDENAS": "R.C 1142727462", "LILI DAHIANA BECERRA GARCIA": "C.C 1091666682", "JACOBO PINEDA ALVAREZ": "T.I 1097129405", "JERONIMO MONTOYA GOMEZ": "T.I 1097140061", "MARCO JAVIER DE JESUS HERNANDEZ MELENDEZ": "T.I 1096702631", "ANGIE GABRIELA PABON ORTEGA": "T.I 63525152", "TOMAS SANTIAGO PEREIRA VARGAS": "R.C 1239089228", "LEIDY PAOLA MARINO LEON": "C.C 1095703997", "SARA RAMIREZ CONTRERAS": "R.C 1097143427", "SAMANTHA CASTRO LIZCANO": "T.I 1097509164", "SANTIAGO GUERRERO TAVERA": "R.C 1218467269", "SERGIO ANDRES GIL MORENO": "C.C 1007590484", "JUAN SEBASTIAN GUERRERO TAVERA": "R.C 1220478027", "ANDREA CATALINA HINCAPIE GONZALEZ": "C.C 1098707257", "DIANA CAROLINA PARRA ZAFRA": "C.C 1095909444", "ANA SOFIA ARIAS CALVETE": "R.C 1005105544", "ILONA STREITHORST": "R.C 1097794911", "YECITHY ALEJANDRO SANCHEZ BECERRA": "T.I 1097503604", "ANGELICA MARIA ACEVEDO GALVIS": "C.C 1098812082", "JERONIMO MARTINEZ CESPEDES": "T.I 1142719983", "JUAN JOSE VEGA ORTIZ": "T.I 0", "SANTIAGO SEBASTIAN CHAVES JAIMES": "T.I 1142722372", "LUIS FELIPE HERRERA SUAREZ": "R.C 1097156662", "CALEB PINEDA ALVAREZ": "R.C 1239090032", "ANDRES ARENAS SANTOS": "C.C 1098776945", "CLAUDIA LUCILA RODRIGUEZ PINILLA": "C.C 63323103", "MIGUEL MAURICIO CASTRO MARTINEZ": "T.I 1097124060", "AMELIE PEDRAZA RINCON": "T.I 1097504491", "ANLY ISABELLA VILLAMIZAR DELGADO": "T.I 1096074292", "DANNA GABRIELA LOZADA ARCHILA": "T.I 1097505574", "ISABELLA AGUILLON PENARANDA": "R.C 1098837509", "DIANA ALEJANDRA GUEVARA DURAN": "T.I 1097132450"};
+
+function normDoc(s) {
+  return s.normalize ? s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim() : s.toUpperCase().trim();
+}
+
+function getDoc(nombre) {
+  return PROC_DOC_MAP[normDoc(nombre)] || "";
+}
+
+function initProceso() {
+  // Poblar selector de clases del profesor
+  var sel = document.getElementById('proc-clase');
+  if (!sel) return;
+  var mis = myClases();
+  sel.innerHTML = '<option value="">— Selecciona una clase —</option>'
+    + mis.map(function(c){
+        return '<option value="' + c.id + '">' + c.programa + ' — ' + c.clase + ' (' + c.hora + ')</option>';
+      }).join('');
+
+  var lp = document.getElementById('proc-profesor-label');
+  var lf = document.getElementById('proc-fecha-label');
+  if (lp) lp.textContent = CU.name + ' ' + CU.surname;
+  if (lf) lf.textContent = new Date().toLocaleDateString('es-CO');
+
+  document.getElementById('proc-estudiantes-list').innerHTML = '';
+  var sw = document.getElementById('proc-save-wrap');
+  if (sw) sw.style.display = 'none';
+}
+
+function renderProcesoForm() {
+  renderProcesoEstudiantes();
+}
+
+function renderProcesoEstudiantes() {
+  var claseId   = document.getElementById('proc-clase').value;
+  var revision  = document.getElementById('proc-revision').value;
+  var lista     = document.getElementById('proc-estudiantes-list');
+  var saveWrap  = document.getElementById('proc-save-wrap');
+
+  if (!claseId) {
+    lista.innerHTML = '<div class="card" style="text-align:center;padding:24px;color:var(--tm)">Selecciona una clase para ver los estudiantes</div>';
+    if (saveWrap) saveWrap.style.display = 'none';
+    return;
+  }
+
+  var claseObj = CLASES_AM.find(function(c){ return c.id === claseId; });
+  if (!claseObj) return;
+
+  var revLabel = revision === '1' ? '1ª Revisión' : '2ª Revisión';
+
+  lista.innerHTML = claseObj.estudiantes.map(function(nombre, i) {
+    // Buscar datos guardados previos
+    var prev = procesoData.find(function(r){
+      return r.estudiante === nombre && r.claseId === claseId && r.revision === revision;
+    });
+    var obs  = prev ? prev.observaciones : '';
+    var pct  = prev ? prev.porcentaje : '';
+
+    // Obtener instrumento del estudiante
+    var estObj = EST_AM.find(function(e){ return e.nombre.toLowerCase() === nombre.toLowerCase(); });
+    var instrumento = '';
+    if (estObj) {
+      for (var ci = 0; ci < (estObj.clases || []).length; ci++) {
+        if (estObj.clases[ci].clase && estObj.clases[ci].clase.toLowerCase().indexOf('instrumento') >= 0) {
+          instrumento = estObj.clases[ci].clase;
+          break;
+        }
+      }
+    }
+
+    return '<div class="card" style="margin-bottom:12px" id="proc-card-' + i + '">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:6px">'
+      + '<div>'
+      + '<div style="font-weight:700;font-size:13px;color:var(--gd)">' + nombre + '</div>'
+      + (instrumento ? '<div style="font-size:10px;color:var(--go);margin-top:2px">🎸 ' + instrumento + '</div>' : '')
+      + '</div>'
+      + '<span class="badge ' + (prev ? 'bg' : 'bo') + '" style="font-size:10px">' + (prev ? '✅ Guardado' : revLabel) + '</span>'
+      + '</div>'
+      + '<div style="display:grid;gap:10px">'
+      + '<div>'
+      + '<span class="lbl">Observaciones</span>'
+      + '<textarea class="tex inp" id="proc-obs-' + i + '" rows="3" placeholder="Observaciones sobre el proceso del estudiante...">' + obs + '</textarea>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:12px">'
+      + '<div style="flex:1">'
+      + '<span class="lbl">Porcentaje de progreso (%)</span>'
+      + '<input type="number" class="inp" id="proc-pct-' + i + '" min="0" max="100" placeholder="0–100" value="' + pct + '" style="width:100%">'
+      + '</div>'
+      + '<div style="text-align:center;min-width:70px">'
+      + '<div id="proc-bar-' + i + '" style="height:8px;background:var(--br);border-radius:4px;margin-top:20px;overflow:hidden">'
+      + '<div style="height:100%;width:' + (pct || 0) + '%;background:var(--go);transition:width .3s"></div>'
+      + '</div>'
+      + '<div style="font-size:10px;color:var(--tm);margin-top:3px" id="proc-pct-label-' + i + '">' + (pct ? pct + '%' : '') + '</div>'
+      + '</div>'
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  // Live update de la barra de progreso
+  claseObj.estudiantes.forEach(function(_, i) {
+    var inp = document.getElementById('proc-pct-' + i);
+    if (inp) inp.addEventListener('input', function() {
+      var v = Math.min(100, Math.max(0, parseInt(this.value) || 0));
+      var bar = document.getElementById('proc-bar-' + i);
+      var lbl = document.getElementById('proc-pct-label-' + i);
+      if (bar) bar.querySelector('div').style.width = v + '%';
+      if (lbl) lbl.textContent = v + '%';
+    });
+  });
+
+  if (saveWrap) saveWrap.style.display = 'block';
+}
+
+function guardarProceso() {
+  var claseId  = document.getElementById('proc-clase').value;
+  var revision = document.getElementById('proc-revision').value;
+  if (!claseId) { notify('⚠️ Selecciona una clase'); return; }
+
+  var claseObj = CLASES_AM.find(function(c){ return c.id === claseId; });
+  if (!claseObj) return;
+
+  var profesor = CU.name + ' ' + CU.surname;
+  var fecha    = new Date().toLocaleDateString('es-CO');
+  var revLabel = revision === '1' ? '1ª Revisión' : '2ª Revisión';
+  var guardados = 0;
+
+  claseObj.estudiantes.forEach(function(nombre, i) {
+    var obs = (document.getElementById('proc-obs-' + i) || {value:''}).value.trim();
+    var pct = (document.getElementById('proc-pct-' + i) || {value:''}).value.trim();
+    if (!obs && !pct) return; // saltar si está vacío
+
+    // Obtener datos del estudiante
+    var estObj = EST_AM.find(function(e){ return e.nombre.toLowerCase() === nombre.toLowerCase(); });
+    var programa    = estObj ? (estObj.programas[0] || '') : '';
+    var instrumento = '';
+    if (estObj) {
+      for (var ci = 0; ci < (estObj.clases || []).length; ci++) {
+        if (estObj.clases[ci].clase && estObj.clases[ci].clase.toLowerCase().indexOf('instrumento') >= 0) {
+          instrumento = estObj.clases[ci].clase;
+          break;
+        }
+      }
+    }
+
+    var rec = {
+      id: 'proc_' + claseId + '_' + revision + '_' + i,
+      revision:      revision,
+      revisionLabel: revLabel,
+      claseId:       claseId,
+      clase:         claseObj.clase,
+      programa:      programa,
+      instrumento:   instrumento,
+      estudiante:    nombre,
+      documento:     getDoc(nombre),
+      observaciones: obs,
+      porcentaje:    pct,
+      profesor:      profesor,
+      fecha:         fecha
+    };
+
+    // Actualizar o insertar en localStorage
+    var idx = procesoData.findIndex(function(r){
+      return r.claseId === claseId && r.revision === revision && r.estudiante === nombre;
+    });
+    if (idx >= 0) procesoData[idx] = rec;
+    else procesoData.push(rec);
+
+    // Enviar a Sheets via form POST
+    enviarProcesoSheets(rec);
+    guardados++;
+  });
+
+  localStorage.setItem('mu_proceso', JSON.stringify(procesoData));
+  notify('✅ ' + guardados + ' registros guardados — ' + revLabel);
+  renderProcesoEstudiantes(); // Refresh badges
+}
+
+function enviarProcesoSheets(rec) {
+  var url = gsUrl();
+  if (!url) return;
+
+  var iframeName = '_proc_' + Date.now();
+  var iframe = document.createElement('iframe');
+  iframe.name = iframeName;
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  var form = document.createElement('form');
+  form.method  = 'POST';
+  form.action  = url;
+  form.target  = iframeName;
+  form.enctype = 'application/x-www-form-urlencoded';
+  form.style.display = 'none';
+
+  var campos = {
+    action:       'guardar_proceso',
+    revision:     rec.revisionLabel,
+    fecha:        rec.fecha,
+    programa:     rec.programa,
+    clase:        rec.clase,
+    instrumento:  rec.instrumento,
+    estudiante:   rec.estudiante,
+    documento:    rec.documento || '',
+    observaciones:rec.observaciones,
+    porcentaje:   rec.porcentaje,
+    profesor:     rec.profesor
+  };
+  Object.keys(campos).forEach(function(k) {
+    var inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = k; inp.value = campos[k];
+    form.appendChild(inp);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+  setTimeout(function() {
+    if (form.parentNode)   form.parentNode.removeChild(form);
+    if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+  }, 8000);
+}
+
 
 // ============================================================
 // PESTAÑA: CALENDARIO
