@@ -1081,9 +1081,12 @@ async function viewSolicitudes(main){
   }
 
   const clases = puedeCrear ? await DB.getClasesByProfesor(SOL.profesorId) : [];
+  SOL.clasesDisponibles = clases;
   SOL.itemsCatalogo = await DB.getCatalogoItems();
   if(!SOL.dia) SOL.dia = new Date().toISOString().slice(0,10);
   if(!SOL.claseId || !clases.find(c=>c.id===SOL.claseId)) SOL.claseId = clases[0]?.id || null;
+  if(!SOL.salon) SOL.salon = clases.find(c=>c.id===SOL.claseId)?.salon_defecto || "";
+  if(!SOL.hora) SOL.hora = clases.find(c=>c.id===SOL.claseId)?.hora_defecto || "";
   suscribirSolicitudesEnVivo();
 
   main.innerHTML = `
@@ -1092,19 +1095,19 @@ async function viewSolicitudes(main){
     <div class="card">
       ${session.rol==="coordinadora" ? `
         <label>Profesor</label>
-        <select onchange="SOL.profesorId=this.value; SOL.claseId=null; loadTab('solicitudes')">
+        <select onchange="SOL.profesorId=this.value; SOL.claseId=null; SOL.salon=''; SOL.hora=''; loadTab('solicitudes')">
           ${profesores.map(p=>`<option value="${p.id}" ${p.id===SOL.profesorId?"selected":""}>${p.nombre}</option>`).join("")}
         </select>` : ""}
       <div class="grid-2">
         <div>
           <label>Clase</label>
-          <select onchange="SOL.claseId=this.value">
+          <select onchange="onClaseSolicitudChange(this.value)">
             ${clases.map(c=>`<option value="${c.id}" ${c.id===SOL.claseId?"selected":""}>${c.nombre}</option>`).join("") || `<option value="">Sin clases</option>`}
           </select>
           <label>Salón</label>
-          <input type="text" placeholder="Ej: Salón 204" oninput="SOL.salon=this.value">
+          <input id="solSalonInput" type="text" placeholder="Ej: Salón 204" value="${SOL.salon || clases.find(c=>c.id===SOL.claseId)?.salon_defecto || ""}" oninput="SOL.salon=this.value">
           <label>Hora de la clase</label>
-          <input type="time" oninput="SOL.hora=this.value; refreshCatalogo()">
+          <input id="solHoraInput" type="time" value="${SOL.hora || clases.find(c=>c.id===SOL.claseId)?.hora_defecto || ""}" oninput="SOL.hora=this.value; refreshCatalogo()">
         </div>
         <div>
           <label>Jornada</label>
@@ -1134,6 +1137,16 @@ async function viewSolicitudes(main){
   }, 15000);
   if(puedeCrear) await refreshCatalogo();
   await renderListaSolicitudes();
+}
+
+function onClaseSolicitudChange(claseId){
+  SOL.claseId = claseId;
+  const clase = (SOL.clasesDisponibles || []).find(c => c.id === claseId);
+  const salonInput = document.getElementById("solSalonInput");
+  const horaInput = document.getElementById("solHoraInput");
+  if(salonInput){ salonInput.value = clase?.salon_defecto || ""; SOL.salon = salonInput.value; }
+  if(horaInput){ horaInput.value = clase?.hora_defecto || ""; SOL.hora = horaInput.value; }
+  refreshCatalogo();
 }
 
 async function refreshCatalogo(){
